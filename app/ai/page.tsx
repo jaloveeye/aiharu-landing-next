@@ -1,3 +1,25 @@
+export const metadata = {
+  title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
+  description:
+    "AI하루는 매일 한 문장으로 배우는 AI 개념, 프롬프트 예제, 도구 추천, 일상 활용 팁 등 똑똑한 지식을 쉽게 제공합니다.",
+  keywords: "AI, 인공지능, 하루, 프롬프트, 도구 추천, GPT, LLM, ai하루, aiharu",
+  openGraph: {
+    title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
+    description:
+      "AI하루는 매일 한 문장으로 배우는 AI 개념, 프롬프트 예제, 도구 추천, 일상 활용 팁 등 똑똑한 지식을 쉽게 제공합니다.",
+    type: "website",
+    url: "https://aiharu.net/ai",
+    images: [
+      {
+        url: "/og-aiharu.png",
+        width: 1200,
+        height: 630,
+        alt: "AI하루 - aiharu.net",
+      },
+    ],
+  },
+};
+
 export default function AiPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 px-4 py-20">
