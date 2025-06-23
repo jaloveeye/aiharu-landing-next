@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import fs from "fs";
 import path from "path";
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -5,11 +6,7 @@ import matter from "gray-matter";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
-interface Props {
-  params: { date: string };
-}
-
-export default function AiDailyDetailPage({ params }: Props) {
+export default async function AiDailyDetailPage({ params }: { params: any }) {
   const filePath = path.join(
     process.cwd(),
     "content/ai-daily",
