@@ -1,5 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Title, Body } from "@/components/ui/Typography";
+import Button from "@/components/ui/Button";
 
 export default function Home() {
   return (
@@ -13,14 +15,37 @@ export default function Home() {
           className="mb-2 rounded-xl shadow-sm mt-12"
           priority
         />
-        <h1 className="text-4xl sm:text-6xl font-bold text-gray-800 text-center">
-          <span>오늘의 하루를</span>
-          <br className="sm:hidden" />
-          <span className="block mb-4"></span>
+        <Title>
+          오늘의 하루를
+          <br />
           <span className="text-green-500">더 똑똑하고</span>{" "}
           <span className="text-yellow-500">따뜻하게</span>
-        </h1>
+        </Title>
         <div className="flex flex-col gap-1 text-center mt-2">
+          <Body className="font-medium">
+            ai하루는 매일 하나의{" "}
+            <span className="text-green-500 font-semibold">AI</span>를 배웁니다.
+          </Body>
+          <Body className="font-medium">
+            아이하루는 매일 하나의{" "}
+            <span className="text-yellow-500 font-semibold">습관</span>을
+            만듭니다.
+          </Body>
+        </div>
+        <Body>
+          aiharu는 <span className="font-semibold text-green-500">AI</span>와{" "}
+          <span className="font-semibold text-yellow-500">아이</span>의 하루를
+          모두 담아,
+          <br />
+          기술과 감성이 어우러진 특별한 일상을 선물합니다.
+        </Body>
+        <div className="flex gap-4 mt-4">
+          <Button as="a" href="/child" variant="secondary">
+            아이하루 가기
+          </Button>
+          <Button as="a" href="/ai" variant="primary">
+            AI하루 가기
+          </Button>
           <span className="text-base sm:text-lg text-gray-500 font-medium">
             ai하루는 매일 하나의{" "}
             <span className="text-green-500 font-semibold">AI</span>를 배웁니다.

@@ -1,3 +1,6 @@
+import { Title, Body } from "@/components/ui/Typography";
+import Button from "@/components/ui/Button";
+
 export const metadata = {
   title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
   description:
@@ -24,7 +27,7 @@ export default function AiPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 px-4 py-20">
       <main className="flex flex-col items-center gap-8">
-        <h1 className="text-4xl sm:text-5xl font-bold text-green-600 text-center drop-shadow-md">
+        <Title>
           AI하루
           <br />
           <span className="text-lg font-normal text-green-800 block mt-2">
@@ -32,26 +35,25 @@ export default function AiPage() {
             <br />
             매일 새로운 지식과 습관을 만들어가요.
           </span>
-        </h1>
-        <div className="bg-white border border-green-200 rounded-xl p-6 shadow max-w-lg text-center text-green-700">
+        </Title>
+        <Body className="bg-white border border-green-200 rounded-xl p-6 shadow max-w-lg text-center text-green-700">
           곧 AI 기반 식단 분석, 맞춤형 추천, 학습 리포트 등 다양한 기능이 제공될
           예정입니다.
           <br />
           <span className="font-semibold">조금만 기다려 주세요!</span>
-        </div>
+        </Body>
         <div className="flex gap-4 mt-2">
-          <a
-            href="/ai/daily"
-            className="px-6 py-3 rounded-full bg-green-600 hover:bg-green-500 text-white text-lg font-semibold shadow-sm transition-colors"
-          >
+          <Button as="a" href="/ai/daily" variant="primary">
             오늘의 ai하루 보기
-          </a>
-          <a
+          </Button>
+          <Button
+            as="a"
             href="/ai/prompts"
-            className="px-6 py-3 rounded-full bg-white border border-green-400 text-green-700 text-lg font-semibold shadow-sm transition-colors hover:bg-green-50"
+            variant="secondary"
+            className="text-green-700 bg-white border border-green-400 hover:bg-green-50"
           >
             프롬프트 모음
-          </a>
+          </Button>
         </div>
       </main>
     </div>
