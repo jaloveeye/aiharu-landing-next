@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# aiharu-landing-next
 
-## Getting Started
+오늘의 하루를 더 똑똑하고 따뜻하게
 
-First, run the development server:
+aiharu는 'AI와 하루', '아이와 하루'의 의미를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물하는 서비스입니다.
+
+## ✨ 주요 특징
+
+- 감성적이고 따뜻한 랜딩 페이지 디자인
+- Next.js 14, Tailwind CSS 기반
+- AI(지능)와 아이(따뜻함)의 조화로운 메시지
+- 반응형, 모바일 친화적 UI
+
+## 🚀 시작하기
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 [http://localhost:3000](http://localhost:3000) 으로 접속하면 랜딩 페이지를 확인할 수 있습니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🖼️ 이미지 관리
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 대용량 이미지는 git에 직접 포함하지 않고, 별도 파일 공유 또는 외부 URL(예: GitHub Releases, Imgur 등)로 관리합니다.
+- public 폴더에 이미지를 직접 넣을 경우, .gitignore에 추가해 git에는 포함되지 않도록 합니다.
 
-## Learn More
+## 🛠️ 주요 파일 구조
 
-To learn more about Next.js, take a look at the following resources:
+- `app/page.tsx` : 메인 랜딩 페이지
+- `app/layout.tsx` : 글로벌 레이아웃 및 메타데이터(타이틀, 파비콘 등)
+- `public/` : 정적 파일(파비콘, 일러스트 등)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 💡 기여 및 문의
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 아이디어, 피드백, 버그 제보는 언제든 환영합니다!
+- [GitHub Issues](https://github.com/jaloveeye/aiharu-landing-next/issues)로 남겨주세요.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+함께하는 하루, aiharu

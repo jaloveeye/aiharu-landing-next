@@ -14,8 +14,9 @@ export default function Home() {
           priority
         />
         <h1 className="text-4xl sm:text-6xl font-bold text-gray-800 text-center">
-          오늘의 하루를
+          <span>오늘의 하루를</span>
           <br className="sm:hidden" />
+          <span className="block mb-4"></span>
           <span className="text-green-500">더 똑똑하고</span>{" "}
           <span className="text-yellow-500">따뜻하게</span>
         </h1>
