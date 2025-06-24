@@ -16,7 +16,7 @@ export default function Home() {
           priority
         />
         <Title>
-          오늘의 하루를
+          오늘 하루를
           <br />
           <span className="text-green-500">더 똑똑하고</span>{" "}
           <span className="text-yellow-500">따뜻하게</span>
