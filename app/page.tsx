@@ -23,7 +23,7 @@ export default function Home() {
         </Title>
         <div className="flex flex-col gap-1 text-center mt-2">
           <Body className="font-medium">
-            ai하루는 매일 하나의{" "}
+            AI하루는 매일 하나의{" "}
             <span className="text-green-500 font-semibold">AI</span>를 배웁니다.
           </Body>
           <Body className="font-medium">
@@ -33,36 +33,12 @@ export default function Home() {
           </Body>
         </div>
         <Body>
-          aiharu는 <span className="font-semibold text-green-500">AI</span>와{" "}
+          <span className="font-semibold text-green-500">AI</span>와{" "}
           <span className="font-semibold text-yellow-500">아이</span>의 하루를
           모두 담아,
           <br />
           기술과 감성이 어우러진 특별한 일상을 선물합니다.
         </Body>
-        <div className="flex gap-4 mt-4">
-          <Button as="a" href="/child" variant="secondary">
-            아이하루 가기
-          </Button>
-          <Button as="a" href="/ai" variant="primary">
-            AI하루 가기
-          </Button>
-          <span className="text-base sm:text-lg text-gray-500 font-medium">
-            ai하루는 매일 하나의{" "}
-            <span className="text-green-500 font-semibold">AI</span>를 배웁니다.
-          </span>
-          <span className="text-base sm:text-lg text-gray-500 font-medium">
-            아이하루는 매일 하나의{" "}
-            <span className="text-yellow-500 font-semibold">습관</span>을
-            만듭니다.
-          </span>
-        </div>
-        <p className="text-lg sm:text-2xl text-gray-600 text-center max-w-xl mt-2">
-          aiharu는 <span className="font-semibold text-green-500">AI</span>와{" "}
-          <span className="font-semibold text-yellow-500">아이</span>의 하루를
-          모두 담아,
-          <br />
-          기술과 감성이 어우러진 특별한 일상을 선물합니다.
-        </p>
         <div className="flex gap-4 mt-4">
           <Link
             href="/child"
