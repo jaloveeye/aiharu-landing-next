@@ -56,7 +56,7 @@ export default function Home() {
       </main>
       <div className="w-full max-w-xl mx-auto mt-16 mb-4">
         <hr className="border-t border-gray-200 mb-4" />
-        <footer className="flex flex-col items-center gap-2 text-gray-400 text-sm">
+        <footer className="flex flex-col items-center gap-2 text-gray-700 text-sm">
           <span>
             Made with <span className="text-red-400">❤️</span> by aiharu
           </span>

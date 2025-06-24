@@ -39,7 +39,7 @@ export function Body({
 }) {
   return (
     <p
-      className={`text-lg sm:text-2xl text-gray-600 text-center max-w-xl mt-2 ${className}`}
+      className={`text-lg sm:text-2xl text-gray-800 text-center max-w-xl mt-2 ${className}`}
     >
       {children}
     </p>
@@ -54,6 +54,6 @@ export function Caption({
   className?: string;
 }) {
   return (
-    <span className={`text-xs text-gray-500 ${className}`}>{children}</span>
+    <span className={`text-xs text-yellow-700 ${className}`}>{children}</span>
   );
 }

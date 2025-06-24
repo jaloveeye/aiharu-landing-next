@@ -1,5 +1,6 @@
 import { Title, Body } from "@/components/ui/Typography";
 import CarouselSection from "./CarouselSection";
+import BreakfastPreview from "./BreakfastPreview";
 
 export const metadata = {
   title: "아이하루 - 아이와 부모가 함께 만드는 하루 습관 | aiharu.net",
@@ -172,6 +173,8 @@ export default function ChildPage() {
         </div>
         {/* 상세설명 캐러셀 */}
         <CarouselSection cards={cards} />
+        {/* 아침 식단 미리보기 */}
+        <BreakfastPreview />
       </main>
     </div>
   );
