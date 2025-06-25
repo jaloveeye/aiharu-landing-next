@@ -40,18 +40,12 @@ export default function Home() {
           기술과 감성이 어우러진 특별한 일상을 선물합니다.
         </Body>
         <div className="flex gap-4 mt-4">
-          <Link
-            href="/child"
-            className="px-8 py-3 rounded-full bg-yellow-400 hover:bg-yellow-300 text-white text-lg font-semibold shadow-sm transition-colors"
-          >
+          <Button as="a" href="/child" variant="secondary">
             아이하루 가기
-          </Link>
-          <Link
-            href="/ai"
-            className="px-8 py-3 rounded-full bg-green-500 hover:bg-green-400 text-white text-lg font-semibold shadow-sm transition-colors"
-          >
+          </Button>
+          <Button as="a" href="/ai" variant="primary">
             AI하루 가기
-          </Link>
+          </Button>
         </div>
       </main>
       <div className="w-full max-w-xl mx-auto mt-16 mb-4">

@@ -31,7 +31,7 @@ export default function Button(props: Props) {
       : "bg-yellow-400 hover:bg-yellow-300";
   if (as === "a") {
     return (
-      <a className={`${base} ${color} ${className}`} {...rest}>
+      <a className={`${base} ${color} !text-white ${className}`} {...rest}>
         {children}
       </a>
     );

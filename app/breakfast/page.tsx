@@ -1,13 +1,22 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 
-function getTodayKey() {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, "0");
-  const dd = String(today.getDate()).padStart(2, "0");
-  return `breakfastAnalyzed_${yyyy}${mm}${dd}`;
+function isValidUUID(id: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    id
+  );
+}
+
+function getAnonId() {
+  if (typeof window === "undefined") return "";
+  let id = localStorage.getItem("anon_id") || "";
+  if (!isValidUUID(id)) {
+    id = uuidv4();
+    localStorage.setItem("anon_id", id);
+  }
+  return id;
 }
 
 export default function BreakfastPage() {
@@ -16,31 +25,40 @@ export default function BreakfastPage() {
     const [result, setResult] = useState("");
     const [loading, setLoading] = useState(false);
     const [alreadyAnalyzed, setAlreadyAnalyzed] = useState(false);
+    const [anonId, setAnonId] = useState("");
 
     useEffect(() => {
       if (typeof window !== "undefined") {
-        const key = getTodayKey();
-        setAlreadyAnalyzed(!!localStorage.getItem(key));
+        setAnonId(getAnonId());
       }
     }, []);
+
+    useEffect(() => {
+      if (!anonId) return;
+      // Supabase에서 오늘 분석 여부 확인 (meal 없이 anon_id만 전달)
+      fetch(`/api/analyze-meal?anon_id=${anonId}`)
+        .then((res) => res.json())
+        .then((data) => setAlreadyAnalyzed(!!data.analyzed));
+    }, [anonId]);
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
       setLoading(true);
       setResult("");
-      const res = await fetch("/api/analyze", {
+      const res = await fetch("/api/analyze-meal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meal }),
+        body: JSON.stringify({ meal, anon_id: anonId }),
       });
       const data = await res.json();
-      setResult(data.result || data.error);
+      setResult(
+        data.result ||
+          (typeof data.error === "object"
+            ? JSON.stringify(data.error, null, 2)
+            : data.error)
+      );
       setLoading(false);
-
-      // 분석 성공 시 오늘 날짜로 localStorage에 기록 + 즉시 비활성화
-      if (typeof window !== "undefined" && data.result) {
-        const key = getTodayKey();
-        localStorage.setItem(key, "1");
+      if (data.result) {
         setAlreadyAnalyzed(true);
       }
     };
@@ -54,7 +72,7 @@ export default function BreakfastPage() {
           오늘의 아침 식단을 기록해보세요
         </h2>
         <textarea
-          className="border rounded p-2"
+          className="border rounded p-2 text-gray-800 placeholder-gray-400"
           rows={3}
           value={meal}
           onChange={(e) => setMeal(e.target.value)}
