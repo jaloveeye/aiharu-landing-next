@@ -67,7 +67,12 @@ export default function BreakfastPreview() {
   }, []);
 
   useEffect(() => {
-    // 로그인된 사용자는 email 기준, 비로그인 사용자는 anon_id 기준으로 최신 분석 결과 조회
+    // 상태 초기화
+    setAnalyzedAt("");
+    setAlreadyAnalyzed(false);
+    setMeal("");
+    setConclusion("");
+
     const query = userEmail
       ? `/api/analyze-meal?email=${encodeURIComponent(userEmail)}&latest=1`
       : anonId
@@ -93,11 +98,18 @@ export default function BreakfastPreview() {
   }, [userEmail, anonId]);
 
   useEffect(() => {
-    // 로그인된 사용자 정보 가져오기
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       setUserEmail(data?.user?.email ?? null);
     });
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUserEmail(session?.user?.email ?? null);
+      }
+    );
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -147,22 +159,6 @@ export default function BreakfastPreview() {
 
   return (
     <>
-      {userEmail && (
-        <div
-          className="w-full flex justify-center items-center mb-4 gap-2 bg-blue-50 border border-blue-200 rounded-lg py-2 px-4 shadow text-base font-semibold text-blue-800"
-          style={{ position: "relative", top: "-24px", zIndex: 10 }}
-        >
-          <span>
-            로그인: <b>{userEmail}</b>
-          </span>
-          <button
-            onClick={handleLogout}
-            className="ml-2 px-4 py-2 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded hover:bg-blue-100 transition-colors"
-          >
-            로그아웃
-          </button>
-        </div>
-      )}
       <div className="bg-white border border-yellow-200 rounded-xl p-6 shadow max-w-md w-full flex flex-col gap-4 mt-8 mx-auto items-center text-center">
         <form
           onSubmit={handleSubmit}
@@ -193,7 +189,7 @@ export default function BreakfastPreview() {
           >
             {loading ? "분석 중..." : "식단 분석하기"}
           </Button>
-          {alreadyAnalyzed && (
+          {alreadyAnalyzed && !userEmail && (
             <>
               <div className="text-red-500 text-sm text-center mt-2 font-bold">
                 무료 분석은 1회만 가능합니다. 다시 분석하려면 회원가입이
@@ -208,6 +204,11 @@ export default function BreakfastPreview() {
                 회원가입 하러 가기
               </Button>
             </>
+          )}
+          {alreadyAnalyzed && userEmail && (
+            <div className="text-blue-600 text-sm text-center mt-2 font-bold">
+              오늘은 이미 분석을 완료했습니다. 내일 다시 시도해 주세요.
+            </div>
           )}
         </form>
         {errorMsg && (

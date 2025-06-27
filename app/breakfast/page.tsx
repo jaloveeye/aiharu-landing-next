@@ -44,6 +44,14 @@ export default function BreakfastPage() {
       supabase.auth.getUser().then(({ data }) => {
         setUserEmail(data?.user?.email ?? null);
       });
+      const { data: listener } = supabase.auth.onAuthStateChange(
+        (_event, session) => {
+          setUserEmail(session?.user?.email ?? null);
+        }
+      );
+      return () => {
+        listener?.subscription.unsubscribe();
+      };
     }, []);
 
     useEffect(() => {
@@ -115,22 +123,6 @@ export default function BreakfastPage() {
 
     return (
       <>
-        {userEmail && (
-          <div
-            className="w-full flex justify-center items-center mb-4 gap-2 bg-blue-50 border border-blue-200 rounded-lg py-2 px-4 shadow text-base font-semibold text-blue-800"
-            style={{ position: "relative", top: "-24px", zIndex: 10 }}
-          >
-            <span>
-              로그인: <b>{userEmail}</b>
-            </span>
-            <button
-              onClick={handleLogout}
-              className="ml-2 px-4 py-2 text-xs font-bold text-blue-700 bg-white border border-blue-300 rounded hover:bg-blue-100 transition-colors"
-            >
-              로그아웃
-            </button>
-          </div>
-        )}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-4 max-w-md mx-auto mt-20 w-full"
@@ -167,7 +159,7 @@ export default function BreakfastPage() {
               {errorMsg}
             </div>
           )}
-          {alreadyAnalyzed && (
+          {alreadyAnalyzed && !userEmail && (
             <>
               <div className="text-red-500 text-sm text-center mt-2 font-bold">
                 무료 분석은 1회만 가능합니다. 다시 분석하려면 회원가입이
@@ -182,6 +174,11 @@ export default function BreakfastPage() {
                 회원가입 하러 가기
               </Button>
             </>
+          )}
+          {alreadyAnalyzed && userEmail && (
+            <div className="text-blue-600 text-sm text-center mt-2 font-bold">
+              오늘은 이미 분석을 완료했습니다. 내일 다시 시도해 주세요.
+            </div>
           )}
           {result && (
             <div>

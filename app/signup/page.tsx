@@ -31,6 +31,15 @@ export default function SignupPage() {
       }
     } else {
       setSuccess(true);
+      // anon_id → email 매핑
+      const anonId = localStorage.getItem("anon_id");
+      if (anonId && email) {
+        await fetch("/api/map-anon-to-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ anon_id: anonId, email }),
+        });
+      }
     }
   };
 
