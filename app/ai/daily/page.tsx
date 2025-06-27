@@ -43,6 +43,12 @@ export default function AiDailyListPage() {
   const posts = getAllDailyContents();
   return (
     <div className="min-h-screen flex flex-col items-center bg-green-50 px-4 py-20">
+      <Link
+        href="/"
+        className="self-start mb-4 text-green-700 hover:underline flex items-center gap-1 text-sm"
+      >
+        ← 홈으로 돌아가기
+      </Link>
       <main className="flex flex-col items-center gap-8 w-full max-w-2xl">
         <h1 className="text-3xl sm:text-4xl font-bold text-green-600 text-center drop-shadow-md mb-4">
           오늘의 ai 아카이브

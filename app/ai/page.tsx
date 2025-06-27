@@ -1,5 +1,6 @@
 import { Title, Body } from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
+import Link from "next/link";
 
 export const metadata = {
   title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
@@ -26,6 +27,12 @@ export const metadata = {
 export default function AiPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 px-4 py-20">
+      <Link
+        href="/"
+        className="self-start mb-4 text-green-700 hover:underline flex items-center gap-1 text-sm"
+      >
+        ← 홈으로 돌아가기
+      </Link>
       <main className="flex flex-col items-center gap-8">
         <Title>
           AI하루

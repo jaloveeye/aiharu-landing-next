@@ -163,12 +163,29 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
+  const id = searchParams.get("id");
   const anon_id = searchParams.get("anon_id");
   const email = searchParams.get("email");
   const meal = searchParams.get("meal");
   const latest = searchParams.get("latest");
   const today = new Date().toISOString().slice(0, 10);
   const supabase = createClient(cookies());
+
+  // 분석 상세(id) 조회: 가장 먼저 처리
+  if (id) {
+    const { data, error } = await supabase
+      .from("meal_analysis")
+      .select("meal_text, result, analyzed_at, email")
+      .eq("id", id)
+      .maybeSingle();
+    if (error) {
+      return NextResponse.json({ error: error?.message }, { status: 500 });
+    }
+    if (!data) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+    return NextResponse.json(data);
+  }
 
   // 로그인된 사용자(email) 기준 최신 분석 결과 조회
   if (email && latest === "1") {
@@ -179,7 +196,7 @@ export async function GET(req: NextRequest) {
       .order("analyzed_at", { ascending: false })
       .limit(1);
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error?.message }, { status: 500 });
     }
     if (data && data.length > 0) {
       return NextResponse.json({
@@ -192,6 +209,20 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // 로그인된 사용자(email) 분석 히스토리 조회 (최근 30개)
+  if (email && !latest) {
+    const { data, error } = await supabase
+      .from("meal_analysis")
+      .select("id, meal_text, result, analyzed_at")
+      .eq("email", email)
+      .order("analyzed_at", { ascending: false })
+      .limit(30);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ history: data });
+  }
+
   // 비회원(anon_id) 기준 최신 분석 결과 조회
   if (anon_id && latest === "1") {
     const { data, error } = await supabase
@@ -201,7 +232,7 @@ export async function GET(req: NextRequest) {
       .order("analyzed_at", { ascending: false })
       .limit(1);
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error?.message }, { status: 500 });
     }
     if (data && data.length > 0) {
       return NextResponse.json({

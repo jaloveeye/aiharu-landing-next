@@ -1,6 +1,7 @@
 import { Title, Body } from "@/components/ui/Typography";
 import CarouselSection from "./CarouselSection";
 import BreakfastPreview from "./BreakfastPreview";
+import Link from "next/link";
 
 export const metadata = {
   title: "아이하루 - 아이와 부모가 함께 만드는 하루 습관 | aiharu.net",
@@ -50,6 +51,12 @@ export default function ChildPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-yellow-50 px-4 py-20">
+      <Link
+        href="/"
+        className="self-start mb-4 text-yellow-700 hover:underline flex items-center gap-1 text-sm"
+      >
+        ← 홈으로 돌아가기
+      </Link>
       <main className="flex flex-col items-center gap-8 w-full">
         <Title>아이와 부모가 함께 만드는 하루 습관</Title>
         <Body>칭찬과 피드백으로 자라는 성장 여정</Body>

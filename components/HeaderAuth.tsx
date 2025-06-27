@@ -31,6 +31,12 @@ export default function HeaderAuth() {
       {userEmail && (
         <div className="flex items-center gap-2 text-sm text-blue-800">
           <span>{userEmail}</span>
+          <a
+            href="/history"
+            className="ml-2 px-3 py-1 text-xs font-bold text-yellow-700 bg-yellow-50 border border-yellow-300 rounded hover:bg-yellow-100 transition-colors"
+          >
+            분석 내역
+          </a>
           <button
             onClick={handleLogout}
             className="ml-2 px-3 py-1 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-300 rounded hover:bg-blue-100 transition-colors"

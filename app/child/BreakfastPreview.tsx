@@ -59,6 +59,9 @@ export default function BreakfastPreview() {
   const [mealInput, setMealInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [history, setHistory] = useState<
+    { meal_text: string; result: string; analyzed_at: string }[]
+  >([]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -111,6 +114,18 @@ export default function BreakfastPreview() {
       listener?.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (userEmail) {
+      fetch(`/api/analyze-meal?email=${encodeURIComponent(userEmail)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.history) setHistory(data.history);
+        });
+    } else {
+      setHistory([]);
+    }
+  }, [userEmail]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -249,6 +264,8 @@ export default function BreakfastPreview() {
           </div>
         )}
       </div>
+      {/* 분석 히스토리 */}
+      {/* 히스토리 전용 페이지로 이동됨 */}
     </>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import Button from "@/components/ui/Button";
 import { createClient } from "@/app/utils/supabase/client";
+import Link from "next/link";
 
 function isValidUUID(id: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -123,6 +124,12 @@ export default function BreakfastPage() {
 
     return (
       <>
+        <Link
+          href="/"
+          className="self-start mb-4 text-yellow-700 hover:underline flex items-center gap-1 text-sm"
+        >
+          ← 홈으로 돌아가기
+        </Link>
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-4 max-w-md mx-auto mt-20 w-full"

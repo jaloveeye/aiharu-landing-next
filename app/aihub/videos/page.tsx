@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Card from "@/components/ui/Card";
 import { Title, Body } from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
+import Link from "next/link";
 
 interface Video {
   videoId: string;
@@ -27,7 +28,13 @@ export default function AihubVideosPage() {
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4 py-20">
+      <Link
+        href="/"
+        className="self-start mb-4 text-green-700 hover:underline flex items-center gap-1 text-sm"
+      >
+        ← 홈으로 돌아가기
+      </Link>
       <Title className="mb-6 text-green-700">AI 관련 유튜브 영상</Title>
       {loading ? (
         <div className="text-center text-gray-400">로딩 중...</div>

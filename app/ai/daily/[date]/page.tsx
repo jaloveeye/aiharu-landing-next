@@ -20,13 +20,13 @@ export default async function AiDailyDetailPage({ params }: { params: any }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-green-50 px-4 py-20">
+      <Link
+        href="/ai/daily"
+        className="self-start mb-4 text-green-700 hover:underline flex items-center gap-1 text-sm"
+      >
+        ← 오늘의 ai하루로 돌아가기
+      </Link>
       <main className="flex flex-col items-center gap-8 w-full max-w-2xl">
-        <Link
-          href="/ai/daily"
-          className="self-start mb-2 text-green-600 hover:underline flex items-center gap-1 text-sm"
-        >
-          ← 아카이브로 돌아가기
-        </Link>
         <h1 className="text-3xl sm:text-4xl font-bold text-green-600 text-center drop-shadow-md mb-4">
           {data.title}
         </h1>
