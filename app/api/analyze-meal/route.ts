@@ -43,18 +43,82 @@ async function analyzeWithOpenAI(meal: string): Promise<string> {
 
 export async function POST(req: NextRequest) {
   try {
-    const { meal, anon_id } = await req.json();
+    const { meal, anon_id, email } = await req.json();
     const normalizedMeal = normalizeMeal(meal);
     const today = new Date().toISOString().slice(0, 10);
     const supabase = createClient(cookies());
 
-    // 1. DB에서 기존 결과 조회 (이제 meal_text 없이 anon_id+analyzed_at만 체크)
-    const { data: existing } = await supabase
-      .from("meal_analysis")
-      .select("result")
-      .eq("anon_id", anon_id)
-      .eq("analyzed_at", today)
-      .limit(1);
+    if (email) {
+      // 회원: 매일 1회 분석 가능
+      // 오늘 분석한 적이 있으면 차단
+      const { data: todayData, error: todayError } = await supabase
+        .from("meal_analysis")
+        .select("result, analyzed_at")
+        .eq("email", email)
+        .eq("analyzed_at", today)
+        .limit(1);
+      if (todayError) {
+        return NextResponse.json(
+          { error: todayError.message },
+          { status: 500 }
+        );
+      }
+      if (todayData && todayData.length > 0) {
+        return NextResponse.json(
+          {
+            result: todayData[0].result,
+            lastAnalyzedAt: todayData[0].analyzed_at,
+            limitReached: true,
+            error: "오늘은 이미 분석을 완료했습니다. 내일 다시 시도해 주세요.",
+          },
+          { status: 403 }
+        );
+      }
+    } else {
+      // 비회원: 전체 1회만 분석 가능
+      const { data: prevData, error: prevError } = await supabase
+        .from("meal_analysis")
+        .select("result, analyzed_at")
+        .eq("anon_id", anon_id)
+        .order("analyzed_at", { ascending: false })
+        .limit(1);
+      if (prevError) {
+        return NextResponse.json({ error: prevError.message }, { status: 500 });
+      }
+      if (prevData && prevData.length > 0) {
+        // 이미 분석 이력이 있으면 마지막 분석 결과를 반환하고, 회원가입 유도 메시지 포함
+        return NextResponse.json(
+          {
+            result: prevData[0].result,
+            lastAnalyzedAt: prevData[0].analyzed_at,
+            limitReached: true,
+            error:
+              "무료 분석 1회를 모두 사용하셨습니다. 회원가입 후 계속 이용하세요.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // 1. DB에서 기존 결과 조회 (이제 meal_text 없이 anon_id+analyzed_at 또는 email+analyzed_at 체크)
+    let existing;
+    if (email) {
+      const { data } = await supabase
+        .from("meal_analysis")
+        .select("result")
+        .eq("email", email)
+        .eq("analyzed_at", today)
+        .limit(1);
+      existing = data;
+    } else {
+      const { data } = await supabase
+        .from("meal_analysis")
+        .select("result")
+        .eq("anon_id", anon_id)
+        .eq("analyzed_at", today)
+        .limit(1);
+      existing = data;
+    }
 
     if (existing && existing.length > 0) {
       return NextResponse.json({ result: existing[0].result, cached: true });
@@ -64,23 +128,16 @@ export async function POST(req: NextRequest) {
     const result = await analyzeWithOpenAI(meal);
 
     // 3. 결과 저장
-    console.log({
-      anon_id,
+    const insertObj: any = {
       meal_text: normalizedMeal,
-      result,
-      resultType: typeof result,
+      result: typeof result === "string" ? result : JSON.stringify(result),
       analyzed_at: today,
-    });
+    };
+    if (email) insertObj.email = email;
+    if (anon_id) insertObj.anon_id = anon_id;
     const { data, error, status } = await supabase
       .from("meal_analysis")
-      .insert([
-        {
-          anon_id,
-          meal_text: normalizedMeal,
-          result: typeof result === "string" ? result : JSON.stringify(result),
-          analyzed_at: today,
-        },
-      ]);
+      .insert([insertObj]);
 
     if (error) {
       console.error(
@@ -107,9 +164,55 @@ export async function POST(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const anon_id = searchParams.get("anon_id");
+  const email = searchParams.get("email");
   const meal = searchParams.get("meal");
+  const latest = searchParams.get("latest");
   const today = new Date().toISOString().slice(0, 10);
   const supabase = createClient(cookies());
+
+  // 로그인된 사용자(email) 기준 최신 분석 결과 조회
+  if (email && latest === "1") {
+    const { data, error } = await supabase
+      .from("meal_analysis")
+      .select("result, analyzed_at")
+      .eq("email", email)
+      .order("analyzed_at", { ascending: false })
+      .limit(1);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (data && data.length > 0) {
+      return NextResponse.json({
+        result: data[0].result,
+        lastAnalyzedAt: data[0].analyzed_at,
+        analyzed: true,
+      });
+    } else {
+      return NextResponse.json({ analyzed: false });
+    }
+  }
+
+  // 비회원(anon_id) 기준 최신 분석 결과 조회
+  if (anon_id && latest === "1") {
+    const { data, error } = await supabase
+      .from("meal_analysis")
+      .select("result, analyzed_at")
+      .eq("anon_id", anon_id)
+      .order("analyzed_at", { ascending: false })
+      .limit(1);
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    if (data && data.length > 0) {
+      return NextResponse.json({
+        result: data[0].result,
+        lastAnalyzedAt: data[0].analyzed_at,
+        analyzed: true,
+      });
+    } else {
+      return NextResponse.json({ analyzed: false });
+    }
+  }
 
   if (anon_id && !meal) {
     // 오늘 분석한 식단이 하나라도 있으면 true
