@@ -69,7 +69,29 @@ export default function BreakfastPage() {
           if (data.result) {
             setResult(data.result);
             setAnalyzedAt(data.lastAnalyzedAt);
-            setAlreadyAnalyzed(true);
+            if (userEmail) {
+              // 로그인 사용자는 오늘 분석한 경우에만 true
+              const analyzedDate = new Date(data.lastAnalyzedAt);
+              const today = new Date();
+              const isToday =
+                analyzedDate.getFullYear() === today.getFullYear() &&
+                analyzedDate.getMonth() === today.getMonth() &&
+                analyzedDate.getDate() === today.getDate();
+              console.log(
+                "[DEBUG] analyzedAt:",
+                data.lastAnalyzedAt,
+                "analyzedDate:",
+                analyzedDate,
+                "today:",
+                today,
+                "isToday:",
+                isToday
+              );
+              setAlreadyAnalyzed(isToday);
+            } else {
+              // 비로그인 사용자는 한 번이라도 분석했으면 true
+              setAlreadyAnalyzed(true);
+            }
           } else {
             setResult("");
             setAnalyzedAt("");
