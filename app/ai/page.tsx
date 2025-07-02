@@ -26,6 +26,9 @@ export const metadata = {
   },
 };
 
+/**
+ * AI하루 메인 페이지
+ */
 export default function AiPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-green-50 px-4 py-20">

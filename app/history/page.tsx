@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/app/utils/supabase/client";
 import Link from "next/link";
+import Alert from "@/components/ui/Alert";
 
+/**
+ * 분석 히스토리(목록) 페이지
+ */
 export default function HistoryPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
@@ -14,16 +18,13 @@ export default function HistoryPage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("[HISTORY] useEffect: checking session...");
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
-      console.log("[HISTORY] getUser result:", data);
       setUserEmail(data?.user?.email ?? null);
       setChecking(false);
     });
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
-        console.log("[HISTORY] onAuthStateChange:", session);
         setUserEmail(session?.user?.email ?? null);
         setChecking(false);
       }
@@ -34,15 +35,12 @@ export default function HistoryPage() {
   }, [router]);
 
   useEffect(() => {
-    console.log("[HISTORY] checking:", checking, "userEmail:", userEmail);
     if (!checking && !userEmail) {
-      console.log("[HISTORY] redirecting to login");
       router.replace("/login?redirect=/history");
     }
   }, [checking, userEmail, router]);
 
   useEffect(() => {
-    console.log("[HISTORY] userEmail changed:", userEmail);
     if (userEmail) {
       setLoading(true);
       fetch(`/api/analyze-meal?email=${encodeURIComponent(userEmail)}`)

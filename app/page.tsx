@@ -3,6 +3,9 @@ import Image from "next/image";
 import { Title, Body } from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
 
+/**
+ * 서비스 랜딩(홈) 페이지
+ */
 export default function Home() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
@@ -14,6 +17,7 @@ export default function Home() {
           height={280}
           className="mb-2 rounded-xl shadow-sm mt-12"
           priority
+          aria-label="행복한 가족 일러스트"
         />
         <Title>
           오늘 하루를
@@ -40,10 +44,15 @@ export default function Home() {
           기술과 감성이 어우러진 특별한 일상을 선물합니다.
         </Body>
         <div className="flex gap-4 mt-4">
-          <Button as="a" href="/child" variant="secondary">
+          <Button
+            as="a"
+            href="/child"
+            variant="secondary"
+            aria-label="아이하루 가기"
+          >
             아이하루 가기
           </Button>
-          <Button as="a" href="/ai" variant="primary">
+          <Button as="a" href="/ai" variant="primary" aria-label="AI하루 가기">
             AI하루 가기
           </Button>
         </div>

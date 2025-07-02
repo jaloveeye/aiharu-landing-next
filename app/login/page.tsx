@@ -3,6 +3,7 @@ import { useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import Input from "@/components/ui/Input";
 import { useRouter } from "next/navigation";
+import Alert from "@/components/ui/Alert";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -56,6 +57,7 @@ export default function LoginPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
+          aria-label="이메일 입력"
         />
         <Input
           type="password"
@@ -65,22 +67,18 @@ export default function LoginPage() {
           required
           minLength={6}
           autoComplete="current-password"
+          aria-label="비밀번호 입력"
         />
         <button
           type="submit"
           className="bg-blue-500 hover:bg-blue-600 text-white rounded px-4 py-2"
           disabled={loading}
+          aria-label="로그인 버튼"
         >
           {loading ? "로그인 중..." : "로그인"}
         </button>
-        {errorMsg && (
-          <div className="text-red-500 text-sm text-center">{errorMsg}</div>
-        )}
-        {success && (
-          <div className="text-green-600 text-sm text-center">
-            로그인 성공! 환영합니다.
-          </div>
-        )}
+        {errorMsg && <Alert variant="error">{errorMsg}</Alert>}
+        {success && <Alert variant="success">로그인 성공! 환영합니다.</Alert>}
       </form>
     </div>
   );

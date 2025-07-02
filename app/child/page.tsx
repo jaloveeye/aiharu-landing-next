@@ -27,6 +27,9 @@ export const metadata = {
   },
 };
 
+/**
+ * 아이하루 대시보드 및 습관 관리 메인 페이지
+ */
 export default function ChildPage() {
   const cards = [
     {

@@ -5,7 +5,11 @@ import { createClient } from "@/app/utils/supabase/client";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import Alert from "@/components/ui/Alert";
 
+/**
+ * 분석 상세 페이지
+ */
 export default function HistoryDetailPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
