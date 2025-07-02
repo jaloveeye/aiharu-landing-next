@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/app/utils/supabase/client";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function HistoryDetailPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -88,7 +90,9 @@ export default function HistoryDetailPage() {
             <div>
               <div className="text-green-700 font-bold mb-1">분석 결과</div>
               <div className="text-green-900 whitespace-pre-line break-words">
-                {detail.result}
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {detail.result}
+                </ReactMarkdown>
               </div>
             </div>
           </div>
