@@ -30,21 +30,82 @@ function normalizeMeal(meal: string): string {
     .join(",");
 }
 
+// OpenAI Vision 결과에서 음식명/양을 추출해 meal_text로 변환
+function extractMealTextFromResult(result: string): string {
+  // 1. "이 음식은 ...로 구성되어 있습니다." 문장 추출
+  const match = result.match(/이 음식은 ([^\n]+)로 구성되어 있습니다/);
+  if (match && match[1]) {
+    // 쉼표로 분리
+    return match[1]
+      .split(",")
+      .map((s) => s.trim())
+      .join(", ");
+  }
+  // 2. 번호 매긴 항목 추출 (예: 1. **우유 (약 200ml)**)
+  const lines = result.split(/\n/);
+  const items = lines
+    .map((line) => {
+      const m = line.match(/\*\*(.+?)\*\*\s*\((.+?)\)/);
+      if (m) return `${m[1]} ${m[2]}`;
+      return null;
+    })
+    .filter(Boolean);
+  if (items.length > 0) return items.join(", ");
+  // 3. 백업: 첫 2~3줄
+  return lines.slice(0, 2).join(" ");
+}
+
 // 실제 OpenAI 분석 함수로 교체 필요
-async function analyzeWithOpenAI(meal: string): Promise<string> {
-  const prompt = `아래는 초등학교 1학년 아동의 아침 식단입니다. 각 식단 항목별로 예상 영양소(탄수화물, 단백질, 지방, 식이섬유, 칼슘 등)를 추정해 표로 정리하고, 전체 식단의 영양 균형을 평가한 뒤, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.\n\n식단: ${meal}`;
-  const chat = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.7,
-  });
-  return chat.choices[0].message.content || "";
+async function analyzeWithOpenAI(
+  meal: string,
+  imageBase64?: string
+): Promise<{ result: string; sourceType: "image" | "text" }> {
+  const systemPrompt =
+    "당신은 아동 식사 영양사입니다. 초등학교 1학년 아동의 아침 식사로 적절한지 평가해주세요.";
+  if (imageBase64) {
+    const userPrompt = `분석한 식단: (아래 사진을 보고 추정한 결과입니다)\n1. 사진 속 음식 구성을 \"분석한 식단: ...\" 형식으로 한 줄로 요약해 주세요.\n2. 각 항목별로 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리해 주세요.\n3. 전체 식단의 영양 균형을 평가하고, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.`;
+    const chat = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: userPrompt },
+            {
+              type: "image_url",
+              image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
+            },
+          ],
+        },
+      ],
+      temperature: 0.7,
+    });
+    return {
+      result: chat.choices[0].message.content || "",
+      sourceType: "image",
+    };
+  } else {
+    const userPrompt = `분석한 식단: (직접 입력한 결과입니다)\n1. 아래 식단을 \"분석한 식단: ...\" 형식으로 한 줄로 요약해 주세요.\n2. 각 항목별로 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리해 주세요.\n3. 전체 식단의 영양 균형을 평가하고, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.\n\n식단: ${meal}`;
+    const chat = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+      temperature: 0.7,
+    });
+    return {
+      result: chat.choices[0].message.content || "",
+      sourceType: "text",
+    };
+  }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { meal, anon_id, email } = await req.json();
-    const normalizedMeal = normalizeMeal(meal);
+    const { meal, anon_id, email, imageBase64 } = await req.json();
+    const normalizedMeal = normalizeMeal(meal || "");
     const today = new Date().toISOString().slice(0, 10);
     const supabase = createClient(cookies());
 
@@ -124,14 +185,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result: existing[0].result, cached: true });
     }
 
-    // 2. OpenAI로 분석 (실제 분석 함수로 교체 필요)
-    const result = await analyzeWithOpenAI(meal);
+    // 2. OpenAI로 분석 (이미지/텍스트)
+    const { result, sourceType } = await analyzeWithOpenAI(meal, imageBase64);
 
     // 3. 결과 저장
+    const mealTextToSave =
+      normalizedMeal || (imageBase64 ? extractMealTextFromResult(result) : "");
     const insertObj: any = {
-      meal_text: normalizedMeal,
+      meal_text: mealTextToSave,
       result: typeof result === "string" ? result : JSON.stringify(result),
       analyzed_at: today,
+      source_type: sourceType,
     };
     if (email) insertObj.email = email;
     if (anon_id) insertObj.anon_id = anon_id;
@@ -151,7 +215,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error, status, data }, { status: 500 });
     }
 
-    return NextResponse.json({ result, cached: false });
+    return NextResponse.json({ result, sourceType, cached: false });
   } catch (error: any) {
     console.error("POST /api/analyze-meal error:", error);
     return NextResponse.json(
@@ -213,7 +277,7 @@ export async function GET(req: NextRequest) {
   if (email && !latest) {
     const { data, error } = await supabase
       .from("meal_analysis")
-      .select("id, meal_text, result, analyzed_at")
+      .select("id, meal_text, result, analyzed_at, source_type")
       .eq("email", email)
       .order("analyzed_at", { ascending: false })
       .limit(30);

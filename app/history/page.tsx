@@ -12,7 +12,13 @@ export default function HistoryPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
   const [history, setHistory] = useState<
-    { id: number; meal_text: string; result: string; analyzed_at: string }[]
+    {
+      id: number;
+      meal_text: string;
+      result: string;
+      analyzed_at: string;
+      source_type?: string;
+    }[]
   >([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
@@ -82,6 +88,16 @@ export default function HistoryPage() {
               >
                 <Link href={`/history/${h.id}`} className="block px-2 py-1">
                   <div className="text-xs text-gray-500 mb-1">
+                    {h.source_type === "image" && (
+                      <span title="사진 분석" className="mr-1">
+                        📷
+                      </span>
+                    )}
+                    {h.source_type === "text" && (
+                      <span title="직접 입력" className="mr-1">
+                        ✍️
+                      </span>
+                    )}
                     {h.analyzed_at}
                   </div>
                   <div className="text-yellow-800 font-semibold mb-1 truncate">

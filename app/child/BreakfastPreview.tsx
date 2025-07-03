@@ -64,6 +64,11 @@ export default function BreakfastPreview() {
     { meal_text: string; result: string; analyzed_at: string }[]
   >([]);
   const [isReady, setIsReady] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
+  const [imageBase64, setImageBase64] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
+  const [sourceType, setSourceType] = useState<"image" | "text" | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -95,7 +100,7 @@ export default function BreakfastPreview() {
     setAlreadyAnalyzed(false);
     setMeal("");
     setConclusion("");
-
+    setSourceType(null);
     // anonId 또는 userEmail이 세팅되기 전에는 실행하지 않음
     if (!isReady) return;
     if (userEmail === undefined || (!userEmail && !anonId)) return;
@@ -113,6 +118,7 @@ export default function BreakfastPreview() {
           setMeal(meal);
           setConclusion(conclusion);
           setAnalyzedAt(data.lastAnalyzedAt);
+          setSourceType(data.sourceType || null);
           if (userEmail) {
             // 로그인 사용자는 오늘 분석한 경우에만 true
             const analyzedDate = new Date(data.lastAnalyzedAt);
@@ -131,6 +137,7 @@ export default function BreakfastPreview() {
           setConclusion("");
           setAnalyzedAt("");
           setAlreadyAnalyzed(false);
+          setSourceType(null);
         }
       });
   }, [userEmail, anonId, isReady]);
@@ -151,10 +158,11 @@ export default function BreakfastPreview() {
     e.preventDefault();
     setLoading(true);
     setErrorMsg("");
+    setSourceType(null);
     // 분석 시도
     const body = userEmail
-      ? { meal: mealInput, anon_id: anonId, email: userEmail }
-      : { meal: mealInput, anon_id: anonId };
+      ? { meal: mealInput, anon_id: anonId, email: userEmail, imageBase64 }
+      : { meal: mealInput, anon_id: anonId, imageBase64 };
     const res = await fetch("/api/analyze-meal", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -171,6 +179,7 @@ export default function BreakfastPreview() {
       setConclusion("");
       setAnalyzedAt(data.lastAnalyzedAt || "");
       setAlreadyAnalyzed(true);
+      setSourceType(data.sourceType || null);
       return;
     }
     if (data.result) {
@@ -180,8 +189,10 @@ export default function BreakfastPreview() {
       setAnalyzedAt(data.lastAnalyzedAt || "");
       setAlreadyAnalyzed(true);
       setErrorMsg("");
+      setSourceType(data.sourceType || null);
     } else {
       setErrorMsg(data.error || "분석에 실패했습니다.");
+      setSourceType(null);
     }
   };
 
@@ -211,9 +222,77 @@ export default function BreakfastPreview() {
               value={mealInput}
               onChange={(e) => setMealInput(e.target.value)}
               placeholder="예: 닭가슴살 50g, 바나나 1개, 우유 200ml"
-              required
+              required={!imageBase64}
               disabled={loading || alreadyAnalyzed || userEmail === undefined}
             />
+            <div className="flex flex-col gap-2 w-full">
+              <label className="text-sm font-bold text-gray-800">
+                또는 사진으로 업로드
+              </label>
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                disabled={loading || alreadyAnalyzed || userEmail === undefined}
+                className="file:bg-green-700 file:text-white file:font-bold file:rounded file:px-3 file:py-1 file:border-none file:mr-2 file:cursor-pointer text-gray-800"
+                style={{ background: "#f9fafb" }}
+                onChange={async (e) => {
+                  setImageError("");
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const allowedTypes = [
+                    "image/png",
+                    "image/jpeg",
+                    "image/jpg",
+                    "image/gif",
+                    "image/webp",
+                  ];
+                  if (!allowedTypes.includes(file.type)) {
+                    setImageError(
+                      "지원하지 않는 이미지 형식입니다. png, jpg, gif, webp만 업로드할 수 있습니다."
+                    );
+                    setImageFile(null);
+                    setImagePreview("");
+                    setImageBase64("");
+                    return;
+                  }
+                  setImageFile(file);
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setImagePreview(reader.result as string);
+                    setImageBase64(
+                      (reader.result as string).split(",")[1] || ""
+                    );
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+              {imageError && <Alert variant="error">{imageError}</Alert>}
+              {imagePreview && (
+                <img
+                  src={imagePreview}
+                  alt="업로드된 식단 사진 미리보기"
+                  className="w-32 h-32 object-cover rounded border mt-2 mx-auto"
+                />
+              )}
+              {imageFile && (
+                <button
+                  type="button"
+                  className="text-xs font-bold text-red-600 underline mt-1"
+                  style={{
+                    background: "#fff8f8",
+                    borderRadius: "4px",
+                    padding: "2px 8px",
+                  }}
+                  onClick={() => {
+                    setImageFile(null);
+                    setImagePreview("");
+                    setImageBase64("");
+                  }}
+                >
+                  사진 삭제
+                </button>
+              )}
+            </div>
             <Button
               type="submit"
               variant="primary"
@@ -269,6 +348,16 @@ export default function BreakfastPreview() {
                 <div className="text-yellow-700 text-sm font-semibold whitespace-pre-line mb-2">
                   <span className="block mb-1 text-yellow-500 font-bold">
                     입력한 식단
+                    {sourceType === "image" && (
+                      <span title="사진 분석" className="ml-1">
+                        📷
+                      </span>
+                    )}
+                    {sourceType === "text" && (
+                      <span title="직접 입력" className="ml-1">
+                        ✍️
+                      </span>
+                    )}
                   </span>
                   {meal}
                 </div>
