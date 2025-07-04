@@ -35,6 +35,10 @@ export default function BreakfastPage() {
     const [errorMsg, setErrorMsg] = useState("");
     const [userEmail, setUserEmail] = useState<string | null>(null);
     const [isReady, setIsReady] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string>("");
+    const [imageBase64, setImageBase64] = useState<string>("");
+    const [imageError, setImageError] = useState<string>("");
 
     useEffect(() => {
       if (typeof window !== "undefined") {
@@ -119,8 +123,8 @@ export default function BreakfastPage() {
       setErrorMsg("");
       setResult("");
       const body = userEmail
-        ? { meal, anon_id: anonId, email: userEmail }
-        : { meal, anon_id: anonId };
+        ? { meal, anon_id: anonId, email: userEmail, imageBase64 }
+        : { meal, anon_id: anonId, imageBase64 };
       const res = await fetch("/api/analyze-meal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -178,10 +182,80 @@ export default function BreakfastPage() {
                 value={meal}
                 onChange={(e) => setMeal(e.target.value)}
                 placeholder="예: 닭가슴살 50g, 바나나 1개, 우유 200ml"
-                required
+                required={!imageBase64}
                 disabled={loading || alreadyAnalyzed || userEmail === undefined}
                 aria-label="아침 식단 입력"
               />
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-bold text-gray-800">
+                  또는 사진으로 업로드
+                </label>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/gif,image/webp"
+                  disabled={
+                    loading || alreadyAnalyzed || userEmail === undefined
+                  }
+                  className="file:bg-green-700 file:text-white file:font-bold file:rounded file:px-3 file:py-1 file:border-none file:mr-2 file:cursor-pointer text-gray-800"
+                  style={{ background: "#f9fafb" }}
+                  onChange={async (e) => {
+                    setImageError("");
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const allowedTypes = [
+                      "image/png",
+                      "image/jpeg",
+                      "image/jpg",
+                      "image/gif",
+                      "image/webp",
+                    ];
+                    if (!allowedTypes.includes(file.type)) {
+                      setImageError(
+                        "지원하지 않는 이미지 형식입니다. png, jpg, gif, webp만 업로드할 수 있습니다."
+                      );
+                      setImageFile(null);
+                      setImagePreview("");
+                      setImageBase64("");
+                      return;
+                    }
+                    setImageFile(file);
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                      setImagePreview(reader.result as string);
+                      setImageBase64(
+                        (reader.result as string).split(",")[1] || ""
+                      );
+                    };
+                    reader.readAsDataURL(file);
+                  }}
+                />
+                {imageError && <Alert variant="error">{imageError}</Alert>}
+                {imagePreview && (
+                  <img
+                    src={imagePreview}
+                    alt="업로드된 식단 사진 미리보기"
+                    className="w-32 h-32 object-cover rounded border mt-2"
+                  />
+                )}
+                {imageFile && (
+                  <button
+                    type="button"
+                    className="text-xs font-bold text-red-600 underline mt-1"
+                    style={{
+                      background: "#fff8f8",
+                      borderRadius: "4px",
+                      padding: "2px 8px",
+                    }}
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview("");
+                      setImageBase64("");
+                    }}
+                  >
+                    사진 삭제
+                  </button>
+                )}
+              </div>
               <button
                 type="submit"
                 className={`rounded px-4 py-2 ${

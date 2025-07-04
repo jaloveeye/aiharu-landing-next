@@ -60,32 +60,82 @@ async function analyzeWithOpenAI(
   meal: string,
   imageBase64?: string
 ): Promise<{ result: string; sourceType: "image" | "text" }> {
-  const systemPrompt =
-    "당신은 아동 식사 영양사입니다. 초등학교 1학년 아동의 아침 식사로 적절한지 평가해주세요.";
   if (imageBase64) {
-    const userPrompt = `분석한 식단: (아래 사진을 보고 추정한 결과입니다)\n1. 사진 속 음식 구성을 \"분석한 식단: ...\" 형식으로 한 줄로 요약해 주세요.\n2. 각 항목별로 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리해 주세요.\n3. 전체 식단의 영양 균형을 평가하고, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.`;
-    const chat = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "system", content: systemPrompt },
-        {
-          role: "user",
-          content: [
-            { type: "text", text: userPrompt },
-            {
-              type: "image_url",
-              image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
-            },
-          ],
-        },
-      ],
-      temperature: 0.7,
-    });
-    return {
-      result: chat.choices[0].message.content || "",
-      sourceType: "image",
-    };
+    // Step 1: 음식 구성 추출
+    const systemPrompt = "당신은 식사 영양사입니다.";
+    const userPrompt = `이미지 속 음식 구성을 간단히 분석해 주세요. 사람은 없거나 무시해주세요.`;
+    let foodSummary = "";
+    try {
+      const chat = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: userPrompt },
+              {
+                type: "image_url",
+                image_url: { url: `data:image/jpeg;base64,${imageBase64}` },
+              },
+            ],
+          },
+        ],
+        temperature: 0.7,
+      });
+      foodSummary = chat.choices[0].message.content?.trim() || "";
+      if (
+        !foodSummary ||
+        foodSummary.includes("sorry") ||
+        foodSummary.includes("can't")
+      ) {
+        return {
+          result:
+            "⚠️ 이미지 분석이 차단되었습니다. 사람 얼굴이 보이지 않도록 다시 촬영해 주세요.",
+          sourceType: "image",
+        };
+      }
+    } catch (error: any) {
+      console.error(
+        "OpenAI Vision API Error (Step 1):",
+        error.response?.data || error.message
+      );
+      return {
+        result:
+          "⚠️ 이미지 처리 중 문제가 발생했습니다. 음식만 보이도록 다시 시도해 주세요.",
+        sourceType: "image",
+      };
+    }
+    // Step 2: 초등학교 1학년 식단 평가
+    const systemPrompt2 =
+      "당신은 아동 식사 영양사입니다. 아래 식단이 초등학교 1학년 아동의 아침 식사로 충분한지 평가하고, 부족하다면 보완할 점을 알려주세요.";
+    const userPrompt2 = `식단: ${foodSummary}\n1. 각 항목별 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리\n2. 전체 식단의 영양 균형 평가 및 2~3줄 보완/추천`;
+    try {
+      const chat2 = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: systemPrompt2 },
+          { role: "user", content: userPrompt2 },
+        ],
+        temperature: 0.7,
+      });
+      return {
+        result: chat2.choices[0].message.content || "",
+        sourceType: "image",
+      };
+    } catch (error: any) {
+      console.error(
+        "OpenAI Nutrition API Error (Step 2):",
+        error.response?.data || error.message
+      );
+      return {
+        result: `⚠️ 음식 인식은 성공했으나 영양 평가 중 문제가 발생했습니다.\n인식된 식단: ${foodSummary}`,
+        sourceType: "image",
+      };
+    }
   } else {
+    const systemPrompt =
+      "당신은 아동 식사 영양사입니다. 초등학교 1학년 아동의 아침 식사로 적절한지 평가해주세요.";
     const userPrompt = `분석한 식단: (직접 입력한 결과입니다)\n1. 아래 식단을 \"분석한 식단: ...\" 형식으로 한 줄로 요약해 주세요.\n2. 각 항목별로 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리해 주세요.\n3. 전체 식단의 영양 균형을 평가하고, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.\n\n식단: ${meal}`;
     const chat = await openai.chat.completions.create({
       model: "gpt-4o",
