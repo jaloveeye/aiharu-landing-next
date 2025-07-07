@@ -1,13 +1,9 @@
 "use client";
-import { useState, ReactNode } from "react";
+import { useState } from "react";
+import { CarouselProps } from "./Carousel.types";
 
-interface CarouselProps<T> {
-  items: T[];
-  renderItem: (item: T, idx: number) => ReactNode;
-  minHeight?: string;
-  minWidth?: string;
-  dotColor?: string;
-}
+const BASE_CLASS = "flex flex-col items-center w-full";
+const DOT_CLASS = "w-2.5 h-2.5 rounded-full transition-all";
 
 export default function Carousel<T>({
   items,
@@ -20,10 +16,7 @@ export default function Carousel<T>({
   const prev = () => setIdx((i) => (i === 0 ? items.length - 1 : i - 1));
   const next = () => setIdx((i) => (i === items.length - 1 ? 0 : i + 1));
   return (
-    <div
-      className="flex flex-col items-center w-full"
-      style={{ minWidth, minHeight }}
-    >
+    <div className={BASE_CLASS} style={{ minWidth, minHeight }}>
       <div className="relative w-full" style={{ minHeight }}>
         <button
           aria-label="이전"
@@ -55,9 +48,7 @@ export default function Carousel<T>({
         {items.map((_, i) => (
           <span
             key={i}
-            className={`w-2.5 h-2.5 rounded-full ${
-              i === idx ? dotColor : "bg-yellow-200"
-            } transition-all`}
+            className={`${DOT_CLASS} ${i === idx ? dotColor : "bg-yellow-200"}`}
           />
         ))}
       </div>

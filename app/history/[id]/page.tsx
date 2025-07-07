@@ -6,6 +6,8 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Alert from "@/components/ui/Alert";
+import { useApiData } from "@/app/hooks/useApiData";
+import { ImageIcon, TextIcon } from "@/components/ui/IconAnalysisType";
 
 /**
  * 분석 상세 페이지
@@ -13,13 +15,6 @@ import Alert from "@/components/ui/Alert";
 export default function HistoryDetailPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [checking, setChecking] = useState(true);
-  const [detail, setDetail] = useState<{
-    meal_text: string;
-    result: string;
-    analyzed_at: string;
-    email: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
   const params = useParams();
   const id = params?.id;
@@ -47,17 +42,9 @@ export default function HistoryDetailPage() {
     }
   }, [checking, userEmail, router]);
 
-  useEffect(() => {
-    if (userEmail && id) {
-      setLoading(true);
-      fetch(`/api/analyze-meal?id=${id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setDetail(data);
-          setLoading(false);
-        });
-    }
-  }, [userEmail, id]);
+  const { data, error, isLoading } = useApiData<any>(
+    userEmail && id ? `/api/analyze-meal?id=${id}` : null
+  );
 
   if (checking) return null;
   if (!userEmail) return null;
@@ -74,28 +61,42 @@ export default function HistoryDetailPage() {
         <div className="text-2xl font-bold text-yellow-700 mb-4 text-center">
           분석 상세
         </div>
-        {loading ? (
+        {isLoading ? (
           <div className="text-gray-400 text-center py-8">불러오는 중...</div>
-        ) : !detail ? (
+        ) : error ? (
+          <Alert variant="error">불러오기 실패: {error.message}</Alert>
+        ) : !data ? (
           <div className="text-gray-400 text-center py-8">
             데이터를 찾을 수 없습니다.
           </div>
         ) : (
           <div>
-            <div className="text-xs text-gray-500 mb-2 text-right">
-              {detail.analyzed_at}
+            <div className="flex justify-between items-center mb-2">
+              <div className="text-xs text-gray-500">{data.analyzed_at}</div>
+              {data.source_type && (
+                <span
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${
+                    data.source_type === "image"
+                      ? "bg-blue-100 text-blue-700 border border-blue-200"
+                      : "bg-green-100 text-green-700 border border-green-200"
+                  }`}
+                >
+                  {data.source_type === "image" ? <ImageIcon /> : <TextIcon />}
+                  {data.source_type === "image" ? "이미지" : "텍스트"}
+                </span>
+              )}
             </div>
             <div className="mb-4">
               <div className="text-yellow-700 font-bold mb-1">입력한 식단</div>
               <div className="text-yellow-900 whitespace-pre-line break-words">
-                {detail.meal_text}
+                {data.meal_text}
               </div>
             </div>
             <div>
               <div className="text-green-700 font-bold mb-1">분석 결과</div>
               <div className="text-green-900 whitespace-pre-line break-words">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {detail.result}
+                  {data.result}
                 </ReactMarkdown>
               </div>
             </div>

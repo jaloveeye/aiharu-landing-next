@@ -1,5 +1,14 @@
 import React from "react";
 import clsx from "clsx";
+import { AlertProps, AlertVariant } from "./Alert.types";
+
+const BASE_CLASS =
+  "rounded px-4 py-2 text-center text-sm font-medium border mt-2";
+const COLOR_CLASS: Record<AlertVariant, string> = {
+  error: "bg-red-50 text-red-600 border-red-200",
+  success: "bg-green-50 text-green-700 border-green-200",
+  info: "bg-blue-50 text-blue-700 border-blue-200",
+};
 
 /**
  * 공통 Alert 컴포넌트
@@ -11,18 +20,9 @@ export default function Alert({
   variant = "info",
   children,
   className = "",
-}: {
-  variant?: "error" | "success" | "info";
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const base = "rounded px-4 py-2 text-center text-sm font-medium border mt-2";
-  const color =
-    variant === "error"
-      ? "bg-red-50 text-red-600 border-red-200"
-      : variant === "success"
-      ? "bg-green-50 text-green-700 border-green-200"
-      : "bg-blue-50 text-blue-700 border-blue-200";
+}: AlertProps) {
+  const base = BASE_CLASS;
+  const color = COLOR_CLASS[variant];
   return (
     <div
       className={clsx(base, color, className)}

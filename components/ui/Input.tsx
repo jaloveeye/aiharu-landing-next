@@ -1,15 +1,13 @@
-import { InputHTMLAttributes, forwardRef } from "react";
+import { forwardRef } from "react";
+import { InputProps } from "./Input.types";
 
-const Input = forwardRef<
-  HTMLInputElement,
-  InputHTMLAttributes<HTMLInputElement>
->(({ className = "", ...props }, ref) => (
-  <input
-    ref={ref}
-    className={`border rounded p-2 text-gray-800 ${className}`}
-    {...props}
-  />
-));
+const BASE_CLASS = "border rounded p-2 text-gray-800";
+
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ className = "", ...props }, ref) => (
+    <input ref={ref} className={`${BASE_CLASS} ${className}`} {...props} />
+  )
+);
 Input.displayName = "Input";
 
 export default Input;

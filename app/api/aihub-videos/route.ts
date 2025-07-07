@@ -1,8 +1,9 @@
 // @ts-nocheck
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
+import { requireEnv } from "@/app/utils/checkEnv";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
 const summarizeDescription = async (desc: string) => {
   if (!desc || desc.trim() === "") return "설명이 없습니다.";

@@ -27,8 +27,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="description"
+          content="aiharu - AI와 하루, 아이와 하루의 특별한 일상"
+        />
+        <meta property="og:title" content="aiharu - AI와 하루, 아이와 하루" />
+        <meta
+          property="og:description"
+          content="기술과 감성이 어우러진 특별한 일상, aiharu"
+        />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="/happy-family.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        aria-label="aiharu 랜딩 페이지"
       >
         <HeaderAuth />
         {children}

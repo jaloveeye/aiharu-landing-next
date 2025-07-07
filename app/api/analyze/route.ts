@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { requireEnv } from "@/app/utils/checkEnv";
+import { apiError } from "@/app/utils/apiError";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
 export async function POST(req: NextRequest) {
   const { meal } = await req.json();
 
   if (!meal) {
-    return NextResponse.json({ error: "Missing meal input" }, { status: 400 });
+    return apiError({
+      error: "Missing meal input",
+      userMessage: "식단 정보가 필요합니다.",
+      status: 400,
+    });
   }
 
   const prompt = `
@@ -30,10 +36,9 @@ ${meal}
     const result = chat.choices[0].message.content;
     return NextResponse.json({ result });
   } catch (error) {
-    console.error("OpenAI API Error:", error);
-    return NextResponse.json(
-      { error: "Failed to generate analysis" },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "AI 분석에 실패했습니다. 잠시 후 다시 시도해 주세요.",
+    });
   }
 }

@@ -1,14 +1,19 @@
 import { ReactNode } from "react";
+import { CardProps } from "./Card.types";
+
+const BASE_CLASS = "bg-white rounded-lg shadow p-4";
 
 export default function Card({
   children,
   className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+  "aria-label": ariaLabel,
+}: CardProps) {
   return (
-    <div className={`bg-white rounded-lg shadow p-4 ${className}`}>
+    <div
+      className={`${BASE_CLASS} ${className}`}
+      role="region"
+      aria-label={ariaLabel}
+    >
       {children}
     </div>
   );

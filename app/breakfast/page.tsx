@@ -1,28 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { getAnonId } from "@/app/utils/common";
 import Button from "@/components/ui/Button";
 import { createClient } from "@/app/utils/supabase/client";
 import Link from "next/link";
 import Alert from "@/components/ui/Alert";
 import Spinner from "@/components/ui/Spinner";
-
-function isValidUUID(id: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    id
-  );
-}
-
-function getAnonId() {
-  if (typeof window === "undefined") return "";
-  let id = localStorage.getItem("anon_id") || "";
-  if (!isValidUUID(id)) {
-    id = uuidv4();
-    localStorage.setItem("anon_id", id);
-  }
-  return id;
-}
+import { useApiData } from "@/app/hooks/useApiData";
 
 export default function BreakfastPage() {
   function NutritionForm() {
@@ -64,51 +49,37 @@ export default function BreakfastPage() {
       };
     }, []);
 
+    const { data, error, isLoading } = useApiData<any>(
+      isReady && (userEmail || anonId)
+        ? userEmail
+          ? `/api/analyze-meal?email=${encodeURIComponent(userEmail)}&latest=1`
+          : `/api/analyze-meal?anon_id=${anonId}&latest=1`
+        : null
+    );
+
     useEffect(() => {
-      if (!isReady) return;
-      if (userEmail === undefined || (!userEmail && !anonId)) return;
-      const query = userEmail
-        ? `/api/analyze-meal?email=${encodeURIComponent(userEmail)}&latest=1`
-        : anonId
-        ? `/api/analyze-meal?anon_id=${anonId}&latest=1`
-        : null;
-      if (!query) return;
-      fetch(query)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.result) {
-            setResult(data.result);
-            setAnalyzedAt(data.lastAnalyzedAt);
-            if (userEmail) {
-              // 로그인 사용자는 오늘 분석한 경우에만 true
-              const analyzedDate = new Date(data.lastAnalyzedAt);
-              const today = new Date();
-              const isToday =
-                analyzedDate.getFullYear() === today.getFullYear() &&
-                analyzedDate.getMonth() === today.getMonth() &&
-                analyzedDate.getDate() === today.getDate();
-              console.log(
-                "[DEBUG] analyzedAt:",
-                data.lastAnalyzedAt,
-                "analyzedDate:",
-                analyzedDate,
-                "today:",
-                today,
-                "isToday:",
-                isToday
-              );
-              setAlreadyAnalyzed(isToday);
-            } else {
-              // 비로그인 사용자는 한 번이라도 분석했으면 true
-              setAlreadyAnalyzed(true);
-            }
+      if (!isLoading && data) {
+        if (data.result) {
+          setResult(data.result);
+          setAnalyzedAt(data.lastAnalyzedAt);
+          if (userEmail) {
+            const analyzedDate = new Date(data.lastAnalyzedAt);
+            const today = new Date();
+            const isToday =
+              analyzedDate.getFullYear() === today.getFullYear() &&
+              analyzedDate.getMonth() === today.getMonth() &&
+              analyzedDate.getDate() === today.getDate();
+            setAlreadyAnalyzed(isToday);
           } else {
-            setResult("");
-            setAnalyzedAt("");
-            setAlreadyAnalyzed(false);
+            setAlreadyAnalyzed(true);
           }
-        });
-    }, [userEmail, anonId, isReady]);
+        } else {
+          setResult("");
+          setAnalyzedAt("");
+          setAlreadyAnalyzed(false);
+        }
+      }
+    }, [data, isLoading, userEmail]);
 
     const handleLogout = async () => {
       const supabase = createClient();

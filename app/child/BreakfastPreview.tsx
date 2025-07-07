@@ -4,22 +4,8 @@ import Button from "@/components/ui/Button";
 import { v4 as uuidv4 } from "uuid";
 import { createClient } from "@/app/utils/supabase/client";
 import Alert from "@/components/ui/Alert";
-
-function isValidUUID(id: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-    id
-  );
-}
-
-function getAnonId() {
-  if (typeof window === "undefined") return "";
-  let id = localStorage.getItem("anon_id") || "";
-  if (!isValidUUID(id)) {
-    id = uuidv4();
-    localStorage.setItem("anon_id", id);
-  }
-  return id;
-}
+import { getAnonId } from "@/app/utils/common";
+import { useApiData } from "@/app/hooks/useApiData";
 
 function extractMealAndConclusion(
   result: string,
@@ -94,53 +80,42 @@ export default function BreakfastPreview() {
     };
   }, []);
 
+  const { data, error, isLoading } = useApiData<any>(
+    isReady && (userEmail || anonId)
+      ? userEmail
+        ? `/api/analyze-meal?email=${encodeURIComponent(userEmail)}&latest=1`
+        : `/api/analyze-meal?anon_id=${anonId}&latest=1`
+      : null
+  );
+
   useEffect(() => {
-    // 상태 초기화
-    setAnalyzedAt("");
-    setAlreadyAnalyzed(false);
-    setMeal("");
-    setConclusion("");
-    setSourceType(null);
-    // anonId 또는 userEmail이 세팅되기 전에는 실행하지 않음
-    if (!isReady) return;
-    if (userEmail === undefined || (!userEmail && !anonId)) return;
-    const query = userEmail
-      ? `/api/analyze-meal?email=${encodeURIComponent(userEmail)}&latest=1`
-      : anonId
-      ? `/api/analyze-meal?anon_id=${anonId}&latest=1`
-      : null;
-    if (!query) return;
-    fetch(query)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.result) {
-          const { meal, conclusion } = extractMealAndConclusion(data.result);
-          setMeal(meal);
-          setConclusion(conclusion);
-          setAnalyzedAt(data.lastAnalyzedAt);
-          setSourceType(data.sourceType || null);
-          if (userEmail) {
-            // 로그인 사용자는 오늘 분석한 경우에만 true
-            const analyzedDate = new Date(data.lastAnalyzedAt);
-            const today = new Date();
-            const isToday =
-              analyzedDate.getFullYear() === today.getFullYear() &&
-              analyzedDate.getMonth() === today.getMonth() &&
-              analyzedDate.getDate() === today.getDate();
-            setAlreadyAnalyzed(isToday);
-          } else {
-            // 비로그인 사용자는 한 번이라도 분석했으면 true
-            setAlreadyAnalyzed(true);
-          }
+    if (!isLoading && data) {
+      if (data.result) {
+        const { meal, conclusion } = extractMealAndConclusion(data.result);
+        setMeal(meal);
+        setConclusion(conclusion);
+        setAnalyzedAt(data.lastAnalyzedAt);
+        setSourceType(data.sourceType || null);
+        if (userEmail) {
+          const analyzedDate = new Date(data.lastAnalyzedAt);
+          const today = new Date();
+          const isToday =
+            analyzedDate.getFullYear() === today.getFullYear() &&
+            analyzedDate.getMonth() === today.getMonth() &&
+            analyzedDate.getDate() === today.getDate();
+          setAlreadyAnalyzed(isToday);
         } else {
-          setMeal("");
-          setConclusion("");
-          setAnalyzedAt("");
-          setAlreadyAnalyzed(false);
-          setSourceType(null);
+          setAlreadyAnalyzed(true);
         }
-      });
-  }, [userEmail, anonId, isReady]);
+      } else {
+        setMeal("");
+        setConclusion("");
+        setAnalyzedAt("");
+        setAlreadyAnalyzed(false);
+        setSourceType(null);
+      }
+    }
+  }, [data, isLoading, userEmail]);
 
   useEffect(() => {
     if (userEmail) {

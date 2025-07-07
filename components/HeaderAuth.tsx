@@ -28,7 +28,7 @@ export default function HeaderAuth() {
   };
   return (
     <header className="w-full flex justify-end items-center px-6 py-3 bg-white border-b min-h-[48px]">
-      {userEmail && (
+      {userEmail ? (
         <div className="flex items-center gap-2 text-sm text-blue-800">
           <span>{userEmail}</span>
           <a
@@ -44,6 +44,13 @@ export default function HeaderAuth() {
             로그아웃
           </button>
         </div>
+      ) : (
+        <a
+          href="/login"
+          className="px-4 py-2 text-sm font-bold text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+        >
+          로그인하기
+        </a>
       )}
     </header>
   );

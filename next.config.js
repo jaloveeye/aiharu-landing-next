@@ -1,7 +1,6 @@
-const withMDX = require("@next/mdx")({
-  extension: /\.mdx?$/,
-});
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // 기본 설정만 유지
+};
 
-module.exports = withMDX({
-  pageExtensions: ["ts", "tsx", "js", "jsx", "md", "mdx"],
-});
+module.exports = nextConfig;

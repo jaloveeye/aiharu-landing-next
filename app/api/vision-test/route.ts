@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import sharp from "sharp";
+import { requireEnv } from "@/app/utils/checkEnv";
+import { apiError } from "@/app/utils/apiError";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
 export async function POST(req: NextRequest) {
   try {
@@ -72,9 +74,10 @@ export async function POST(req: NextRequest) {
       result: chat2.choices[0].message.content || "",
     });
   } catch (error: any) {
-    return NextResponse.json(
-      { error: error?.message || String(error) },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage:
+        "이미지 분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    });
   }
 }

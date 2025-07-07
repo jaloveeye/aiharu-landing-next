@@ -1,4 +1,7 @@
 import React from "react";
+import { SpinnerProps } from "./Spinner.types";
+
+const BASE_CLASS = "inline-block animate-spin";
 
 /**
  * 공통 Spinner(로딩) 컴포넌트
@@ -11,15 +14,10 @@ export default function Spinner({
   color = "text-green-500",
   className = "",
   label = "로딩 중...",
-}: {
-  size?: number;
-  color?: string;
-  className?: string;
-  label?: string;
-}) {
+}: SpinnerProps) {
   return (
     <span
-      className={`inline-block animate-spin ${color} ${className}`}
+      className={`${BASE_CLASS} ${color} ${className}`}
       style={{ width: size, height: size }}
       role="status"
       aria-label={label}

@@ -1,7 +1,7 @@
 import { createClient } from "./server";
 import { cookies } from "next/headers";
 
-export async function testFetchRecipes() {
+export async function fetchTestRecipes() {
   const supabase = createClient(cookies());
   let query = supabase.from("recipes").select(
     `

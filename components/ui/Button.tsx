@@ -1,43 +1,48 @@
-import { ButtonHTMLAttributes, AnchorHTMLAttributes, ReactNode } from "react";
+import {
+  ButtonOrAnchorProps,
+  Variant,
+  ButtonProps,
+  AnchorProps,
+} from "./Button.types";
+import React from "react";
 
-type Variant = "primary" | "secondary";
-
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  children: ReactNode;
-  as?: "button";
-  variant?: Variant;
+const BASE_CLASS =
+  "px-8 py-3 rounded-full text-white text-lg font-semibold shadow-sm transition-colors";
+const COLOR_CLASS: Record<Variant, string> = {
+  primary: "bg-green-500 hover:bg-green-400",
+  secondary: "bg-yellow-400 hover:bg-yellow-300",
 };
-type AnchorProps = AnchorHTMLAttributes<HTMLAnchorElement> & {
-  children: ReactNode;
-  as: "a";
-  variant?: Variant;
-};
 
-type Props = ButtonProps | AnchorProps;
-
-export default function Button(props: Props) {
+export default function Button(props: ButtonOrAnchorProps) {
   const {
     as = "button",
     children,
     className = "",
     variant = "primary",
+    "aria-label": ariaLabel,
     ...rest
-  } = props as any;
-  const base =
-    "px-8 py-3 rounded-full text-white text-lg font-semibold shadow-sm transition-colors";
-  const color =
-    variant === "primary"
-      ? "bg-green-500 hover:bg-green-400"
-      : "bg-yellow-400 hover:bg-yellow-300";
+  } = props;
+  const base = BASE_CLASS;
+  const color = COLOR_CLASS[variant];
   if (as === "a") {
+    const anchorProps = rest as AnchorProps;
     return (
-      <a className={`${base} ${color} !text-white ${className}`} {...rest}>
+      <a
+        className={`${base} ${color} !text-white ${className}`}
+        aria-label={ariaLabel}
+        {...anchorProps}
+      >
         {children}
       </a>
     );
   }
+  const buttonProps = rest as ButtonProps;
   return (
-    <button className={`${base} ${color} ${className}`} {...rest}>
+    <button
+      className={`${base} ${color} ${className}`}
+      aria-label={ariaLabel}
+      {...buttonProps}
+    >
       {children}
     </button>
   );

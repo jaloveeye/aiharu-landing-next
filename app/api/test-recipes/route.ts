@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { testFetchRecipes } from "@/app/utils/supabase/testRecipes";
+import { fetchTestRecipes } from "@/app/utils/supabase/test-recipes";
 
 export async function GET() {
   try {
-    const { data, count } = await testFetchRecipes();
+    const { data, count } = await fetchTestRecipes();
     return NextResponse.json({ data, count });
   } catch (error: any) {
     console.error("Supabase fetch error:", error);
