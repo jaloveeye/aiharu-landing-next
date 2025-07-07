@@ -4,6 +4,10 @@ import { cookies } from "next/headers";
 import OpenAI from "openai";
 import { requireEnv } from "@/app/utils/checkEnv";
 import { apiError } from "@/app/utils/apiError";
+import {
+  saveRecommendationsFromAnalysis,
+  generateFeedbacks,
+} from "@/app/utils/recommendation";
 
 const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
@@ -111,7 +115,7 @@ async function analyzeWithOpenAI(
     // Step 2: 초등학교 1학년 식단 평가
     const systemPrompt2 =
       "당신은 아동 식사 영양사입니다. 아래 식단이 초등학교 1학년 아동의 아침 식사로 충분한지 평가하고, 부족하다면 보완할 점을 알려주세요.";
-    const userPrompt2 = `식단: ${foodSummary}\n1. 각 항목별 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리\n2. 전체 식단의 영양 균형 평가 및 2~3줄 보완/추천`;
+    const userPrompt2 = `식단: ${foodSummary}\n1. 각 항목별 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리\n2. 전체 식단의 영양 균형 평가 및 2~3줄 보완/추천\n3. 부족한 영양소가 있다면 반드시 아래와 같이 한 줄로 명확하게 작성하세요.\n부족한 영양소: [영양소1, 영양소2, ...]`;
     try {
       const chat2 = await openai.chat.completions.create({
         model: "gpt-4o",
@@ -138,7 +142,7 @@ async function analyzeWithOpenAI(
   } else {
     const systemPrompt =
       "당신은 아동 식사 영양사입니다. 초등학교 1학년 아동의 아침 식사로 적절한지 평가해주세요.";
-    const userPrompt = `분석한 식단: (직접 입력한 결과입니다)\n1. 아래 식단을 \"분석한 식단: ...\" 형식으로 한 줄로 요약해 주세요.\n2. 각 항목별로 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리해 주세요.\n3. 전체 식단의 영양 균형을 평가하고, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.\n\n식단: ${meal}`;
+    const userPrompt = `분석한 식단: (직접 입력한 결과입니다)\n1. 아래 식단을 \"분석한 식단: ...\" 형식으로 한 줄로 요약해 주세요.\n2. 각 항목별로 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리해 주세요.\n3. 전체 식단의 영양 균형을 평가하고, 내일 아침에 보완할 점이나 추천 식단을 2~3줄로 제안해 주세요.\n4. 부족한 영양소가 있다면 반드시 아래와 같이 한 줄로 명확하게 작성하세요.\n부족한 영양소: [영양소1, 영양소2, ...]\n\n식단: ${meal}`;
     const chat = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -253,9 +257,10 @@ export async function POST(req: NextRequest) {
     if (anon_id) insertObj.anon_id = anon_id;
     const { data, error, status } = await supabase
       .from("meal_analysis")
-      .insert([insertObj]);
+      .insert([insertObj])
+      .select();
 
-    if (error) {
+    if (error || !data || !data[0]) {
       console.error(
         "Supabase insert error:",
         error,
@@ -267,7 +272,39 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error, status, data }, { status: 500 });
     }
 
-    return NextResponse.json({ result, sourceType, cached: false });
+    // 추천 자동 추출 및 저장
+    await saveRecommendationsFromAnalysis({
+      id: data[0].id,
+      anon_id: insertObj.anon_id,
+      result: insertObj.result,
+      analyzed_at: insertObj.analyzed_at,
+    });
+
+    // 이전 추천 이력 조회 및 피드백 생성
+    const { data: prevRecs } = await supabase
+      .from("recommendation_history")
+      .select("id, category, content, analysis_id")
+      .eq("anon_id", insertObj.anon_id)
+      .eq("status", "pending")
+      .order("recommended_at", { ascending: true });
+
+    const feedbacks = generateFeedbacks(
+      prevRecs || [],
+      mealTextToSave,
+      typeof result === "string" ? result : JSON.stringify(result)
+    );
+
+    // 실천한 추천은 achieved로 업데이트
+    for (const fb of feedbacks) {
+      if (fb.achieved) {
+        await supabase
+          .from("recommendation_history")
+          .update({ status: "achieved", achieved_at: today })
+          .eq("id", fb.id);
+      }
+    }
+
+    return NextResponse.json({ result, sourceType, cached: false, feedbacks });
   } catch (error: any) {
     return apiError({
       error,
@@ -291,7 +328,7 @@ export async function GET(req: NextRequest) {
   if (id) {
     const { data, error } = await supabase
       .from("meal_analysis")
-      .select("meal_text, result, analyzed_at, email")
+      .select("meal_text, result, analyzed_at, email, source_type")
       .eq("id", id)
       .maybeSingle();
     if (error) {
@@ -300,7 +337,13 @@ export async function GET(req: NextRequest) {
     if (!data) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    return NextResponse.json(data);
+    // 해당 분석의 추천/보완사항도 함께 조회
+    const { data: recommendations } = await supabase
+      .from("recommendation_history")
+      .select("id, category, content, status")
+      .eq("analysis_id", id)
+      .order("category", { ascending: true });
+    return NextResponse.json({ ...data, recommendations });
   }
 
   // 로그인된 사용자(email) 기준 최신 분석 결과 조회
@@ -336,7 +379,25 @@ export async function GET(req: NextRequest) {
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ history: data });
+    // 각 분석별 추천/보완사항도 함께 조회
+    const ids = (data || []).map((d: any) => d.id);
+    let recsById: Record<string, any[]> = {};
+    if (ids.length > 0) {
+      const { data: recs } = await supabase
+        .from("recommendation_history")
+        .select("id, category, content, status, analysis_id")
+        .in("analysis_id", ids);
+      recsById = (recs || []).reduce((acc: any, rec: any) => {
+        if (!acc[rec.analysis_id]) acc[rec.analysis_id] = [];
+        acc[rec.analysis_id].push(rec);
+        return acc;
+      }, {});
+    }
+    const history = (data || []).map((item: any) => ({
+      ...item,
+      recommendations: recsById[item.id] || [],
+    }));
+    return NextResponse.json({ history });
   }
 
   // 비회원(anon_id) 기준 최신 분석 결과 조회
