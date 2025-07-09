@@ -1,45 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
-
-// 개선된 추천 추출 함수
-function extractRecommendations(
-  result: string
-): { category: string; content: string }[] {
-  const recommendations: { category: string; content: string }[] = [];
-  const matches = result.match(/(추천|보완)[:：]?([\s\S]*)/g);
-  if (matches) {
-    matches.forEach((match) => {
-      match.split("\n").forEach((line) => {
-        const categories = [
-          { key: "단백질", label: "단백질" },
-          { key: "비타민", label: "비타민" },
-          { key: "지방", label: "지방" },
-          { key: "과일", label: "과일" },
-          { key: "야채", label: "야채" },
-          { key: "채소", label: "야채" },
-          { key: "칼슘", label: "칼슘" },
-          { key: "식이섬유", label: "식이섬유" },
-          { key: "우유", label: "유제품" },
-          { key: "요거트", label: "유제품" },
-          { key: "유제품", label: "유제품" },
-        ];
-        let found = false;
-        for (const { key, label } of categories) {
-          if (line.includes(key)) {
-            recommendations.push({ category: label, content: line.trim() });
-            found = true;
-          }
-        }
-        // 카테고리 키워드가 하나도 없더라도, 추천/보완 문장 자체를 남기고 싶으면 아래 주석 해제
-        // if (!found && line.trim()) {
-        //   recommendations.push({ category: '기타', content: line.trim() });
-        // }
-      });
-    });
-  }
-  return recommendations;
-}
+import { extractRecommendations } from "@/app/utils/recommendation";
+import {
+  NUTRIENT_CATEGORIES,
+  NUTRIENT_CATEGORY_KEYWORDS,
+} from "@/app/utils/constants";
 
 export async function POST(req: NextRequest) {
   const supabase = createClient(cookies());

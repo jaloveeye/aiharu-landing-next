@@ -1,20 +1,16 @@
 import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
+import {
+  NUTRIENT_CATEGORIES,
+  NUTRIENT_CATEGORY_KEYWORDS,
+} from "@/app/utils/constants";
 
 export function extractRecommendations(
   result: string
 ): { category: string; content: string }[] {
   const recommendations: { category: string; content: string }[] = [];
   // 영양소 카테고리만 남김
-  const categories = [
-    { key: "단백질", label: "단백질" },
-    { key: "비타민", label: "비타민" },
-    { key: "미네랄", label: "미네랄" },
-    { key: "지방", label: "지방" },
-    { key: "칼슘", label: "칼슘" },
-    { key: "식이섬유", label: "식이섬유" },
-    { key: "유제품", label: "유제품" },
-  ];
+  const categories = NUTRIENT_CATEGORIES;
 
   // 1. 개선된 포맷: '부족한 영양소: [영양소1, ...]' 한 줄 파싱
   const nutrientLine = result.match(/부족한 영양소[:：]?\s*\[([^\]]+)\]/);
@@ -105,33 +101,7 @@ export function generateFeedbacks(
   achieved: boolean;
 }[] {
   // 카테고리별로 실천 여부 판별 규칙
-  const categoryKeywords: Record<string, string[]> = {
-    단백질: [
-      "단백질",
-      "계란",
-      "닭가슴살",
-      "두부",
-      "콩",
-      "치즈",
-      "우유",
-      "요거트",
-    ],
-    칼슘: ["칼슘", "우유", "요거트", "치즈"],
-    비타민: [
-      "비타민",
-      "브로콜리",
-      "시금치",
-      "사과",
-      "바나나",
-      "야채",
-      "채소",
-      "과일",
-    ],
-    미네랄: ["미네랄", "브로콜리", "시금치", "야채", "채소", "과일"],
-    식이섬유: ["식이섬유", "야채", "채소", "과일", "통곡물"],
-    지방: ["지방", "견과류", "아몬드", "호두", "오일"],
-    유제품: ["유제품", "우유", "요거트", "치즈"],
-  };
+  const categoryKeywords = NUTRIENT_CATEGORY_KEYWORDS;
 
   return prevRecs.map((rec) => {
     const keywords = categoryKeywords[rec.category] || [rec.category];
