@@ -9,6 +9,7 @@ import Alert from "@/components/ui/Alert";
 import { useApiData } from "@/app/hooks/useApiData";
 import { ImageIcon, TextIcon } from "@/components/ui/IconAnalysisType";
 import NutritionRadarChart from "@/components/ui/NutritionRadarChart";
+import { parseNutritionPercent } from "@/utils/nutritionParser";
 
 /**
  * 분석 상세 페이지
@@ -47,62 +48,6 @@ export default function HistoryDetailPage() {
   const { data, error, isLoading } = useApiData<any>(
     userEmail && id ? `/api/analyze-meal?id=${id}` : null
   );
-
-  // nutritionPercent 추출 함수 (클라이언트용, 콘솔 로그 포함)
-  function extractNutritionPercentFromMarkdown(
-    md: string
-  ): { [key: string]: number } | null {
-    const match = md.match(
-      /####?\s*7[\.|\)]?\s*JSON[^\n]*?\n+```json([\s\S]*?)```/i
-    );
-    console.log("JSON section match:", match ? match[1] : "NO MATCH");
-    if (!match) return null;
-    try {
-      const json = JSON.parse(match[1]);
-      if (json["권장 섭취량 대비 백분율"]) {
-        const percentObj: { [key: string]: number } = {};
-        const NUTRIENTS = [
-          "열량",
-          "탄수화물",
-          "단백질",
-          "지방",
-          "식이섬유",
-          "칼슘",
-          "철분",
-          "비타민 C",
-          "비타민 D",
-          "당류 (당분)",
-          "나트륨",
-        ];
-        Object.entries(json["권장 섭취량 대비 백분율"]).forEach(([k, v]) => {
-          const cleanKey = k
-            .replace(/\s*\(.*?\)\s*/g, "")
-            .replace(/\s*%\s*/g, "")
-            .trim();
-          if (NUTRIENTS.includes(cleanKey)) {
-            percentObj[cleanKey] =
-              typeof v === "number" ? v : parseFloat(String(v));
-          }
-        });
-        console.log("nutritionPercent:", percentObj);
-        return percentObj;
-      }
-    } catch (e) {
-      console.log("JSON parse error", e);
-      return null;
-    }
-    return null;
-  }
-
-  // nutritionPercent 상태 관리
-  const [nutritionPercent, setNutritionPercent] = useState<{
-    [key: string]: number;
-  } | null>(null);
-  useEffect(() => {
-    if (data?.result) {
-      setNutritionPercent(extractNutritionPercentFromMarkdown(data.result));
-    }
-  }, [data]);
 
   // 식재료 및 음식명 정리 섹션 추출 및 파싱 함수
   function extractIngredientsSection(md: string): {
@@ -492,14 +437,12 @@ export default function HistoryDetailPage() {
                 {data.meal_text}
               </div>
             </div>
-            {/* nutritionPercent가 있으면 상단에 레이더 차트 표시 */}
-            {nutritionPercent && (
-              <div className="w-full max-w-md mb-4">
-                <NutritionRadarChart
-                  nutrition={nutritionPercent}
-                  isPercent={true}
-                />
-              </div>
+            {/* 영양소 레이더 차트 */}
+            {data?.result && (
+              <NutritionRadarChart
+                nutrition={parseNutritionPercent(data.result)}
+                isPercent
+              />
             )}
             {/* 상세 분석 결과 전체를 접기/펼치기 */}
             <div className="w-full max-w-md mx-auto mb-4">

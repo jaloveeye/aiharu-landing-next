@@ -8,7 +8,10 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { parseNutrition } from "@/utils/nutritionParser";
+import { Chart as ChartJS } from "chart.js";
+import { parseNutritionPercent } from "@/utils/nutritionParser";
+import { useRef } from "react";
+import type { TooltipItem } from "chart.js";
 
 Chart.register(
   LineElement,
@@ -26,7 +29,8 @@ type NutritionTrendChartProps = {
 export default function NutritionTrendChart({
   analyses,
 }: NutritionTrendChartProps) {
-  const labels = analyses.map((a) => a.analyzed_at);
+  const chartRef = useRef<ChartJS<"line"> | null>(null);
+  // 날짜 오름차순(오래된→최신) 정렬 및 모든 값이 0인 날 제외
   const NUTRIENTS = [
     "열량",
     "탄수화물",
@@ -40,6 +44,24 @@ export default function NutritionTrendChart({
     "당류 (당분)",
     "나트륨",
   ];
+  // 오늘 기준 최근 30일(한 달)만 필터링
+  const now = new Date();
+  const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
+  function isWithin30Days(dateStr: string) {
+    const d = new Date(dateStr);
+    return (
+      now.getTime() - d.getTime() <= THIRTY_DAYS && d.getTime() <= now.getTime()
+    );
+  }
+  const filtered = [...analyses]
+    .filter((a) => isWithin30Days(a.analyzed_at))
+    .map((a) => ({ ...a, percent: parseNutritionPercent(a.result) }))
+    .filter((a) => NUTRIENTS.some((n) => a.percent[n] && a.percent[n] > 0))
+    .sort(
+      (a, b) =>
+        new Date(a.analyzed_at).getTime() - new Date(b.analyzed_at).getTime()
+    );
+  const labels = filtered.map((a) => a.analyzed_at);
   const COLOR_PALETTE = [
     "#4dc9f6", // 열량
     "#f67019", // 탄수화물
@@ -54,32 +76,36 @@ export default function NutritionTrendChart({
     "#779ecb", // 나트륨
   ];
   const dataByNutrient = NUTRIENTS.map((nutrient) =>
-    analyses.map((a) => parseNutrition(a.result)?.[nutrient] ?? 0)
+    filtered.map((a) => a.percent?.[nutrient] ?? 0)
   );
-  // 권장량(6~8세 1회 기준)
-  const RECOMMENDED: Record<string, number> = {
-    열량: 530,
-    탄수화물: 82.5,
-    단백질: 10,
-    지방: 15,
-    식이섬유: 5.5,
-    칼슘: 250,
-    철분: 3,
-    "비타민 C": 16.5,
-    "비타민 D": 3.3,
-    "당류 (당분)": 8,
-    나트륨: 400,
-  };
-  // 각 영양소별 합계 계산
+  // 각 영양소별 합계 계산(%)
   const sumByNutrient = NUTRIENTS.map((nutrient, i) =>
     dataByNutrient[i].reduce((acc, v) => acc + v, 0)
   );
-  // 권장량 대비 섭취 비율(%)
-  const percentByNutrient = NUTRIENTS.map((nutrient, i) =>
-    RECOMMENDED[nutrient] > 0
-      ? Math.round((sumByNutrient[i] / RECOMMENDED[nutrient]) * 100)
-      : 0
-  );
+
+  // onHover에서 interaction 모드 동적 변경
+  const handleHover = (
+    event: unknown,
+    chartElement: Array<{ datasetIndex: number; index: number }>
+  ) => {
+    const chart = chartRef.current;
+    if (!chart) return;
+    // interaction 옵션이 없으면 생성
+    let interaction = chart.options.interaction;
+    if (!interaction) {
+      interaction = { mode: "index", intersect: false };
+      chart.options.interaction = interaction;
+    }
+    // 점 위에 있으면 해당 항목만
+    if (chartElement && chartElement.length > 0) {
+      interaction.mode = "nearest";
+      interaction.intersect = true;
+    } else {
+      interaction.mode = "index";
+      interaction.intersect = false;
+    }
+    chart.update("none");
+  };
 
   return (
     <div>
@@ -112,13 +138,11 @@ export default function NutritionTrendChart({
             >
               {sumByNutrient[i]}
             </span>
-            <span style={{ color: "#888", fontSize: 13, marginLeft: 4 }}>
-              ({percentByNutrient[i]}%)
-            </span>
           </span>
         ))}
       </div>
       <Line
+        ref={chartRef}
         data={{
           labels,
           datasets: NUTRIENTS.map((nutrient, i) => ({
@@ -131,8 +155,58 @@ export default function NutritionTrendChart({
         }}
         options={{
           responsive: true,
-          plugins: { legend: { position: "top" } },
-          scales: { y: { beginAtZero: true } },
+          plugins: {
+            legend: { position: "top" },
+            tooltip: {
+              callbacks: {
+                label: function (context: TooltipItem<"line">) {
+                  // x축(모든 항목) 모드일 때만 내림차순 정렬
+                  const chart = context.chart;
+                  const interaction = chart.options.interaction;
+                  if (
+                    interaction &&
+                    interaction.mode === "index" &&
+                    !interaction.intersect
+                  ) {
+                    // 모든 항목을 내림차순 정렬
+                    const all = context.chart.data.datasets.map((ds, i) => ({
+                      label: ds.label,
+                      value: ds.data[context.dataIndex],
+                    }));
+                    const sorted = all.sort(
+                      (a, b) => Number(b.value) - Number(a.value)
+                    );
+                    // 현재 context가 첫번째 항목일 때만 전체를 반환(중복 방지)
+                    if (context.datasetIndex === 0) {
+                      return sorted.map(
+                        ({ label, value }) => `${label}: ${value}%`
+                      );
+                    }
+                    return null;
+                  }
+                  // 점 위에 올릴 때는 기존대로
+                  return `${context.dataset.label}: ${context.formattedValue}%`;
+                },
+              },
+            } as any,
+          },
+          interaction: { mode: "index", intersect: false },
+          onHover: handleHover,
+          scales: {
+            y: {
+              beginAtZero: true,
+              min: 0,
+              max: 200,
+              title: { display: true, text: "% (권장량 대비)" },
+              ticks: {
+                stepSize: 20,
+                color: "#888",
+                font: { size: 13 },
+                callback: (tickValue: any) => `${Number(tickValue)}%`,
+              },
+              grid: { color: "#eee" },
+            },
+          },
         }}
       />
     </div>
