@@ -111,7 +111,7 @@ export default function HistoryDetailPage() {
               <div className="text-green-700 font-bold mb-1">분석 결과</div>
               <div className="text-green-900 whitespace-pre-line break-words">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {data.result}
+                  {hideJsonSection(data.result)}
                 </ReactMarkdown>
               </div>
             </div>
@@ -120,4 +120,20 @@ export default function HistoryDetailPage() {
       </div>
     </div>
   );
+}
+
+function hideJsonSection(md: string): string {
+  // '7.' 또는 '#### 7.'으로 시작하는 줄부터 끝까지, 또는 다음 번호(8.)/헤딩 전까지 제거
+  const lines = md.split(/\r?\n/);
+  const startIdx = lines.findIndex((l) => /^#{0,4}\s*7\./.test(l));
+  if (startIdx === -1) return md;
+  // 7번 이후에 또 다른 번호(8. 등)가 있으면 거기까지, 없으면 끝까지
+  let endIdx = lines.length;
+  for (let i = startIdx + 1; i < lines.length; i++) {
+    if (/^#{0,4}\s*\d+\./.test(lines[i])) {
+      endIdx = i;
+      break;
+    }
+  }
+  return [...lines.slice(0, startIdx), ...lines.slice(endIdx)].join("\n");
 }

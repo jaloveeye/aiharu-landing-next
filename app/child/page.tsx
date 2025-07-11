@@ -172,7 +172,7 @@ export default function ChildPage() {
       >
         ← 홈으로 돌아가기
       </Link>
-      {/* 분석 차트 섹션 */}
+      {/* 분석 차트 섹션 숨김 처리 (요구사항)
       {userEmail && myAnalyses.length > 0 && (
         <section className="w-full max-w-2xl bg-white border border-green-200 rounded-2xl shadow-lg p-8 flex flex-col items-center gap-8 mb-12">
           <div className="text-2xl font-bold text-green-700 mb-2">
@@ -220,16 +220,15 @@ export default function ChildPage() {
               />
             </div>
           )}
-          {/* 5번 차트: 부족 영양소 바 차트 */}
           <div className="w-full">
             <div className="font-bold text-base mb-1 text-green-700">
               5. 부족 영양소 통계
             </div>
             <NutritionDeficiencyBarChart deficiencyCounts={deficiencyCounts} />
           </div>
-          {/* 부족 영양소 통계 등 추가 차트 필요시 여기에 */}
         </section>
       )}
+      */}
       <main className="flex flex-col items-center gap-8 w-full">
         <Title>아이와 부모가 함께 만드는 하루 습관</Title>
         <Body>칭찬과 피드백으로 자라는 성장 여정</Body>

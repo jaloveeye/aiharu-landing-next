@@ -7,6 +7,7 @@ import Alert from "@/components/ui/Alert";
 import { useApiData } from "@/app/hooks/useApiData";
 import { ImageIcon, TextIcon } from "@/components/ui/IconAnalysisType";
 import Card from "@/components/ui/Card";
+import NutritionTrendChart from "@/components/ui/NutritionTrendChart";
 
 /**
  * 분석 히스토리(목록) 페이지
@@ -73,6 +74,20 @@ export default function HistoryPage() {
         <div className="text-2xl font-bold text-yellow-700 mb-4 text-center">
           분석 히스토리
         </div>
+        {/* 분석 이력이 있을 때만 트렌드 차트 표시 */}
+        {Array.isArray(data?.history) && data.history.length > 1 && (
+          <div className="mb-8">
+            <div className="text-lg font-bold text-blue-700 mb-2 text-center">
+              최근 영양소 섭취 트렌드
+            </div>
+            <NutritionTrendChart
+              analyses={data.history.map((h) => ({
+                analyzed_at: h.analyzed_at,
+                result: h.result,
+              }))}
+            />
+          </div>
+        )}
         {isLoading ? (
           <div className="text-gray-400 text-center py-8">불러오는 중...</div>
         ) : error ? (
