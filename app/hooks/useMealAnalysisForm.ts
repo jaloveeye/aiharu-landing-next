@@ -29,6 +29,7 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
   const [imageBase64, setImageBase64] = useState<string>("");
   const [imageError, setImageError] = useState<string>("");
   const [sourceType, setSourceType] = useState<"image" | "text" | null>(null);
+  const [analysisId, setAnalysisId] = useState<string | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -68,11 +69,13 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
           const { meal, conclusion } = extractMealAndConclusion(data.result);
           setMeal(meal);
           setConclusion(conclusion);
+          setResult(data.result); // 전체 분석 결과도 항상 저장
         } else {
           setResult(data.result);
         }
         setAnalyzedAt(data.lastAnalyzedAt);
         setSourceType(data.sourceType || null);
+        setAnalysisId(data.id || null);
         if (userEmail) {
           const analyzedDate = new Date(data.lastAnalyzedAt);
           const today = new Date();
@@ -91,6 +94,7 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
         setAnalyzedAt("");
         setAlreadyAnalyzed(false);
         setSourceType(null);
+        setAnalysisId(null);
       }
     }
   }, [data, isLoading, userEmail, extractMealAndConclusion, withConclusion]);
@@ -137,12 +141,22 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
       if (withConclusion) {
         setMeal("");
         setConclusion("");
+        setResult(""); // 전체 분석 결과도 초기화
       } else {
         setResult("");
       }
+      // 브라우저 로컬 날짜(yyyy-mm-dd) 생성
+      const now = new Date();
+      const todayLocal = now.toISOString().slice(0, 10);
       const body = userEmail
-        ? { meal: mealInput, anon_id: anonId, email: userEmail, imageBase64 }
-        : { meal: mealInput, anon_id: anonId, imageBase64 };
+        ? {
+            meal: mealInput,
+            anon_id: anonId,
+            email: userEmail,
+            imageBase64,
+            todayLocal,
+          }
+        : { meal: mealInput, anon_id: anonId, imageBase64, todayLocal };
       const res = await fetch("/api/analyze-meal", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -158,6 +172,7 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
         if (withConclusion) {
           setMeal("");
           setConclusion("");
+          setResult(""); // 전체 분석 결과도 초기화
         } else {
           setResult("");
         }
@@ -171,6 +186,7 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
           const { meal, conclusion } = extractMealAndConclusion(data.result);
           setMeal(meal);
           setConclusion(conclusion);
+          setResult(data.result); // 전체 분석 결과도 저장
         } else {
           setResult(data.result);
         }
@@ -226,5 +242,6 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
     handleImageChange,
     handleSubmit,
     handleLogout,
+    analysisId,
   };
 }

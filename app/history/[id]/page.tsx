@@ -49,6 +49,19 @@ export default function HistoryDetailPage() {
   if (checking) return null;
   if (!userEmail) return null;
 
+  function formatDateToLocal(dateStr?: string) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return (
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0")
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-yellow-50 px-4 py-20">
       <div className="bg-white border border-yellow-200 rounded-xl p-6 shadow max-w-md w-full mt-6 mx-auto">
@@ -72,7 +85,9 @@ export default function HistoryDetailPage() {
         ) : (
           <div>
             <div className="flex justify-between items-center mb-2">
-              <div className="text-xs text-gray-500">{data.analyzed_at}</div>
+              <div className="text-xs text-gray-500">
+                {formatDateToLocal(data.analyzed_at)}
+              </div>
               {data.source_type && (
                 <span
                   className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold ${

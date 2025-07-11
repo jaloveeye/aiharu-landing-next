@@ -48,6 +48,19 @@ export default function HistoryPage() {
   if (checking) return null;
   if (!userEmail) return null;
 
+  function formatDateToLocal(dateStr?: string) {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr;
+    return (
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0")
+    );
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-yellow-50 px-4 py-20">
       <div className="bg-white border border-yellow-200 rounded-xl p-6 shadow max-w-2xl w-full mt-6 mx-auto">
@@ -86,7 +99,7 @@ export default function HistoryPage() {
                 </div>
                 <div className="flex items-center justify-between mt-auto">
                   <span className="text-xs font-bold text-blue-800 bg-blue-50 px-2 py-0.5 rounded">
-                    {item.analyzed_at}
+                    {formatDateToLocal(item.analyzed_at)}
                   </span>
                   <Link
                     href={`/history/${item.id}`}

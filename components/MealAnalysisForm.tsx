@@ -3,6 +3,8 @@ import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Spinner from "@/components/ui/Spinner";
 import { useMealAnalysisForm } from "@/app/hooks/useMealAnalysisForm";
+import { useRouter } from "next/navigation";
+import NutritionChart from "@/components/ui/NutritionChart";
 
 interface MealAnalysisFormProps {
   extractMealAndConclusion?: (
@@ -13,6 +15,7 @@ interface MealAnalysisFormProps {
   className?: string;
   style?: React.CSSProperties;
   showSignupButton?: boolean;
+  onResultClick?: (id: string) => void;
 }
 
 export default function MealAnalysisForm({
@@ -21,11 +24,28 @@ export default function MealAnalysisForm({
   className = "",
   style,
   showSignupButton = true,
+  onResultClick,
 }: MealAnalysisFormProps) {
   const form = useMealAnalysisForm({
     extractMealAndConclusion,
     withConclusion,
   });
+  const router = useRouter();
+
+  function formatDateToLocal(dateStr?: string) {
+    if (!dateStr) return "";
+    // dateStr이 yyyy-mm-dd(UTC)라면, Date 객체로 변환 후 로컬 yyyy-mm-dd로 변환
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return dateStr; // 파싱 실패 시 원본 반환
+    // 로컬 yyyy-mm-dd
+    return (
+      d.getFullYear() +
+      "-" +
+      String(d.getMonth() + 1).padStart(2, "0") +
+      "-" +
+      String(d.getDate()).padStart(2, "0")
+    );
+  }
 
   return (
     <form
@@ -122,73 +142,158 @@ export default function MealAnalysisForm({
         </div>
       )}
       {/* 결과 표시 */}
-      {withConclusion
-        ? (form.meal || form.conclusion) && (
-            <div className="w-full mt-4">
-              {form.analyzedAt &&
-                form.analyzedAt !== new Date().toISOString().slice(0, 10) && (
-                  <div
-                    className="text-base font-bold text-red-600 text-center mb-2 border border-red-200 bg-red-50 rounded p-2"
-                    role="alert"
-                    aria-live="polite"
-                  >
-                    ※ 이 결과는 {form.analyzedAt}에 분석된 내용입니다
-                  </div>
-                )}
+      {withConclusion ? (
+        form.loading ? (
+          <div className="w-full mt-4 flex flex-col items-center justify-center text-gray-500 text-base font-bold gap-2">
+            <Spinner size={20} />
+            분석 중...
+          </div>
+        ) : (
+          (form.meal || form.conclusion) && (
+            <div
+              className={`w-full mt-4 ${
+                form.analysisId
+                  ? "cursor-pointer hover:bg-yellow-50 transition"
+                  : ""
+              }`}
+              onClick={() =>
+                form.analysisId &&
+                (onResultClick
+                  ? onResultClick(form.analysisId)
+                  : router.push(`/history/${form.analysisId}`))
+              }
+              title={form.analysisId ? "상세 분석 보기" : undefined}
+            >
               {form.meal && (
                 <div className="text-yellow-700 text-sm font-semibold whitespace-pre-line mb-2">
                   <span className="block mb-1 text-yellow-500 font-bold">
-                    입력한 식단
-                    {form.sourceType === "image" && (
-                      <span title="사진 분석" className="ml-1">
-                        📷
-                      </span>
-                    )}
-                    {form.sourceType === "text" && (
-                      <span title="직접 입력" className="ml-1">
-                        ✍️
-                      </span>
-                    )}
+                    분석한 식단
                   </span>
                   {form.meal}
                 </div>
               )}
+              {/* NutritionChart: 분석한 식단 아래, 분석 결과 텍스트 위에 위치 */}
+              {(() => {
+                // form.conclusion에서 영양소 표 파싱 (정규식 기반)
+                const lines =
+                  form.conclusion?.split("\n").map((l) => l.trim()) || [];
+                const headerIdx = lines.findIndex((l) => l.startsWith("|"));
+                if (headerIdx >= 0 && lines.length > headerIdx + 2) {
+                  const header = lines[headerIdx]
+                    .split("|")
+                    .map((cell) => cell.trim());
+                  const dataLines = lines
+                    .slice(headerIdx + 2)
+                    .filter((l) => l.startsWith("|"));
+                  const nutritionSum: { [key: string]: number } = {
+                    탄수화물: 0,
+                    단백질: 0,
+                    지방: 0,
+                    식이섬유: 0,
+                    칼슘: 0,
+                  };
+                  dataLines.forEach((row) => {
+                    const cells = row.split("|").map((cell) => cell.trim());
+                    if (cells.length >= 7) {
+                      nutritionSum["탄수화물"] += parseFloat(cells[2]) || 0;
+                      nutritionSum["단백질"] += parseFloat(cells[3]) || 0;
+                      nutritionSum["지방"] += parseFloat(cells[4]) || 0;
+                      nutritionSum["식이섬유"] += parseFloat(cells[5]) || 0;
+                      nutritionSum["칼슘"] += parseFloat(cells[6]) || 0;
+                    }
+                  });
+                  const chartData = Object.fromEntries(
+                    Object.entries(nutritionSum).filter(([, v]) => v > 0)
+                  );
+                  if (Object.keys(chartData).length > 0) {
+                    return (
+                      <div className="mb-2">
+                        <NutritionChart data={chartData} />
+                      </div>
+                    );
+                  }
+                }
+                return null;
+              })()}
               {form.conclusion && (
-                <div className="text-green-700 text-sm font-semibold whitespace-pre-line">
-                  <span className="block mb-1 text-green-500 font-bold">
-                    결론/추천
-                  </span>
-                  {form.conclusion}
-                </div>
-              )}
-              {form.analyzedAt &&
-                form.analyzedAt === new Date().toISOString().slice(0, 10) && (
-                  <div className="text-xs text-gray-500 text-right mt-2">
-                    분석일: {form.analyzedAt}
+                <>
+                  <div className="text-gray-800 text-sm font-normal whitespace-pre-line mt-2">
+                    <span className="block mb-1 text-green-700 font-bold">
+                      분석 결과
+                    </span>
+                    {form.conclusion}
                   </div>
-                )}
+                </>
+              )}
             </div>
           )
-        : form.result && (
-            <div
-              className="bg-white border border-green-300 rounded p-4 whitespace-pre-line mt-2 text-base leading-relaxed max-h-80 overflow-y-auto shadow text-gray-800"
-              style={{ wordBreak: "break-word" }}
-            >
-              {form.analyzedAt &&
-                form.analyzedAt !== new Date().toISOString().slice(0, 10) && (
-                  <div className="text-base font-bold text-red-600 text-center mb-2 border border-red-200 bg-red-50 rounded p-2">
-                    ※ 이 결과는 {form.analyzedAt}에 분석된 내용입니다
-                  </div>
-                )}
-              {form.result}
-              {form.analyzedAt &&
-                form.analyzedAt === new Date().toISOString().slice(0, 10) && (
-                  <div className="text-xs text-gray-500 text-right mt-1">
-                    분석일: {form.analyzedAt}
-                  </div>
-                )}
-            </div>
-          )}
+        )
+      ) : (
+        form.result && (
+          <div
+            className="bg-white border border-green-300 rounded p-4 whitespace-pre-line mt-2 text-base leading-relaxed max-h-80 overflow-y-auto shadow text-gray-800"
+            style={{ wordBreak: "break-word" }}
+          >
+            {/* 영양소 표 파싱 및 NutritionChart 표시 (영양소별 총합) */}
+            {(() => {
+              const lines = form.result.split("\n").map((l) => l.trim());
+              const headerIdx = lines.findIndex((l) => l.startsWith("|"));
+              if (headerIdx >= 0 && lines.length > headerIdx + 2) {
+                const header = lines[headerIdx]
+                  .split("|")
+                  .map((cell) => cell.trim());
+                const dataLines = lines
+                  .slice(headerIdx + 2)
+                  .filter((l) => l.startsWith("|"));
+                const nutritionSum: { [key: string]: number } = {
+                  탄수화물: 0,
+                  단백질: 0,
+                  지방: 0,
+                  식이섬유: 0,
+                  칼슘: 0,
+                };
+                dataLines.forEach((row) => {
+                  const cells = row.split("|").map((cell) => cell.trim());
+                  if (cells.length >= 7) {
+                    nutritionSum["탄수화물"] += parseFloat(cells[2]) || 0;
+                    nutritionSum["단백질"] += parseFloat(cells[3]) || 0;
+                    nutritionSum["지방"] += parseFloat(cells[4]) || 0;
+                    nutritionSum["식이섬유"] += parseFloat(cells[5]) || 0;
+                    nutritionSum["칼슘"] += parseFloat(cells[6]) || 0;
+                  }
+                });
+                const chartData = Object.fromEntries(
+                  Object.entries(nutritionSum).filter(([, v]) => v > 0)
+                );
+                if (Object.keys(chartData).length > 0) {
+                  return (
+                    <div className="mb-2">
+                      <NutritionChart data={chartData} />
+                    </div>
+                  );
+                }
+              }
+              return null;
+            })()}
+            {form.analyzedAt &&
+              formatDateToLocal(form.analyzedAt) !==
+                new Date().toISOString().slice(0, 10) && (
+                <div className="text-base font-bold text-red-600 text-center mb-2 border border-red-200 bg-red-50 rounded p-2">
+                  ※ 이 결과는 {formatDateToLocal(form.analyzedAt)}에 분석된
+                  내용입니다
+                </div>
+              )}
+            {form.result}
+            {form.analyzedAt &&
+              formatDateToLocal(form.analyzedAt) ===
+                new Date().toISOString().slice(0, 10) && (
+                <div className="text-xs text-gray-500 text-right mt-1">
+                  분석일: {formatDateToLocal(form.analyzedAt)}
+                </div>
+              )}
+          </div>
+        )
+      )}
     </form>
   );
 }

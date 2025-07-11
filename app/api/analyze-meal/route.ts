@@ -160,9 +160,10 @@ async function analyzeWithOpenAI(
 
 export async function POST(req: NextRequest) {
   try {
-    const { meal, anon_id, email, imageBase64 } = await req.json();
+    const { meal, anon_id, email, imageBase64, todayLocal } = await req.json();
     const normalizedMeal = normalizeMeal(meal || "");
-    const today = new Date().toISOString().slice(0, 10);
+    // 클라이언트에서 todayLocal(yyyy-mm-dd, 브라우저 로컬 기준)이 오면 우선 사용
+    const today = todayLocal || new Date().toISOString().slice(0, 10);
     const supabase = createClient(cookies());
 
     if (email) {
@@ -350,7 +351,7 @@ export async function GET(req: NextRequest) {
   if (email && latest === "1") {
     const { data, error } = await supabase
       .from("meal_analysis")
-      .select("result, analyzed_at")
+      .select("id, result, analyzed_at")
       .eq("email", email)
       .order("analyzed_at", { ascending: false })
       .limit(1);
@@ -359,6 +360,7 @@ export async function GET(req: NextRequest) {
     }
     if (data && data.length > 0) {
       return NextResponse.json({
+        id: data[0].id,
         result: data[0].result,
         lastAnalyzedAt: data[0].analyzed_at,
         analyzed: true,
@@ -404,7 +406,7 @@ export async function GET(req: NextRequest) {
   if (anon_id && latest === "1") {
     const { data, error } = await supabase
       .from("meal_analysis")
-      .select("result, analyzed_at")
+      .select("id, result, analyzed_at")
       .eq("anon_id", anon_id)
       .order("analyzed_at", { ascending: false })
       .limit(1);
@@ -413,6 +415,7 @@ export async function GET(req: NextRequest) {
     }
     if (data && data.length > 0) {
       return NextResponse.json({
+        id: data[0].id,
         result: data[0].result,
         lastAnalyzedAt: data[0].analyzed_at,
         analyzed: true,
