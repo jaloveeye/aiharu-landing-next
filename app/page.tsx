@@ -46,7 +46,9 @@ export default function Home() {
         <div className="flex gap-4 mt-4">
           <Button
             as="a"
-            href="/child"
+            href="https://hanip.aiharu.net"
+            target="_blank"
+            rel="noopener noreferrer"
             variant="secondary"
             aria-label="아이하루 가기"
           >
@@ -87,6 +89,14 @@ export default function Home() {
                   d="M22.46 6c-.79.35-1.64.59-2.53.7a4.48 4.48 0 001.97-2.48 8.94 8.94 0 01-2.83 1.08A4.48 4.48 0 0016.11 4c-2.48 0-4.5 2.02-4.5 4.5 0 .35.04.7.11 1.03C7.69 9.4 4.07 7.67 1.64 5.15c-.38.65-.6 1.4-.6 2.2 0 1.52.77 2.86 1.95 3.65-.72-.02-1.4-.22-1.99-.55v.06c0 2.13 1.52 3.91 3.54 4.31-.37.1-.76.16-1.16.16-.28 0-.55-.03-.82-.08.55 1.72 2.16 2.97 4.07 3a9.02 9.02 0 01-5.59 1.93c-.36 0-.71-.02-1.06-.06A12.77 12.77 0 007.29 21c8.29 0 12.83-6.87 12.83-12.83 0-.2 0-.41-.01-.61A9.22 9.22 0 0024 4.59a8.93 8.93 0 01-2.54.7z"
                 />
               </svg>
+            </a>
+          </div>
+          <div className="mt-2">
+            <a
+              href="/privacy"
+              className="text-gray-500 hover:text-gray-700 transition-colors text-xs"
+            >
+              개인정보 취급방침
             </a>
           </div>
         </footer>
