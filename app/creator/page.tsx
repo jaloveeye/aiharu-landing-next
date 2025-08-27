@@ -1,23 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Title, Body } from "@/components/ui/Typography";
 import { Metadata } from "next";
 import { commonMetadata } from "@/app/metadata/common";
-
-export const metadata: Metadata = {
-  ...commonMetadata,
-  title: "제작자 소개 - aiharu 아이하루 | aiharu.net",
-  description:
-    "aiharu(아이하루) 제작자 김형진의 소개입니다. AI와 가족 중심의 서비스를 만든 개발자의 이야기를 들어보세요.",
-  openGraph: {
-    ...commonMetadata.openGraph,
-    title: "제작자 소개 - aiharu 아이하루 | aiharu.net",
-    description:
-      "aiharu(아이하루) 제작자 김형진의 소개입니다. AI와 가족 중심의 서비스를 만든 개발자의 이야기를 들어보세요.",
-    url: "https://aiharu.net/creator",
-  },
-};
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export default function CreatorPage() {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50">
       <div className="max-w-4xl mx-auto px-4 py-20">
@@ -29,9 +19,9 @@ export default function CreatorPage() {
         </Link>
 
         <div className="text-center mb-16">
-          <Title className="mb-6">제작자 소개</Title>
+          <Title className="mb-6">{t("creator.title")}</Title>
           <Body className="text-lg text-gray-700 max-w-2xl mx-auto">
-            aiharu를 만든 개발자 김형진의 이야기를 들어보세요.
+            {t("creator.description")}
           </Body>
         </div>
 
@@ -48,12 +38,7 @@ export default function CreatorPage() {
                 </p>
 
                 <div className="space-y-4 text-gray-700">
-                  <p>
-                    안녕하세요! aiharu의 제작자 김형진입니다. 17년간의
-                    소프트웨어 개발 경험을 바탕으로, AI 기술과 가족의 성장을
-                    결합한 의미 있는 서비스를 만들고 싶어서 aiharu 프로젝트를
-                    시작하게 되었습니다.
-                  </p>
+                  <p>{t("creator.intro")}</p>
                   <p>
                     한양대학교에서 Computer Vision and Pattern Recognition을
                     전공했으며, 현재는 infobank에서 Frontend Engineer로 17년간
@@ -181,7 +166,7 @@ export default function CreatorPage() {
         <section className="mb-20">
           <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">
-              aiharu를 만든 이유
+              아이하루를 만든 이유
             </h2>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
@@ -344,7 +329,7 @@ export default function CreatorPage() {
           <div className="bg-gradient-to-r from-green-500 to-yellow-500 rounded-2xl p-8 md:p-12 text-white">
             <h2 className="text-3xl font-bold mb-4">함께 성장해요!</h2>
             <p className="text-xl mb-8 opacity-90">
-              여러분의 피드백과 제안은 aiharu를 더 나은 서비스로 만들어갑니다.
+              여러분의 피드백과 제안은 아이하루를 더 나은 서비스로 만들어갑니다.
               <br />
               언제든지 연락주세요!
             </p>

@@ -8,7 +8,7 @@ export const metadata = {
   title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
   description:
     "AI하루는 매일 한 문장으로 배우는 AI 개념, 프롬프트 예제, 도구 추천, 일상 활용 팁 등 똑똑한 지식을 쉽게 제공합니다.",
-  keywords: "AI, 인공지능, 하루, 프롬프트, 도구 추천, GPT, LLM, ai하루, aiharu",
+  keywords: "AI, 인공지능, 하루, 프롬프트, 도구 추천, GPT, LLM, ai하루, 아이하루",
   openGraph: {
     ...commonMetadata.openGraph,
     title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",

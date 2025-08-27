@@ -6,12 +6,12 @@ export const metadata = {
   ...commonMetadata,
   title: "개인정보 취급방침 | aiharu.net",
   description:
-    "aiharu의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
+    "아이하루의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
   openGraph: {
     ...commonMetadata.openGraph,
-    title: "개인정보 취급방침 | aiharu.net",
-    description:
-      "aiharu의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
+          title: "개인정보 취급방침 | aiharu.net",
+      description:
+        "아이하루의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
     url: "https://aiharu.net/privacy",
   },
 };

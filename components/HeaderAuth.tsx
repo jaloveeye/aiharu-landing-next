@@ -2,8 +2,10 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import Link from "next/link";
+import { useLanguage } from "@/app/contexts/LanguageContext";
 
 export default function HeaderAuth() {
+  const { language, setLanguage, t } = useLanguage();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
@@ -39,7 +41,7 @@ export default function HeaderAuth() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-              <span className="text-2xl font-bold text-green-600">aiharu</span>
+                              <span className="text-2xl font-bold text-green-600">{t('hero.title')}</span>
             </Link>
           </div>
 
@@ -57,7 +59,7 @@ export default function HeaderAuth() {
                 }
                 className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1"
               >
-                서비스 소개
+                {t('nav.services')}
                 <svg
                   className={`w-4 h-4 transition-transform ${
                     isServicesDropdownOpen ? "rotate-180" : ""
@@ -86,7 +88,7 @@ export default function HeaderAuth() {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors"
                     >
                       <span className="text-green-500">🤖</span>
-                      AI하루
+                      {language === 'ko' ? 'AI하루' : 'AI Daily'}
                     </Link>
                     <Link
                       href="https://hanip.aiharu.net"
@@ -95,7 +97,7 @@ export default function HeaderAuth() {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 transition-colors"
                     >
                       <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
-                      아이하루
+                      {language === 'ko' ? '아이하루' : 'Child Daily'}
                     </Link>
                     <div className="border-t border-gray-100 my-1"></div>
                     <Link
@@ -103,7 +105,7 @@ export default function HeaderAuth() {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                     >
                       <span>📋</span>
-                      전체 서비스 소개
+                      {language === 'ko' ? '전체 서비스 소개' : 'All Services'}
                     </Link>
                   </div>
                 </div>
@@ -114,12 +116,13 @@ export default function HeaderAuth() {
               href="/creator"
               className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
             >
-              제작자 소개
+              {t('nav.creator')}
             </Link>
           </nav>
 
           {/* User Menu / Login */}
           <div className="flex items-center space-x-4">
+
             {userEmail ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">
@@ -129,13 +132,13 @@ export default function HeaderAuth() {
                   href="/history"
                   className="px-3 py-1 text-xs font-bold text-yellow-700 bg-yellow-50 border border-yellow-300 rounded hover:bg-yellow-100 transition-colors"
                 >
-                  분석 내역
+                  {t('nav.history')}
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-300 rounded hover:bg-blue-100 transition-colors"
                 >
-                  로그아웃
+                  {t('nav.logout')}
                 </button>
               </div>
             ) : (
@@ -144,13 +147,13 @@ export default function HeaderAuth() {
                   href="/login"
                   className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
                 >
-                  로그인
+                  {t('nav.login')}
                 </Link>
                 <Link
                   href="/signup"
                   className="px-4 py-2 text-sm font-bold !text-white bg-green-600 rounded hover:bg-green-700 transition-colors"
                 >
-                  회원가입
+                  {t('nav.signup')}
                 </Link>
               </div>
             )}
