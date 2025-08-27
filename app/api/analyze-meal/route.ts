@@ -8,6 +8,11 @@ import {
   saveRecommendationsFromAnalysis,
   generateFeedbacks,
 } from "@/app/utils/recommendation";
+import {
+  extractRecommendationSection,
+  extractIngredientsFromRecommendation,
+} from "@/app/utils/recommendationExtract";
+import fetch from "node-fetch";
 
 const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
@@ -246,6 +251,32 @@ export async function POST(req: NextRequest) {
     // 2. OpenAI로 분석 (이미지/텍스트)
     const { result, sourceType } = await analyzeWithOpenAI(meal, imageBase64);
 
+    // 2-1. 분석 결과에서 추천 식단 파싱 및 자동 저장 (회원만)
+    if (email) {
+      const recommendation = extractRecommendationSection(result);
+      if (recommendation) {
+        const ingredients =
+          extractIngredientsFromRecommendation(recommendation);
+        // 추천 식단 저장 API 호출
+        await fetch(
+          `${
+            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
+          }/api/recommendation`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              analysis_id: null, // 분석 결과 저장 전이므로 null
+              date: today,
+              content: recommendation,
+              ingredients: ingredients.join(","),
+              status: "pending",
+            }),
+          }
+        );
+      }
+    }
+
     // 3. 결과 저장
     const mealTextToSave =
       normalizedMeal || (imageBase64 ? extractMealTextFromResult(result) : "");
@@ -281,6 +312,45 @@ export async function POST(req: NextRequest) {
       result: insertObj.result,
       analyzed_at: insertObj.analyzed_at,
     });
+
+    // [실천 여부 자동 판별] 최근 7일 추천 식단 중 ingredients가 모두 포함된 경우 status를 achieved로 업데이트
+    const userRes = await supabase.auth.getUser();
+    const user = userRes.data?.user;
+    if (!user) {
+      // 인증된 사용자 없으면 skip
+    } else {
+      const { data: recs } = await supabase
+        .from("recommendations")
+        .select("id, ingredients, status")
+        .eq("user_id", user.id)
+        .eq("status", "pending")
+        .gte(
+          "date",
+          new Date(Date.now() - 1000 * 60 * 60 * 24 * 7)
+            .toISOString()
+            .slice(0, 10)
+        );
+      const mealText =
+        mealTextToSave +
+        "\n" +
+        (typeof result === "string" ? result : JSON.stringify(result));
+      for (const rec of recs || []) {
+        if (!rec.ingredients) continue;
+        const ings = rec.ingredients
+          .split(",")
+          .map((s: string) => s.trim())
+          .filter(Boolean);
+        if (
+          ings.length > 0 &&
+          ings.every((ing: string) => mealText.includes(ing))
+        ) {
+          await supabase
+            .from("recommendations")
+            .update({ status: "achieved" })
+            .eq("id", rec.id);
+        }
+      }
+    }
 
     // 이전 추천 이력 조회 및 피드백 생성
     const { data: prevRecs } = await supabase

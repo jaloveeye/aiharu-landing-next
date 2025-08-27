@@ -203,6 +203,19 @@ export default function PrivacyPage() {
             <p className="text-sm text-gray-600 mt-2">
               <strong>최종 수정일:</strong> 2025년 7월 22일
             </p>
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <h3 className="font-semibold text-gray-800 mb-2">회원 탈퇴</h3>
+              <p className="text-sm text-gray-600 mb-3">
+                회원 탈퇴를 원하시는 경우 아래 링크를 통해 탈퇴 요청을 할 수
+                있습니다.
+              </p>
+              <a
+                href="/withdraw"
+                className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
+              >
+                회원 탈퇴 요청
+              </a>
+            </div>
           </div>
         </div>
       </main>

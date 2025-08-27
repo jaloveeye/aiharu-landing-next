@@ -102,6 +102,12 @@ export default function HistoryPage() {
         >
           ← 홈으로 돌아가기
         </Link>
+        <Link
+          href="/statistics"
+          className="self-start mb-4 text-blue-700 hover:underline flex items-center gap-1 text-sm"
+        >
+          📊 추천 식단 통계 보기
+        </Link>
         <div className="text-2xl font-bold text-yellow-700 mb-4 text-center">
           분석 히스토리
         </div>

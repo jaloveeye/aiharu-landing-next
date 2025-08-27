@@ -28,6 +28,10 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
+          name="naver-site-verification"
+          content="ffe6f8cd0adc4ada072766f90d04d2d376b059db"
+        />
+        <meta
           name="description"
           content="aiharu - AI와 하루, 아이와 하루의 특별한 일상"
         />
