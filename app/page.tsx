@@ -7,13 +7,18 @@ import { commonMetadata } from "@/app/metadata/common";
 
 export const metadata: Metadata = {
   ...commonMetadata,
-  title: "aiharu 아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게 | aiharu.net",
-  description: "aiharu(아이하루)는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
-  keywords: "aiharu, 아이하루, AI하루, 하루, 습관, AI, 인공지능, 성장, 피드백, 프롬프트, GPT, LLM, 부모, 자녀, 대시보드, 서비스 소개, 식단 분석, 영양 관리",
+  title:
+    "aiharu 아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게 | aiharu.net",
+  description:
+    "aiharu(아이하루)는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
+  keywords:
+    "aiharu, 아이하루, AI하루, 하루, 습관, AI, 인공지능, 성장, 피드백, 프롬프트, GPT, LLM, 부모, 자녀, 대시보드, 서비스 소개, 식단 분석, 영양 관리",
   openGraph: {
     ...commonMetadata.openGraph,
-    title: "aiharu 아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게 | aiharu.net",
-    description: "aiharu(아이하루)는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
+    title:
+      "aiharu 아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게 | aiharu.net",
+    description:
+      "aiharu(아이하루)는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
     url: "https://aiharu.net/",
   },
   alternates: {
@@ -28,76 +33,156 @@ export default function Home() {
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "aiharu 아이하루",
-    "alternateName": "아이하루",
-    "url": "https://aiharu.net",
-    "description": "aiharu(아이하루)는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.",
-    "potentialAction": {
+    name: "aiharu 아이하루",
+    alternateName: "아이하루",
+    url: "https://aiharu.net",
+    description:
+      "aiharu(아이하루)는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.",
+    potentialAction: {
       "@type": "SearchAction",
-      "target": "https://aiharu.net/search?q={search_term_string}",
-      "query-input": "required name=search_term_string"
+      target: "https://aiharu.net/search?q={search_term_string}",
+      "query-input": "required name=search_term_string",
     },
-    "sameAs": [
-      "https://hanip.aiharu.net"
-    ]
+    sameAs: ["https://hanip.aiharu.net"],
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white px-4">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <main className="flex flex-col items-center gap-6">
-        <Image
-          src="/happy-family.png"
-          alt="행복한 가족 일러스트"
-          width={400}
-          height={280}
-          className="mb-2 rounded-xl shadow-sm mt-12"
-          priority
-          aria-label="행복한 가족 일러스트"
-        />
-        <Title>
-          오늘 하루를
-          <br />
-          <span className="text-green-500">더 똑똑하고</span>{" "}
-          <span className="text-yellow-500">따뜻하게</span>
-        </Title>
-        <div className="flex flex-col gap-1 text-center mt-2">
-          <Body className="font-medium">
-            AI하루는 매일 하나의{" "}
-            <span className="text-green-500 font-semibold">AI</span>를 배웁니다.
+
+      {/* Hero Section */}
+      <section className="flex flex-col items-center justify-center min-h-screen px-4 py-20">
+        <main className="flex flex-col items-center gap-8 max-w-4xl">
+          <Image
+            src="/happy-family.png"
+            alt="행복한 가족 일러스트"
+            width={400}
+            height={280}
+            className="mb-4 rounded-xl shadow-lg"
+            priority
+            aria-label="행복한 가족 일러스트"
+          />
+          <Title className="text-center">
+            오늘 하루를
+            <br />
+            <span className="text-green-500">더 똑똑하고</span>{" "}
+            <span className="text-yellow-500">따뜻하게</span>
+          </Title>
+          <div className="flex flex-col gap-2 text-center max-w-2xl">
+            <Body className="font-medium text-lg">
+              AI하루는 매일 하나의{" "}
+              <span className="text-green-500 font-semibold">AI</span>를
+              배웁니다.
+            </Body>
+            <Body className="font-medium text-lg">
+              아이하루는 매일 하나의{" "}
+              <span className="text-yellow-500 font-semibold">습관</span>을
+              만듭니다.
+            </Body>
+          </div>
+          <Body className="text-center text-gray-700 max-w-2xl">
+            <span className="font-semibold text-green-500">AI</span>와{" "}
+            <span className="font-semibold text-yellow-500">아이</span>의 하루를
+            모두 담아,
+            <br />
+            기술과 감성이 어우러진 특별한 일상을 선물합니다.
           </Body>
-          <Body className="font-medium">
-            아이하루는 매일 하나의{" "}
-            <span className="text-yellow-500 font-semibold">습관</span>을
-            만듭니다.
-          </Body>
+
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <Button
+              as="a"
+              href="https://hanip.aiharu.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="secondary"
+              aria-label="아이하루 가기"
+              className="text-lg px-8 py-4"
+            >
+              아이하루 가기
+            </Button>
+            <Button
+              as="a"
+              href="/ai"
+              variant="primary"
+              aria-label="AI하루 가기"
+              className="text-lg px-8 py-4"
+            >
+              AI하루 가기
+            </Button>
+          </div>
+        </main>
+      </section>
+
+      {/* Features Section */}
+      <section className="py-20 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
+            aiharu의 특별한 기능들
+          </h2>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl shadow-sm">
+              <div className="text-4xl mb-4">🤖</div>
+              <h3 className="text-xl font-bold text-green-700 mb-2">AI하루</h3>
+              <p className="text-green-600">
+                매일 하나씩 AI 지식을 배우고, 프롬프트 활용법을 익혀봐요.
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl shadow-sm">
+              <div className="text-4xl mb-4">👨‍👩‍👧‍👦</div>
+              <h3 className="text-xl font-bold text-yellow-700 mb-2">
+                아이하루
+              </h3>
+              <p className="text-yellow-600">
+                부모와 아이가 함께 목표를 세우고 습관을 만들어가요.
+              </p>
+            </div>
+            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl shadow-sm">
+              <div className="text-4xl mb-4">🍽️</div>
+              <h3 className="text-xl font-bold text-blue-700 mb-2">
+                식단 분석
+              </h3>
+              <p className="text-blue-600">
+                AI가 분석하는 맞춤형 영양 정보와 건강한 식단 추천.
+              </p>
+            </div>
+          </div>
         </div>
-        <Body>
-          <span className="font-semibold text-green-500">AI</span>와{" "}
-          <span className="font-semibold text-yellow-500">아이</span>의 하루를
-          모두 담아,
-          <br />
-          기술과 감성이 어우러진 특별한 일상을 선물합니다.
-        </Body>
-        <div className="flex gap-4 mt-4">
-          <Button
-            as="a"
-            href="https://hanip.aiharu.net"
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="secondary"
-            aria-label="아이하루 가기"
-          >
-            아이하루 가기
-          </Button>
-          <Button as="a" href="/ai" variant="primary" aria-label="AI하루 가기">
-            AI하루 가기
-          </Button>
-        </div>
-      </main>
+      </section>
+
+                {/* CTA Section */}
+          <section className="py-20 px-4 bg-gradient-to-r from-green-50 to-yellow-50">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                지금 시작해보세요
+              </h2>
+              <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
+                aiharu와 함께 더 똑똑하고 따뜻한 하루를 만들어가요. 
+                헤더에서 로그인하거나 회원가입하여 모든 기능을 체험해보세요.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  as="a"
+                  href="/about"
+                  variant="primary"
+                  className="text-lg px-8 py-4"
+                >
+                  서비스 소개 보기
+                </Button>
+                <Button
+                  as="a"
+                  href="/creator"
+                  variant="secondary"
+                  className="text-lg px-8 py-4"
+                >
+                  제작자 소개
+                </Button>
+              </div>
+            </div>
+          </section>
       <div className="w-full max-w-xl mx-auto mt-16 mb-4">
         <hr className="border-t border-gray-200 mb-4" />
         <footer className="flex flex-col items-center gap-2 text-gray-700 text-sm">
