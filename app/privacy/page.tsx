@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Title, Body } from "@/components/ui/Typography";
+import Button from "@/components/ui/Button";
 import { commonMetadata } from "@/app/metadata/common";
 
 export const metadata = {
@@ -9,9 +10,9 @@ export const metadata = {
     "아이하루의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
   openGraph: {
     ...commonMetadata.openGraph,
-          title: "개인정보 취급방침 | aiharu.net",
-      description:
-        "아이하루의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
+    title: "개인정보 취급방침 | aiharu.net",
+    description:
+      "아이하루의 개인정보 수집, 이용, 보관, 파기 등에 관한 정책을 안내합니다.",
     url: "https://aiharu.net/privacy",
   },
 };
@@ -209,12 +210,9 @@ export default function PrivacyPage() {
                 회원 탈퇴를 원하시는 경우 아래 링크를 통해 탈퇴 요청을 할 수
                 있습니다.
               </p>
-              <a
-                href="/withdraw"
-                className="inline-block px-4 py-2 bg-red-600 text-white text-sm font-medium rounded hover:bg-red-700 transition-colors"
-              >
+              <Button as="a" href="/withdraw" variant="destructive" size="md">
                 회원 탈퇴 요청
-              </a>
+              </Button>
             </div>
           </div>
         </div>

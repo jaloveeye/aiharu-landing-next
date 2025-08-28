@@ -1,13 +1,53 @@
 @import "tailwindcss";
 
 :root {
+  /* Modern Color Palette */
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: #a5b4fc;
+  --secondary: #f59e0b;
+  --secondary-dark: #d97706;
+  --accent: #ec4899;
+  --accent-light: #f9a8d4;
+  
+  /* Neutral Colors */
+  --neutral-50: #fafafa;
+  --neutral-100: #f5f5f5;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-600: #4b5563;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
+  --neutral-900: #111827;
+  
+  /* Semantic Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  
+  /* Background Colors */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: var(--neutral-900);
+  --muted: var(--neutral-100);
+  --muted-foreground: var(--neutral-600);
+  
+  /* Border Colors */
+  --border: var(--neutral-200);
+  --input: var(--neutral-200);
+  --ring: var(--primary);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -16,57 +56,238 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --muted: #1a1a1a;
+    --muted-foreground: #a1a1aa;
+    --border: #27272a;
+    --input: #27272a;
   }
 }
 
 body {
-  @apply bg-yellow-50 text-gray-800;
+  @apply bg-neutral-50 text-neutral-900;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  line-height: 1.6;
 }
 
-a, button {
-  @apply transition-colors;
-}
-
+/* Modern Link Styles */
 a {
-  @apply text-green-600 hover:text-green-700 no-underline;
+  @apply text-primary hover:text-primary transition-colors duration-200;
+  text-decoration: none;
 }
+
 a:hover {
-  @apply no-underline;
+  text-decoration: none;
 }
 
+/* Modern Button Styles */
 button, .btn, [type="submit"] {
-  @apply bg-green-500 hover:bg-green-600 text-white rounded shadow;
+  @apply bg-primary hover:bg-primary text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium;
+  border: none;
+  outline: none;
 }
 
+button:focus, .btn:focus, [type="submit"]:focus {
+  @apply ring-2 ring-primary ring-offset-2;
+}
+
+/* Button Component Specific Styles - High Specificity */
+button.btn-primary, 
+a.btn-primary, 
+button.btn-secondary, 
+a.btn-secondary, 
+button.btn-accent, 
+a.btn-accent, 
+button.btn-destructive, 
+a.btn-destructive {
+  color: white;
+}
+
+button.btn-primary, a.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+button.btn-secondary, a.btn-secondary {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+}
+
+button.btn-accent, a.btn-accent {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+}
+
+button.btn-destructive, a.btn-destructive {
+  background: var(--error);
+}
+
+button.btn-outline, a.btn-outline {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+}
+
+button.btn-outline:hover, a.btn-outline:hover {
+  background: var(--primary);
+  color: white;
+}
+
+button.btn-ghost, a.btn-ghost {
+  background: transparent;
+  color: var(--neutral-700);
+}
+
+button.btn-ghost:hover, a.btn-ghost:hover {
+  background: var(--neutral-100);
+  color: var(--neutral-900);
+}
+
+/* Modern Input Styles */
 input, textarea, select {
-  @apply border-yellow-200 focus:border-green-400 focus:ring-green-200;
+  @apply border-neutral-200 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-lg transition-all duration-200;
+  background: var(--background);
 }
 
 input::placeholder, textarea::placeholder, select::placeholder {
-  @apply text-yellow-600 opacity-100;
+  @apply text-neutral-500;
 }
 
+/* Modern Card Styles */
 .card, .dashboard-card {
-  @apply bg-white border border-yellow-200 rounded-xl shadow;
+  @apply bg-white border border-neutral-200 rounded-2xl shadow-sm hover:shadow-md transition-all duration-200;
+  backdrop-filter: blur(10px);
 }
 
-.bg-accent-yellow {
-  @apply bg-yellow-100;
+/* Glass Morphism Effect */
+.glass {
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
-.bg-accent-green {
-  @apply bg-green-50;
+/* Modern Gradient Backgrounds */
+.gradient-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
-@keyframes shake {
-  10%, 90% { transform: translateX(-2px); }
-  20%, 80% { transform: translateX(4px); }
-  30%, 50%, 70% { transform: translateX(-8px); }
-  40%, 60% { transform: translateX(8px); }
+.gradient-secondary {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
-.animate-shake {
-  animation: shake 0.5s;
+
+.gradient-accent {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.gradient-warm {
+  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.gradient-cool {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* Modern Shadows */
+.shadow-soft {
+  box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-medium {
+  box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-strong {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Modern Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.5s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Modern Hover Effects */
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* Modern Border Radius */
+.rounded-modern {
+  border-radius: 16px;
+}
+
+.rounded-modern-lg {
+  border-radius: 24px;
+}
+
+/* Modern Spacing */
+.space-modern {
+  @apply space-y-6;
+}
+
+.space-modern-lg {
+  @apply space-y-8;
+}
+
+/* Modern Typography */
+.text-modern {
+  @apply font-medium tracking-tight;
+}
+
+.text-modern-lg {
+  @apply font-semibold tracking-tight;
+}
+
+/* Modern Color Utilities */
+.bg-primary-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+}
+
+.bg-secondary-gradient {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-dark) 100%);
+}
+
+.bg-accent-gradient {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
 }

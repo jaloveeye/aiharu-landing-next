@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/app/utils/supabase/client";
 import Link from "next/link";
 import { useLanguage } from "@/app/contexts/LanguageContext";
+import Button from "@/components/ui/Button";
 
 export default function HeaderAuth() {
   const { language, setLanguage, t } = useLanguage();
@@ -143,18 +144,14 @@ export default function HeaderAuth() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Link
-                  href="/login"
-                  className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
-                >
-                  {t('nav.login')}
-                </Link>
-                <Link
+                <Button
+                  as="a"
                   href="/signup"
-                  className="px-4 py-2 text-sm font-bold !text-white bg-green-600 rounded hover:bg-green-700 transition-colors"
+                  variant="primary"
+                  size="md"
                 >
-                  {t('nav.signup')}
-                </Link>
+                  구글로 시작하기
+                </Button>
               </div>
             )}
 

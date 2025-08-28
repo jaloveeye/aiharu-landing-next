@@ -5,159 +5,286 @@ import Image from "next/image";
 import { Title, Body } from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
 import { useLanguage } from "@/app/contexts/LanguageContext";
+import { createClient } from "@/app/utils/supabase/client";
+import { useEffect, useState } from "react";
 
 export default function HomeContent() {
   const { t } = useLanguage();
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const supabase = createClient();
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getUser();
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleStartClick = () => {
+    if (user) {
+      // 로그인된 사용자가 있으면 PostMessage로 인증 정보 전달
+      try {
+        console.log("Opening hanip.aiharu.net with user info...");
+
+        // 새 창 열기
+        const newWindow = window.open("https://hanip.aiharu.net", "_blank");
+
+        if (newWindow) {
+          // 창이 로드된 후 메시지 전송
+          setTimeout(() => {
+            newWindow.postMessage(
+              {
+                type: "AUTH_DATA",
+                user: {
+                  id: user.id,
+                  email: user.email,
+                  name:
+                    user.user_metadata?.full_name || user.user_metadata?.name,
+                  avatar: user.user_metadata?.avatar_url,
+                },
+              },
+              "https://hanip.aiharu.net"
+            );
+          }, 1000);
+        } else {
+          // 팝업이 차단된 경우 일반 링크로 이동
+          window.open("https://hanip.aiharu.net", "_blank");
+        }
+      } catch (error) {
+        console.error("PostMessage error:", error);
+        window.open("https://hanip.aiharu.net", "_blank");
+      }
+    } else {
+      // 로그인되지 않은 경우 일반 링크로 이동
+      window.open("https://hanip.aiharu.net", "_blank");
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-yellow-50">
+    <div className="min-h-screen bg-gradient-to-br from-neutral-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="flex flex-col items-center justify-center min-h-screen px-4 py-20">
-        <main className="flex flex-col items-center gap-8 max-w-4xl">
-          <Image
-            src="/happy-family.png"
-            alt="행복한 가족 일러스트"
-            width={400}
-            height={280}
-            className="mb-4 rounded-xl shadow-lg"
-            priority
-            aria-label="행복한 가족 일러스트"
-          />
-          <Title className="text-center">{t("hero.subtitle")}</Title>
-          <div className="flex flex-col gap-2 text-center max-w-2xl">
-            <Body className="font-medium text-lg">
+      <section className="flex flex-col items-center justify-center min-h-screen px-4 py-20 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-float"></div>
+          <div
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent/10 rounded-full blur-3xl animate-float"
+            style={{ animationDelay: "1s" }}
+          ></div>
+        </div>
+
+        <main className="flex flex-col items-center gap-8 max-w-4xl relative z-10">
+          <div className="animate-fade-in-scale">
+            <Image
+              src="/happy-family.png"
+              alt="행복한 가족 일러스트"
+              width={400}
+              height={280}
+              className="mb-4 rounded-2xl shadow-strong hover-lift"
+              priority
+              aria-label="행복한 가족 일러스트"
+            />
+          </div>
+
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.2s" }}
+          >
+            <Title className="text-center bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent whitespace-pre-line">
+              {t("hero.subtitle")}
+            </Title>
+          </div>
+
+          <div
+            className="flex flex-col gap-4 text-center max-w-2xl animate-fade-in-up"
+            style={{ animationDelay: "0.4s" }}
+          >
+            <Body className="font-medium text-lg text-neutral-700">
               {t("features.ai.title")}는 매일 하나의{" "}
-              <span className="text-green-500 font-semibold">AI</span>를
-              배웁니다.
+              <span className="text-primary font-semibold">AI</span>를 배웁니다.
             </Body>
-            <Body className="font-medium text-lg">
+            <Body className="font-medium text-lg text-neutral-700">
               {t("features.child.title")}는 매일 하나의{" "}
-              <span className="text-yellow-500 font-semibold">습관</span>을
+              <span className="text-secondary font-semibold">습관</span>을
               만듭니다.
             </Body>
           </div>
-          <Body className="text-center text-gray-700 max-w-2xl">
+
+          <Body
+            className="text-center text-neutral-600 max-w-2xl animate-fade-in-up whitespace-pre-line"
+            style={{ animationDelay: "0.6s" }}
+          >
             {t("hero.description")}
           </Body>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <div
+            className="flex flex-col sm:flex-row gap-4 mt-8 animate-fade-in-up"
+            style={{ animationDelay: "0.8s" }}
+          >
             <Button
-              as="a"
-              href="https://hanip.aiharu.net"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-4 text-lg font-bold bg-green-600 text-white hover:bg-green-700 transition-colors"
+              onClick={handleStartClick}
+              size="lg"
+              className="bg-primary-gradient"
+              disabled={loading}
             >
-              {t("hero.cta")}
+              {loading ? "로딩 중..." : t("hero.cta")}
             </Button>
           </div>
         </main>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 relative">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
+          <h2 className="text-4xl font-bold text-center text-neutral-900 mb-16 animate-fade-in-up">
             {t("features.title")}
           </h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
             {/* AI하루 */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-              <div className="text-6xl mb-4">🤖</div>
-              <h3 className="text-2xl font-bold text-green-700 mb-2">
-                {t("features.ai.title")}
-              </h3>
-              <p className="text-gray-600 mb-6">
-                {t("features.ai.description")}
-              </p>
-              <Link
-                href="/ai"
-                className="inline-block px-6 py-3 bg-green-600 text-white !text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-              >
-                {t("features.ai.title")} 시작하기
-              </Link>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.2s" }}
+            >
+              <div className="bg-white rounded-2xl shadow-soft p-8 text-center hover-lift border border-neutral-200/50 h-full flex flex-col">
+                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                  🤖
+                </div>
+                <h3 className="text-2xl font-bold text-primary mb-4">
+                  {t("features.ai.title")}
+                </h3>
+                <p className="text-neutral-600 mb-8 leading-relaxed">
+                  {t("features.ai.description")}
+                </p>
+                <Button
+                  as="a"
+                  href="/ai"
+                  variant="primary"
+                  size="md"
+                  className="mt-auto"
+                >
+                  {t("features.ai.title")} 시작하기
+                </Button>
+              </div>
             </div>
 
             {/* 아이하루 */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-              <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
-              <h3 className="text-2xl font-bold text-yellow-700 mb-2">
-                {t("features.child.title")}
-              </h3>
-              <p className="text-gray-600 mb-6">
-                {t("features.child.description")}
-              </p>
-              <a
-                href="https://hanip.aiharu.net"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block px-6 py-3 bg-yellow-600 text-white !text-white font-semibold rounded-lg hover:bg-yellow-700 transition-colors"
-              >
-                {t("features.child.title")} 시작하기
-              </a>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.4s" }}
+            >
+              <div className="bg-white rounded-2xl shadow-soft p-8 text-center hover-lift border border-neutral-200/50 h-full flex flex-col">
+                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                  👨‍👩‍👧‍👦
+                </div>
+                <h3 className="text-2xl font-bold text-secondary mb-4">
+                  {t("features.child.title")}
+                </h3>
+                <p className="text-neutral-600 mb-8 leading-relaxed">
+                  {t("features.child.description")}
+                </p>
+                <Button
+                  as="a"
+                  href="/child-temp"
+                  variant="secondary"
+                  size="md"
+                  className="mt-auto"
+                >
+                  {t("features.child.title")} 시작하기
+                </Button>
+              </div>
             </div>
 
             {/* AI 식단 분석 */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 text-center hover:shadow-xl transition-shadow">
-              <div className="text-6xl mb-4">🍽️</div>
-              <h3 className="text-2xl font-bold text-blue-700 mb-2">
-                {t("features.meal.title")}
-              </h3>
-              <p className="text-gray-600 mb-6">
-                {t("features.meal.description")}
-              </p>
-              <Link
-                href="/breakfast"
-                className="inline-block px-6 py-3 bg-blue-600 text-white !text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                {t("features.meal.title")} 시작하기
-              </Link>
+            <div
+              className="group animate-fade-in-up"
+              style={{ animationDelay: "0.6s" }}
+            >
+              <div className="bg-white rounded-2xl shadow-soft p-8 text-center hover-lift border border-neutral-200/50 h-full flex flex-col">
+                <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
+                  🍽️
+                </div>
+                <h3 className="text-2xl font-bold text-accent mb-4">
+                  {t("features.meal.title")}
+                </h3>
+                <p className="text-neutral-600 mb-8 leading-relaxed">
+                  {t("features.meal.description")}
+                </p>
+                <Button
+                  onClick={handleStartClick}
+                  variant="accent"
+                  size="md"
+                  disabled={loading}
+                  className="mt-auto"
+                >
+                  {loading
+                    ? "로딩 중..."
+                    : `${t("features.meal.title")} 시작하기`}
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 relative">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4 text-gray-800">
-            {t("cta.title")}
-          </h2>
-          <p className="text-xl mb-8 text-gray-600">{t("hero.description")}</p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/about"
-              className="px-8 py-4 bg-green-600 text-white !text-white font-bold rounded-lg hover:bg-green-700 transition-colors"
-            >
-              {t("nav.services")}
-            </Link>
-            <Link
-              href="/creator"
-              className="px-8 py-4 border-2 border-green-600 text-white font-bold rounded-lg hover:bg-green-600 hover:text-white transition-colors"
-            >
-              {t("nav.creator")}
-            </Link>
+          <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-3xl p-12 animate-fade-in-up">
+            <h2 className="text-4xl font-bold mb-6 text-neutral-900">
+              {t("cta.title")}
+            </h2>
+            <p className="text-xl mb-10 text-neutral-700 leading-relaxed">
+              {t("hero.description")}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button as="a" href="/about" variant="primary" size="lg">
+                {t("nav.services")}
+              </Button>
+              <Button as="a" href="/creator" variant="outline" size="lg">
+                {t("nav.creator")}
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="py-8 px-4 text-center">
+      <footer className="py-12 px-4 text-center border-t border-neutral-200">
         <div className="max-w-4xl mx-auto">
-          <div className="flex flex-col items-center gap-2 text-gray-700 text-sm">
-            <span>{t("footer.made")}</span>
-            <div className="flex gap-3 mt-1">
+          <div className="flex flex-col items-center gap-4 text-neutral-600">
+            <span className="text-lg">{t("footer.made")}</span>
+            <div className="flex gap-6 mt-2">
               <Link
                 href="/privacy"
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-neutral-500 hover:text-neutral-700 transition-colors duration-200"
               >
                 개인정보 취급방침
               </Link>
-              <span className="text-gray-400">|</span>
+              <span className="text-neutral-400">|</span>
               <Link
                 href="/withdraw"
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-neutral-500 hover:text-neutral-700 transition-colors duration-200"
               >
                 회원 탈퇴
               </Link>

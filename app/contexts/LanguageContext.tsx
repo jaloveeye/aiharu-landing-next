@@ -25,8 +25,8 @@ const translations = {
     
     // 메인 페이지
     'hero.title': '아이하루',
-    'hero.subtitle': 'AI와 아이의 하루를 더 똑똑하고 따뜻하게',
-    'hero.description': '아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.',
+    'hero.subtitle': 'AI와 아이의 하루를\n더 똑똑하고 따뜻하게',
+    'hero.description': '아이하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
     'hero.cta': '지금 시작하기',
     'features.title': '아이하루의 특별한 기능들',
     'features.ai.title': 'AI하루',

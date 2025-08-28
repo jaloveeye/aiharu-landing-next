@@ -118,7 +118,7 @@ export default function CreatorPage() {
                   </p>
                   <p>
                     <strong>특허:</strong> Service system for
-                    broadcasting-related information
+                    broadcasting-related information, 자율주행 레미콘 차량의 운행 관제 방법 및 그를 수행하는 서버
                   </p>
                   <p>
                     <strong>Good Software 인증 (TTA):</strong> "ViewCube"
@@ -150,10 +150,7 @@ export default function CreatorPage() {
                   </p>
                   <p>
                     <strong>특허:</strong> METHOD AND APPARATUS FOR COMPLETING
-                    IMAGE WITH STRUCTURE ESTIMATION
-                  </p>
-                  <p>
-                    <strong>특허:</strong> SYSTEM AND METHOD FOR SYNTHESIS OF
+                    IMAGE WITH STRUCTURE ESTIMATION, SYSTEM AND METHOD FOR SYNTHESIS OF
                     FACE EXPRESSION USING NONLINEAR REGRESSION ANALYSIS
                   </p>
                 </div>
