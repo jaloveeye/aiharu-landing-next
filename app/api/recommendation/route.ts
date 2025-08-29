@@ -3,7 +3,7 @@ import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   const { analysis_id, date, content, status, ingredients } = await req.json();
 
   // 인증된 사용자 정보 가져오기
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   const { searchParams } = new URL(req.url);
   const user_id = searchParams.get("user_id");
   let data, error;

@@ -3,7 +3,7 @@ import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 
 export async function GET(req: NextRequest) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   const { searchParams } = new URL(req.url);
   const email = searchParams.get("email");
   let query = supabase

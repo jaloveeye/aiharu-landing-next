@@ -3,7 +3,7 @@ import { createClient } from "@/app/utils/supabase/server";
 import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
 
   // meal_analysis에서 최근 20개 result 추출 (email 포함)
   const { data: meals, error } = await supabase

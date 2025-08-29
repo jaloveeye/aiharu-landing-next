@@ -170,7 +170,7 @@ export async function POST(req: NextRequest) {
     const normalizedMeal = normalizeMeal(meal || "");
     // 클라이언트에서 todayLocal(yyyy-mm-dd, 브라우저 로컬 기준)이 오면 우선 사용
     const today = todayLocal || new Date().toISOString().slice(0, 10);
-    const supabase = createClient(cookies());
+    const supabase = await createClient();
 
     if (email) {
       // 회원: 매일 1회 분석 가능
@@ -394,7 +394,7 @@ export async function GET(req: NextRequest) {
   const meal = searchParams.get("meal");
   const latest = searchParams.get("latest");
   const today = new Date().toISOString().slice(0, 10);
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
 
   // 분석 상세(id) 조회: 가장 먼저 처리
   if (id) {

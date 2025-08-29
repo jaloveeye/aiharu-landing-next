@@ -60,7 +60,7 @@ export async function saveRecommendationsFromAnalysis(analysis: {
   result: string;
   analyzed_at: string;
 }) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   const recs = extractRecommendations(analysis.result);
   for (const rec of recs) {
     // 중복 체크: 같은 analysis_id, content, category가 이미 있으면 skip

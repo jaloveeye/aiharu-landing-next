@@ -8,7 +8,7 @@ import {
 } from "@/app/utils/constants";
 
 export async function POST(req: NextRequest) {
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
 
   // 1. 기존 분석 결과 일부(예: 20개) 불러오기
   const { data: analyses, error } = await supabase

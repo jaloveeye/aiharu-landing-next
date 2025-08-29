@@ -151,33 +151,7 @@ export default function AiPage() {
             </Button>
           </div>
 
-          {/* Additional Features Preview */}
-          <div
-            className="grid md:grid-cols-3 gap-6 mt-12 w-full animate-fade-in-up"
-            style={{ animationDelay: "0.6s" }}
-          >
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center hover-lift border border-neutral-200/30">
-              <div className="text-3xl mb-3">🍽️</div>
-              <h3 className="font-semibold text-neutral-800 mb-2">
-                AI 식단 분석
-              </h3>
-              <p className="text-sm text-neutral-600">사진으로 영양소 분석</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center hover-lift border border-neutral-200/30">
-              <div className="text-3xl mb-3">📊</div>
-              <h3 className="font-semibold text-neutral-800 mb-2">
-                맞춤형 추천
-              </h3>
-              <p className="text-sm text-neutral-600">개인화된 AI 추천</p>
-            </div>
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-6 text-center hover-lift border border-neutral-200/30">
-              <div className="text-3xl mb-3">📈</div>
-              <h3 className="font-semibold text-neutral-800 mb-2">
-                학습 리포트
-              </h3>
-              <p className="text-sm text-neutral-600">성장 과정 추적</p>
-            </div>
-          </div>
+
         </main>
       </div>
     </div>

@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     // 회원 존재 여부 확인
     const { data: user, error: userError } = await supabase
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
     }
 
     const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = await createClient();
 
     const { data, error } = await supabase
       .from("withdraw_requests")

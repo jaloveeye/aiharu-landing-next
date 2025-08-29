@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export async function POST(req: NextRequest) {
   const { anon_id, email } = await req.json();
-  const supabase = createClient(cookies());
+  const supabase = await createClient();
   const { error } = await supabase
     .from("meal_analysis")
     .update({ email })

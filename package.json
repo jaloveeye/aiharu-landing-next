@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "generate:daily-mdx": "node scripts/generate-daily-mdx.js",
+    "generate-daily": "node scripts/generate-daily-mdx.js",
+    "generate-prompts": "curl -X POST http://localhost:3000/api/generate-prompts",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },
