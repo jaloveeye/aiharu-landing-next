@@ -25,8 +25,8 @@ export default function AboutPage() {
           </Body>
         </div>
 
-        {/* AI하루 섹션 */}
-        <section className="mb-20">
+        {/* AI하루 섹션 - 주석처리됨 */}
+        {/* <section className="mb-20">
           <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1">
@@ -65,10 +65,10 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
-        {/* 아이하루 섹션 */}
-        <section className="mb-20">
+        {/* 아이하루 섹션 - 주석처리됨 */}
+        {/* <section className="mb-20">
           <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
             <div className="flex flex-col md:flex-row-reverse items-center gap-8">
               <div className="flex-1">
@@ -110,10 +110,10 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
-        {/* 식단 분석 섹션 */}
-        <section className="mb-20">
+        {/* 식단 분석 섹션 - 주석처리됨 */}
+        {/* <section className="mb-20">
           <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
             <div className="flex flex-col md:flex-row items-center gap-8">
               <div className="flex-1">
@@ -153,7 +153,7 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
 
         {/* 서비스 특징 */}
         <section className="mb-20">

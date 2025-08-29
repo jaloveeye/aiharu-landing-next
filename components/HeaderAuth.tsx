@@ -42,7 +42,9 @@ export default function HeaderAuth() {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center">
-                              <span className="text-2xl font-bold text-green-600">{t('hero.title')}</span>
+              <span className="text-2xl font-bold text-green-600">
+                {t("hero.title")}
+              </span>
             </Link>
           </div>
 
@@ -60,7 +62,7 @@ export default function HeaderAuth() {
                 }
                 className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors flex items-center gap-1"
               >
-                {t('nav.services')}
+                {t("nav.services")}
                 <svg
                   className={`w-4 h-4 transition-transform ${
                     isServicesDropdownOpen ? "rotate-180" : ""
@@ -89,25 +91,33 @@ export default function HeaderAuth() {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-600 transition-colors"
                     >
                       <span className="text-green-500">🤖</span>
-                      {language === 'ko' ? 'AI하루' : 'AI Daily'}
+                      {language === "ko" ? "AI하루" : "AI Daily"}
+                    </Link>
+                    <Link
+                      href="/child-temp"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 transition-colors"
+                    >
+                      <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
+                      {language === "ko" ? "아이하루" : "Child Daily"}
                     </Link>
                     <Link
                       href="https://hanip.aiharu.net"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 transition-colors"
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors"
                     >
-                      <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
-                      {language === 'ko' ? '아이하루' : 'Child Daily'}
+                      <span className="text-blue-500">🍽️</span>
+                      {language === "ko" ? "AI식단분석" : "AI Meal Analysis"}
                     </Link>
-                    <div className="border-t border-gray-100 my-1"></div>
+                    {/* 전체 서비스 소개 메뉴 - 주석처리됨 */}
+                    {/* <div className="border-t border-gray-100 my-1"></div>
                     <Link
                       href="/about"
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors"
                     >
                       <span>📋</span>
                       {language === 'ko' ? '전체 서비스 소개' : 'All Services'}
-                    </Link>
+                    </Link> */}
                   </div>
                 </div>
               )}
@@ -117,14 +127,14 @@ export default function HeaderAuth() {
               href="/creator"
               className="text-gray-700 hover:text-green-600 px-3 py-2 text-sm font-medium transition-colors"
             >
-              {t('nav.creator')}
+              {t("nav.creator")}
             </Link>
           </nav>
 
-          {/* User Menu / Login */}
+          {/* User Menu / Login - UI 제거됨, 기능은 유지 */}
           <div className="flex items-center space-x-4">
-
-            {userEmail ? (
+            {/* 로그인 관련 UI는 제거했지만 기능은 그대로 유지 */}
+            {/* {userEmail ? (
               <div className="flex items-center gap-3">
                 <span className="text-sm text-gray-700 hidden sm:block">
                   {userEmail}
@@ -133,27 +143,22 @@ export default function HeaderAuth() {
                   href="/history"
                   className="px-3 py-1 text-xs font-bold text-yellow-700 bg-yellow-50 border border-yellow-300 rounded hover:bg-yellow-100 transition-colors"
                 >
-                  {t('nav.history')}
+                  {t("nav.history")}
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="px-3 py-1 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-300 rounded hover:bg-blue-100 transition-colors"
                 >
-                  {t('nav.logout')}
+                  {t("nav.logout")}
                 </button>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Button
-                  as="a"
-                  href="/signup"
-                  variant="primary"
-                  size="md"
-                >
+                <Button as="a" href="/signup" variant="primary" size="md">
                   구글로 시작하기
                 </Button>
               </div>
-            )}
+            )} */}
 
             {/* Mobile menu button */}
             <button
@@ -196,9 +201,7 @@ export default function HeaderAuth() {
                     AI하루
                   </Link>
                   <Link
-                    href="https://hanip.aiharu.net"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/child-temp"
                     className="flex items-center gap-2 text-gray-700 hover:text-yellow-600 block px-3 py-2 text-base font-medium"
                     onClick={() => setIsMenuOpen(false)}
                   >
@@ -206,13 +209,24 @@ export default function HeaderAuth() {
                     아이하루
                   </Link>
                   <Link
+                    href="https://hanip.aiharu.net"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-gray-700 hover:text-blue-600 block px-3 py-2 text-base font-medium"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <span className="text-blue-500">🍽️</span>
+                    AI식단분석
+                  </Link>
+                  {/* 전체 서비스 소개 메뉴 - 주석처리됨 */}
+                  {/* <Link
                     href="/about"
                     className="flex items-center gap-2 text-gray-700 hover:text-green-600 block px-3 py-2 text-base font-medium"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span>📋</span>
                     전체 서비스 소개
-                  </Link>
+                  </Link> */}
                 </div>
               </div>
 
