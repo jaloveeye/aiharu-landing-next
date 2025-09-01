@@ -5,16 +5,16 @@ import { commonMetadata } from "@/app/metadata/common";
 
 export const metadata = {
   ...commonMetadata,
-  title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
+  title: "AI하루 - 최신 AI 뉴스와 지식 | aiharu.net",
   description:
-    "AI하루는 매일 한 문장으로 배우는 AI 개념, 프롬프트 예제, 도구 추천, 일상 활용 팁 등 똑똑한 지식을 쉽게 제공합니다.",
+    "AI하루는 최신 AI 뉴스, 프롬프트 예제, AI 도구 추천, 일상 활용 팁 등 AI 관련 모든 정보를 한곳에서 제공합니다.",
   keywords:
-    "AI, 인공지능, 하루, 프롬프트, 도구 추천, GPT, LLM, ai하루, 아이하루",
+    "AI, 인공지능, AI뉴스, 프롬프트, 도구 추천, GPT, LLM, ai하루, 아이하루, 머신러닝",
   openGraph: {
     ...commonMetadata.openGraph,
-    title: "AI하루 - 매일 하나, 쉽게 배우는 AI | aiharu.net",
+    title: "AI하루 - 최신 AI 뉴스와 지식 | aiharu.net",
     description:
-      "AI하루는 매일 한 문장으로 배우는 AI 개념, 프롬프트 예제, 도구 추천, 일상 활용 팁 등 똑똑한 지식을 쉽게 제공합니다.",
+      "AI하루는 최신 AI 뉴스, 프롬프트 예제, AI 도구 추천, 일상 활용 팁 등 AI 관련 모든 정보를 한곳에서 제공합니다.",
     url: "https://aiharu.net/ai",
     images: [
       {
@@ -75,28 +75,50 @@ export default function AiPage() {
               AI하루
             </Title>
             <Body className="text-xl text-neutral-700 max-w-2xl leading-relaxed">
-              AI와 함께하는 똑똑한 하루,
+              최신 AI 뉴스와 지식을 한곳에서,
               <br />
-              매일 새로운 지식과 습관을 만들어가요.
+              AI와 함께하는 똑똑한 하루를 만들어가요.
             </Body>
           </div>
 
-          {/* Info Card */}
+          {/* Features Grid */}
           <div
             className="animate-fade-in-up"
             style={{ animationDelay: "0.2s" }}
           >
-            <div className="bg-white/80 backdrop-blur-lg border border-neutral-200/50 rounded-3xl p-8 shadow-soft max-w-2xl text-center">
-              <div className="text-4xl mb-4">🚀</div>
-              <Body className="text-neutral-700 leading-relaxed">
-                곧 AI 기반 식단 분석, 맞춤형 추천, 학습 리포트 등
-                <br />
-                다양한 기능이 제공될 예정입니다.
-                <br />
-                <span className="font-semibold text-primary mt-2 block">
-                  조금만 기다려 주세요!
-                </span>
-              </Body>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl w-full">
+              {/* AI 뉴스 */}
+              <div className="bg-white/80 backdrop-blur-lg border border-neutral-200/50 rounded-2xl p-6 shadow-soft text-center hover:shadow-strong transition-all">
+                <div className="text-3xl mb-4">📰</div>
+                <h3 className="font-bold text-lg text-neutral-800 mb-2">AI 뉴스</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  최신 AI 관련 뉴스를 자동으로 수집하고
+                  <br />
+                  AI가 요약해드립니다
+                </p>
+              </div>
+
+              {/* 프롬프트 */}
+              <div className="bg-white/80 backdrop-blur-lg border border-neutral-200/50 rounded-2xl p-6 shadow-soft text-center hover:shadow-strong transition-all">
+                <div className="text-3xl mb-4">💡</div>
+                <h3 className="font-bold text-lg text-neutral-800 mb-2">프롬프트</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  실용적인 AI 프롬프트 예제와
+                  <br />
+                  활용 팁을 제공합니다
+                </p>
+              </div>
+
+              {/* AI 도구 */}
+              <div className="bg-white/80 backdrop-blur-lg border border-neutral-200/50 rounded-2xl p-6 shadow-soft text-center hover:shadow-strong transition-all">
+                <div className="text-3xl mb-4">🛠️</div>
+                <h3 className="font-bold text-lg text-neutral-800 mb-2">AI 도구</h3>
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  유용한 AI 도구와 서비스를
+                  <br />
+                  추천해드립니다
+                </p>
+              </div>
             </div>
           </div>
 
@@ -125,7 +147,7 @@ export default function AiPage() {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              오늘의 AI하루 보기
+              AI 뉴스 보기
             </Button>
             <Button
               as="a"
@@ -150,8 +172,6 @@ export default function AiPage() {
               프롬프트 모음
             </Button>
           </div>
-
-
         </main>
       </div>
     </div>

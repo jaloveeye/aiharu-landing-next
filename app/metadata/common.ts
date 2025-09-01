@@ -26,7 +26,7 @@ export const commonMetadata: Metadata = {
     description:
       "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
     type: "website",
-    url: "https://aiharu.net/",
+    url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.aiharu.net"}/`,
     siteName: "아이하루",
     locale: "ko_KR",
     images: [
@@ -49,7 +49,7 @@ export const commonMetadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL || "https://aiharu.net"
+    process.env.NEXT_PUBLIC_SITE_URL || "https://www.aiharu.net"
   ),
   alternates: {
     canonical: "/",
