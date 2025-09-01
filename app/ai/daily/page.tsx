@@ -20,6 +20,7 @@ export default function AiDailyPage() {
 
   const categories = [
     { id: "all", name: "전체" },
+    { id: "AI Parenting", name: "AI 육아" },
     { id: "AI Technology", name: "AI 기술" },
     { id: "AI Research", name: "AI 연구" },
     { id: "AI Business", name: "AI 비즈니스" },

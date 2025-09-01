@@ -16,7 +16,7 @@ export interface PromptResult {
   updated_at: string;
 }
 
-// 오늘 날짜의 프롬프트 결과가 있는지 확인
+// 오늘 날짜의 프롬프트 결과가 있는지 확인 (단일)
 export async function getTodayPromptResult(): Promise<PromptResult | null> {
   const supabase = createClient();
   const today = new Date().toISOString().split('T')[0];
@@ -36,6 +36,26 @@ export async function getTodayPromptResult(): Promise<PromptResult | null> {
   }
 
   return data;
+}
+
+// 오늘 날짜의 모든 프롬프트 결과 가져오기
+export async function getTodayAllPromptResults(): Promise<PromptResult[]> {
+  const supabase = createClient();
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { data, error } = await supabase
+    .from('prompt_results')
+    .select('*')
+    .gte('created_at', `${today}T00:00:00`)
+    .lte('created_at', `${today}T23:59:59`)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching today\'s prompt results:', error);
+    return [];
+  }
+
+  return data || [];
 }
 
 // 모든 프롬프트 결과 가져오기 (최신순)

@@ -82,6 +82,7 @@ export default function AiPromptsPage() {
 
   const getCategoryColor = (category: string) => {
     const colors = {
+      // 개발 카테고리
       코드리뷰: "bg-blue-100 text-blue-800",
       디버깅: "bg-red-100 text-red-800",
       아키텍처: "bg-purple-100 text-purple-800",
@@ -90,6 +91,16 @@ export default function AiPromptsPage() {
       테스트: "bg-indigo-100 text-indigo-800",
       문서화: "bg-gray-100 text-gray-800",
       리팩토링: "bg-pink-100 text-pink-800",
+      // 일반 주제 카테고리
+      학습교육: "bg-emerald-100 text-emerald-800",
+      비즈니스: "bg-amber-100 text-amber-800",
+      창작디자인: "bg-rose-100 text-rose-800",
+      일상라이프: "bg-cyan-100 text-cyan-800",
+      창의성: "bg-violet-100 text-violet-800",
+      사회환경: "bg-teal-100 text-teal-800",
+      금융투자: "bg-lime-100 text-lime-800",
+      건강웰빙: "bg-sky-100 text-sky-800",
+      육아: "bg-fuchsia-100 text-fuchsia-800",
     };
     return (
       colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800"
@@ -118,16 +129,16 @@ export default function AiPromptsPage() {
         </Link>
 
         <div className="text-center mb-16">
-          <Title className="mb-6">매일의 개발 프롬프트</Title>
+          <Title className="mb-6">매일의 AI 프롬프트</Title>
           <div className="text-lg text-gray-700 max-w-3xl mx-auto">
             <p className="mb-2">
               매일 오전 9시에 자동으로 생성되는
               <br />
-              개발 관련 프롬프트와 AI 답변을 확인해보세요.
+              다양한 주제의 프롬프트와 AI 답변을 확인해보세요.
             </p>
             <p>
-              코드 리뷰, 디버깅, 아키텍처 설계 등<br />
-              다양한 개발 주제를 다룹니다.
+              개발, 학습, 비즈니스, 창작, 육아 등<br />
+              실용적인 주제들을 다룹니다.
             </p>
           </div>
         </div>

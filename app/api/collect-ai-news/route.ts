@@ -16,9 +16,9 @@ async function fetchNewsFromAPI() {
   // NewsAPI에서 AI 뉴스 수집 (한국어 + 영어)
   if (newsApiKey) {
     try {
-      // 한국어 뉴스 먼저 수집
+      // 한국어 뉴스 먼저 수집 (AI + 육아 관련 키워드 포함)
       const koResponse = await fetch(
-        `https://newsapi.org/v2/everything?q=인공지능 OR AI OR 머신러닝 OR 딥러닝&language=ko&sortBy=publishedAt&pageSize=5&apiKey=${newsApiKey}`
+        `https://newsapi.org/v2/everything?q=인공지능 OR AI OR 머신러닝 OR 딥러닝 OR (AI AND 육아) OR (인공지능 AND 육아) OR (AI AND 교육) OR (인공지능 AND 교육)&language=ko&sortBy=publishedAt&pageSize=5&apiKey=${newsApiKey}`
       );
       const koData = await koResponse.json();
       
@@ -35,9 +35,9 @@ async function fetchNewsFromAPI() {
         })));
       }
       
-      // 영어 뉴스도 수집 (한국어 뉴스가 부족할 경우)
+      // 영어 뉴스도 수집 (AI + 육아 관련 키워드 포함)
       const enResponse = await fetch(
-        `https://newsapi.org/v2/everything?q=artificial intelligence OR AI OR machine learning&language=en&sortBy=publishedAt&pageSize=5&apiKey=${newsApiKey}`
+        `https://newsapi.org/v2/everything?q=artificial intelligence OR AI OR machine learning OR (AI AND parenting) OR (artificial intelligence AND parenting) OR (AI AND education) OR (artificial intelligence AND education)&language=en&sortBy=publishedAt&pageSize=5&apiKey=${newsApiKey}`
       );
       const enData = await enResponse.json();
       
@@ -58,11 +58,11 @@ async function fetchNewsFromAPI() {
     }
   }
   
-  // GNews에서 AI 뉴스 수집
+  // GNews에서 AI 뉴스 수집 (AI + 육아 관련 키워드 포함)
   if (gnewsApiKey) {
     try {
       const response = await fetch(
-        `https://gnews.io/api/v4/search?q=artificial intelligence&lang=ko&country=kr&max=10&apikey=${gnewsApiKey}`
+        `https://gnews.io/api/v4/search?q=artificial intelligence OR (AI AND 육아) OR (AI AND 교육)&lang=ko&country=kr&max=10&apikey=${gnewsApiKey}`
       );
       const data = await response.json();
       
@@ -120,7 +120,7 @@ async function classifyNewsCategory(title: string, content: string): Promise<str
       messages: [
         {
           role: "system",
-          content: "다음 카테고리 중 하나로 뉴스를 분류해주세요: AI Technology, AI Research, AI Business, AI Ethics, AI Tools. 답변은 카테고리명만 작성하세요."
+          content: "다음 카테고리 중 하나로 뉴스를 분류해주세요: AI Technology, AI Research, AI Business, AI Ethics, AI Tools, AI Parenting. 육아, 교육, 부모 관련 내용이 있으면 'AI Parenting'으로 분류하세요. 답변은 카테고리명만 작성하세요."
         },
         {
           role: "user",
