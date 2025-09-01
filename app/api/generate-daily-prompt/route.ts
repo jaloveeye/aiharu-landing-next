@@ -43,21 +43,17 @@ export async function POST(request: NextRequest) {
     }
 
     // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
-    const systemPrompt = `당신은 개발 전문가입니다. 주어진 카테고리에 맞는 실용적인 개발 질문과 그에 대한 전문적인 답변을 생성해주세요.
+    const systemPrompt = `개발 전문가로서 주어진 카테고리에 맞는 실용적인 개발 질문과 답변을 생성하세요.
 
-다음 형식으로 응답해주세요:
+형식:
+**질문:** [구체적인 개발 질문]
+**답변:** [간결하고 실용적인 답변]
 
-**질문:**
-[실용적이고 구체적인 개발 질문]
-
-**답변:**
-[전문적이고 상세한 답변]
-
-질문은 실제 개발자가 마주할 수 있는 상황을 반영하고, 답변은 구체적인 예시와 함께 제공해주세요.`;
+답변은 핵심만 간결하게 작성하세요.`;
 
     // OpenAI API 호출
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo", // gpt-4에서 gpt-3.5-turbo로 변경 (비용 1/10, 속도 향상)
       messages: [
         {
           role: "system",
@@ -68,7 +64,7 @@ export async function POST(request: NextRequest) {
           content: categoryPrompt.prompt
         }
       ],
-      max_tokens: 2000,
+      max_tokens: 800,
       temperature: 0.7,
     });
 
@@ -168,21 +164,17 @@ export async function GET() {
     }
 
     // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
-    const systemPrompt = `당신은 개발 전문가입니다. 주어진 카테고리에 맞는 실용적인 개발 질문과 그에 대한 전문적인 답변을 생성해주세요.
+    const systemPrompt = `개발 전문가로서 주어진 카테고리에 맞는 실용적인 개발 질문과 답변을 생성하세요.
 
-다음 형식으로 응답해주세요:
+형식:
+**질문:** [구체적인 개발 질문]
+**답변:** [간결하고 실용적인 답변]
 
-**질문:**
-[실용적이고 구체적인 개발 질문]
-
-**답변:**
-[전문적이고 상세한 답변]
-
-질문은 실제 개발자가 마주할 수 있는 상황을 반영하고, 답변은 구체적인 예시와 함께 제공해주세요.`;
+답변은 핵심만 간결하게 작성하세요.`;
 
     // OpenAI API 호출
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo", // gpt-4에서 gpt-3.5-turbo로 변경 (비용 1/10, 속도 향상)
       messages: [
         {
           role: "system",
@@ -193,7 +185,7 @@ export async function GET() {
           content: categoryPrompt.prompt
         }
       ],
-      max_tokens: 2000,
+      max_tokens: 800,
       temperature: 0.7,
     });
 
