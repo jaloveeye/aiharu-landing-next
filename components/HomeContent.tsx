@@ -205,7 +205,7 @@ export default function HomeContent() {
                 </p>
                 <Button
                   as="a"
-                  href="/child-temp"
+                  href="/iharu"
                   variant="secondary"
                   size="md"
                   className="mt-auto"
