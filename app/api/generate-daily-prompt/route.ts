@@ -7,6 +7,11 @@ import {
   generateContextSummary,
   updatePromptEmbeddingById,
 } from "@/app/utils/promptResults";
+import {
+  analyzePromptQuality,
+  getQualityGrade,
+  generateQualitySuggestions,
+} from "@/app/utils/promptQualityAnalyzer";
 import { promptTemplates } from "@/data/prompts";
 
 const openai = new OpenAI({
@@ -25,23 +30,29 @@ async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
     );
 
     if (!promptResultId) {
-      throw new Error('프롬프트 저장 실패');
+      throw new Error("프롬프트 저장 실패");
     }
 
     // 2. 벡터 생성 및 저장
-    const embeddingResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        text: `${promptData.title} ${promptData.prompt} ${aiAnswer}` 
-      })
-    });
+    const embeddingResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `${promptData.title} ${promptData.prompt} ${aiAnswer}`,
+        }),
+      }
+    );
 
     if (embeddingResponse.ok) {
       const { embedding } = await embeddingResponse.json();
-      
+
       // 3. 벡터를 데이터베이스에 저장
-      const updateSuccess = await updatePromptEmbeddingById(promptResultId, embedding);
+      const updateSuccess = await updatePromptEmbeddingById(
+        promptResultId,
+        embedding
+      );
       if (updateSuccess) {
         console.log(`벡터 저장 완료: ${promptResultId}`);
       } else {
@@ -53,7 +64,7 @@ async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
 
     return promptResultId;
   } catch (error) {
-    console.error('프롬프트 및 벡터 저장 오류:', error);
+    console.error("프롬프트 및 벡터 저장 오류:", error);
     throw error;
   }
 }
@@ -87,14 +98,14 @@ async function generateDailyPrompts() {
 
   // 3개의 프롬프트 생성
   for (const category of selectedCategories) {
-          // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
-      const recentContext = await getRecentContextForCategory(category, 3);
-      const contextSummary = generateContextSummary(recentContext);
-      
-      // 맥락 인식 로그 출력
-      console.log(`[맥락 인식] ${category} 카테고리:`);
-      console.log(`- 최근 결과 수: ${recentContext.length}`);
-      console.log(`- 맥락 요약: ${contextSummary || '없음'}`);
+    // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
+    const recentContext = await getRecentContextForCategory(category, 3);
+    const contextSummary = generateContextSummary(recentContext);
+
+    // 맥락 인식 로그 출력
+    console.log(`[맥락 인식] ${category} 카테고리:`);
+    console.log(`- 최근 결과 수: ${recentContext.length}`);
+    console.log(`- 맥락 요약: ${contextSummary || "없음"}`);
 
     // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
     const systemPrompt = `당신은 ${category} 분야의 전문가입니다. 성인 고학력자 수준의 깊이 있고 실용적인 질문과 답변을 생성해주세요.
@@ -169,9 +180,27 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
       tokens_used: completion.usage?.total_tokens,
     };
 
-    const promptResultId = await savePromptWithEmbedding(promptData, aiGeneratedAnswer);
+    const promptResultId = await savePromptWithEmbedding(
+      promptData,
+      aiGeneratedAnswer
+    );
 
     if (promptResultId) {
+      // 품질 분석 수행
+      const qualityMetrics = analyzePromptQuality(
+        aiGeneratedQuestion,
+        aiGeneratedAnswer,
+        category,
+        completion.usage?.total_tokens || 0
+      );
+      const qualityGrade = getQualityGrade(qualityMetrics.overallScore);
+      const qualitySuggestions = generateQualitySuggestions(qualityMetrics, category);
+
+      console.log(`[품질 분석] ${category} 카테고리:`);
+      console.log(`- 전체 점수: ${qualityMetrics.overallScore}/100`);
+      console.log(`- 품질 등급: ${qualityGrade}`);
+      console.log(`- 개선 제안: ${qualitySuggestions.length}개`);
+
       generatedResults.push({
         id: `generated-${Date.now()}-${category}`,
         prompt_id: `generated-${Date.now()}-${category}`,
@@ -185,6 +214,9 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
         tokens_used: completion.usage?.total_tokens,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        quality_metrics: qualityMetrics,
+        quality_grade: qualityGrade,
+        quality_suggestions: qualitySuggestions,
       });
     }
   }

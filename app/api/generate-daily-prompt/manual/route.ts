@@ -7,6 +7,11 @@ import {
   generateContextSummary,
   updatePromptEmbeddingById,
 } from "@/app/utils/promptResults";
+import {
+  analyzePromptQuality,
+  getQualityGrade,
+  generateQualitySuggestions,
+} from "@/app/utils/promptQualityAnalyzer";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -174,6 +179,24 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
       );
 
       if (promptResultId) {
+        // 품질 분석 수행
+        const qualityMetrics = analyzePromptQuality(
+          aiGeneratedQuestion,
+          aiGeneratedAnswer,
+          category,
+          completion.usage?.total_tokens || 0
+        );
+        const qualityGrade = getQualityGrade(qualityMetrics.overallScore);
+        const qualitySuggestions = generateQualitySuggestions(
+          qualityMetrics,
+          category
+        );
+
+        console.log(`[품질 분석] ${category} 카테고리:`);
+        console.log(`- 전체 점수: ${qualityMetrics.overallScore}/100`);
+        console.log(`- 품질 등급: ${qualityGrade}`);
+        console.log(`- 개선 제안: ${qualitySuggestions.length}개`);
+
         generatedResults.push({
           id: `manual-${Date.now()}-${category}`,
           prompt_id: `manual-${Date.now()}-${category}`,
@@ -187,6 +210,9 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
           tokens_used: completion.usage?.total_tokens,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
+          quality_metrics: qualityMetrics,
+          quality_grade: qualityGrade,
+          quality_suggestions: qualitySuggestions,
         });
       }
     }
