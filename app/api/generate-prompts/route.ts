@@ -13,14 +13,11 @@ export async function POST(request: NextRequest) {
 
     // 각 카테고리별로 하나씩 프롬프트 생성
     const categories = [
-      "코드리뷰",
-      "디버깅",
-      "아키텍처",
-      "성능최적화",
-      "보안",
-      "테스트",
-      "문서화",
-      "리팩토링",
+      "육아",
+      "육아창업",
+      "비즈니스마케팅",
+      "학습교육",
+      "일상라이프",
     ] as const;
 
     const results = [];
@@ -41,7 +38,7 @@ export async function POST(request: NextRequest) {
             {
               role: "system",
               content:
-                "당신은 개발자를 위한 실용적인 프롬프트를 생성하는 전문가입니다. 각 카테고리에 맞는 구체적이고 실용적인 프롬프트를 생성해주세요.",
+                "당신은 육아, 창업, 비즈니스, 학습, 일상 등 다양한 주제의 실용적인 프롬프트를 생성하는 전문가입니다. 각 카테고리에 맞는 구체적이고 실용적인 프롬프트를 생성해주세요.",
             },
             {
               role: "user",

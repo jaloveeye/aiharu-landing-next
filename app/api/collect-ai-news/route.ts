@@ -217,7 +217,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     const { getRecentAINews } = await import('@/app/utils/aiNews');
-    const recentNews = await getRecentAINews(10);
+    const recentNews = await getRecentAINews(20);
     
     return NextResponse.json({
       message: '최근 AI 뉴스를 조회했습니다.',

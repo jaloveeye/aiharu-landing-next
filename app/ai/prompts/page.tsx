@@ -82,25 +82,15 @@ export default function AiPromptsPage() {
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      // 개발 카테고리
-      코드리뷰: "bg-blue-100 text-blue-800",
-      디버깅: "bg-red-100 text-red-800",
-      아키텍처: "bg-purple-100 text-purple-800",
-      성능최적화: "bg-green-100 text-green-800",
-      보안: "bg-orange-100 text-orange-800",
-      테스트: "bg-indigo-100 text-indigo-800",
-      문서화: "bg-gray-100 text-gray-800",
-      리팩토링: "bg-pink-100 text-pink-800",
-      // 일반 주제 카테고리
+      // 육아 관련 카테고리 (최우선)
+      육아: "bg-pink-100 text-pink-800",
+      육아창업: "bg-indigo-100 text-indigo-800",
+      // 비즈니스 관련 카테고리
+      비즈니스마케팅: "bg-blue-100 text-blue-800",
+      // 학습 및 개인 성장 카테고리
       학습교육: "bg-emerald-100 text-emerald-800",
-      비즈니스: "bg-amber-100 text-amber-800",
-      창작디자인: "bg-rose-100 text-rose-800",
-      일상라이프: "bg-cyan-100 text-cyan-800",
-      창의성: "bg-violet-100 text-violet-800",
-      사회환경: "bg-teal-100 text-teal-800",
-      금융투자: "bg-lime-100 text-lime-800",
-      건강웰빙: "bg-sky-100 text-sky-800",
-      육아: "bg-fuchsia-100 text-fuchsia-800",
+      // 일상 및 기타 카테고리
+      일상라이프: "bg-amber-100 text-amber-800",
     };
     return (
       colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800"
@@ -137,8 +127,8 @@ export default function AiPromptsPage() {
               다양한 주제의 프롬프트와 AI 답변을 확인해보세요.
             </p>
             <p>
-              개발, 학습, 비즈니스, 창작, 육아 등<br />
-              실용적인 주제들을 다룹니다.
+              육아, 육아창업, 비즈니스마케팅, 학습교육 등<br />
+              실용적이고 전문적인 주제들을 다룹니다.
             </p>
           </div>
         </div>
@@ -231,7 +221,7 @@ export default function AiPromptsPage() {
 
         {/* 최근 프롬프트 결과들 */}
         {!selectedCategory && !loadingResults && recentResults.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8">
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
             <h3 className="text-xl font-bold text-gray-800 mb-6">
               📚 최근 프롬프트 결과
             </h3>
@@ -250,7 +240,7 @@ export default function AiPromptsPage() {
                       {new Date(result.created_at).toLocaleDateString("ko-KR")}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
+                  <div className="flex items-center justify-between mb-2">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
                         result.prompt_category

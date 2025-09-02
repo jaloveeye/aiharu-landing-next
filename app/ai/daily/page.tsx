@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useApiData } from "@/app/hooks/useApiData";
 import { AINews } from "@/app/utils/aiNews";
@@ -7,6 +7,8 @@ import { AINews } from "@/app/utils/aiNews";
 export default function AiDailyPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [newsPerPage] = useState(12); // 한 번에 더 많은 뉴스 표시
 
   const {
     data: response,
@@ -33,25 +35,39 @@ export default function AiDailyPage() {
     news?.filter((item) => {
       const categoryMatch =
         selectedCategory === "all" || item.category === selectedCategory;
-      
+
       // 검색어가 없으면 모든 뉴스 표시
       if (searchTerm === "") {
         return categoryMatch;
       }
-      
+
       const searchLower = searchTerm.toLowerCase();
-      
+
       // 제목, 설명, 요약, 태그에서 검색
       const searchMatch =
         item.title.toLowerCase().includes(searchLower) ||
-        (item.description && item.description.toLowerCase().includes(searchLower)) ||
+        (item.description &&
+          item.description.toLowerCase().includes(searchLower)) ||
         (item.summary && item.summary.toLowerCase().includes(searchLower)) ||
-        (item.tags && item.tags.some((tag: string) => 
-          tag.toLowerCase().includes(searchLower)
-        ));
-      
+        (item.tags &&
+          item.tags.some((tag: string) =>
+            tag.toLowerCase().includes(searchLower)
+          ));
+
       return categoryMatch && searchMatch;
     }) || [];
+
+  // 페이지네이션 계산
+  const totalPages = Math.ceil(filteredNews.length / newsPerPage);
+  const startIndex = (currentPage - 1) * newsPerPage;
+  const endIndex = startIndex + newsPerPage;
+  const currentNews = filteredNews.slice(startIndex, endIndex);
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" }); // 페이지 맨 위로 부드럽게 스크롤
+  };
 
   // 수동으로 뉴스 수집
   const handleCollectNews = async () => {
@@ -115,7 +131,10 @@ export default function AiDailyPage() {
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
+                  onClick={() => {
+                    setSelectedCategory(category.id);
+                    setCurrentPage(1); // 카테고리 변경 시 첫 페이지로 이동
+                  }}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     selectedCategory === category.id
                       ? "bg-green-600 text-white"
@@ -133,7 +152,10 @@ export default function AiDailyPage() {
                 type="text"
                 placeholder="뉴스 검색..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1); // 검색 시 첫 페이지로 이동
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
@@ -175,7 +197,7 @@ export default function AiDailyPage() {
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {filteredNews.map((item) => (
+            {currentNews.map((item, index) => (
               <div
                 key={item.id}
                 className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
@@ -193,7 +215,10 @@ export default function AiDailyPage() {
                     {item.title}
                   </h3>
 
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+                  <p 
+                    className="text-gray-600 text-sm mb-4 line-clamp-3 cursor-help"
+                    title={item.summary || item.description}
+                  >
                     {item.summary || item.description}
                   </p>
 
@@ -235,7 +260,43 @@ export default function AiDailyPage() {
         {/* 결과 카운트 */}
         {filteredNews.length > 0 && (
           <div className="mt-8 text-center text-gray-600">
-            총 {filteredNews.length}개의 뉴스를 찾았습니다.
+            총 {filteredNews.length}개의 뉴스 중 {startIndex + 1}-
+            {Math.min(endIndex, filteredNews.length)}번째 뉴스를 표시 중
+          </div>
+        )}
+
+        {/* 페이지네이션 */}
+        {totalPages > 1 && (
+          <div className="mt-8 flex justify-center items-center space-x-2">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              이전
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <button
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-2 text-sm font-medium rounded-md ${
+                  currentPage === page
+                    ? "bg-green-600 text-white"
+                    : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              다음
+            </button>
           </div>
         )}
       </div>

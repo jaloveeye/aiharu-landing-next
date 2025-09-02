@@ -17,14 +17,15 @@ export default function PromptDetailModal({
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      코드리뷰: "bg-blue-100 text-blue-800",
-      디버깅: "bg-red-100 text-red-800",
-      아키텍처: "bg-purple-100 text-purple-800",
-      성능최적화: "bg-green-100 text-green-800",
-      보안: "bg-orange-100 text-orange-800",
-      테스트: "bg-indigo-100 text-indigo-800",
-      문서화: "bg-gray-100 text-gray-800",
-      리팩토링: "bg-pink-100 text-pink-800",
+      // 육아 관련 카테고리 (최우선)
+      육아: "bg-pink-100 text-pink-800",
+      육아창업: "bg-indigo-100 text-indigo-800",
+      // 비즈니스 관련 카테고리
+      비즈니스마케팅: "bg-blue-100 text-blue-800",
+      // 학습 및 개인 성장 카테고리
+      학습교육: "bg-emerald-100 text-emerald-800",
+      // 일상 및 기타 카테고리
+      일상라이프: "bg-amber-100 text-amber-800",
     };
     return (
       colors[category as keyof typeof colors] || "bg-gray-100 text-gray-800"
@@ -91,7 +92,7 @@ export default function PromptDetailModal({
               <h3 className="text-lg font-bold text-gray-800">원본 프롬프트</h3>
             </div>
             <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200 shadow-sm">
-              <Body className="text-gray-700 whitespace-pre-wrap leading-relaxed">
+              <Body className="text-gray-700 whitespace-pre-wrap leading-relaxed text-left">
                 {promptResult.prompt_content}
               </Body>
             </div>
@@ -106,7 +107,7 @@ export default function PromptDetailModal({
               <h3 className="text-lg font-bold text-gray-800">AI 답변</h3>
             </div>
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm">
-              <Body className="text-gray-800 whitespace-pre-wrap leading-relaxed">
+              <Body className="text-gray-800 whitespace-pre-wrap leading-relaxed text-left">
                 {promptResult.ai_result}
               </Body>
             </div>

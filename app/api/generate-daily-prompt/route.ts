@@ -22,36 +22,11 @@ async function generateDailyPrompts() {
     };
   }
 
-  // 3개의 프롬프트 카테고리 선택 (육아 필수 + 개발 1개 + 일반 1개)
-  const developmentCategories = [
-    "코드리뷰",
-    "디버깅",
-    "아키텍처",
-    "성능최적화",
-    "보안",
-    "테스트",
-    "문서화",
-    "리팩토링",
-  ];
-
-  const generalCategories = [
-    "학습교육",
-    "비즈니스",
-    "창작디자인",
-    "일상라이프",
-    "창의성",
-    "사회환경",
-    "금융투자",
-    "건강웰빙",
-  ];
-
-  // 카테고리 선택
+  // 3개의 프롬프트 카테고리 선택 (육아 필수 + 육아창업 1개 + 비즈니스마케팅 1개)
   const selectedCategories = [
     "육아", // 필수
-    developmentCategories[
-      Math.floor(Math.random() * developmentCategories.length)
-    ],
-    generalCategories[Math.floor(Math.random() * generalCategories.length)],
+    "육아창업", // 육아 관련 창업 아이디어
+    "비즈니스마케팅", // 비즈니스 전략과 마케팅
   ];
 
   console.log("선택된 카테고리들:", selectedCategories);
@@ -60,22 +35,23 @@ async function generateDailyPrompts() {
     throw new Error("OpenAI API 키가 설정되지 않았습니다.");
   }
 
-  // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
-  const systemPrompt = `전문가로서 주어진 카테고리에 맞는 구체적이고 실용적인 질문과 답변을 생성하세요.
-
-요구사항:
-- 복잡하고 구체적인 문제 상황 (단순한 "어떻게 하나요?" 금지)
-- 특정 맥락, 조건, 제약사항 포함
-- 실제 경험에서 나올 수 있는 구체적인 어려움
-
-형식:
-**질문:** [구체적이고 복합적인 상황과 문제]
-**답변:** [실용적이고 구체적인 해결 방법이나 조언]`;
-
   const generatedResults = [];
 
   // 3개의 프롬프트 생성
   for (const category of selectedCategories) {
+    // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
+    const systemPrompt = `당신은 ${category} 분야의 전문가입니다. 성인 고학력자 수준의 깊이 있고 실용적인 질문과 답변을 생성해주세요.
+
+요구사항:
+- **질문**: 구체적이고 복합적인 상황과 문제를 제시하는 전문가 수준의 질문
+- **답변**: 실용적이고 실행 가능한 구체적인 해결 방법이나 조언
+- 전문성: 해당 분야의 최신 트렌드와 전문 지식을 반영
+- 실용성: 실제 상황에서 바로 적용할 수 있는 내용
+
+형식:
+**질문:** [전문가 수준의 구체적이고 복합적인 상황과 문제]
+**답변:** [실용적이고 구체적인 해결 방법이나 조언]`;
+
     // 선택된 카테고리의 프롬프트 생성 가이드 가져오기
     const categoryPrompt = promptTemplates.find((p) => p.category === category);
     if (!categoryPrompt) {
@@ -83,7 +59,7 @@ async function generateDailyPrompts() {
       continue;
     }
 
-    // OpenAI API 호출
+    // OpenAI API 호출 - 질문과 답변을 각각 생성
     const completion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       messages: [
@@ -93,29 +69,42 @@ async function generateDailyPrompts() {
         },
         {
           role: "user",
-          content: `카테고리: ${category}\n\n${categoryPrompt.prompt}`,
+          content: `카테고리: ${category}\n\n이 카테고리에서 성인 고학력자 전문가 수준의 질문과 답변을 생성해주세요.`,
         },
       ],
-      max_tokens: 600,
+      max_tokens: 800,
       temperature: 0.7,
     });
 
     const generatedText = completion.choices[0]?.message?.content || "";
     console.log(`카테고리 ${category} 프롬프트 생성 완료`);
 
-    // 프롬프트 결과 저장
+    // 생성된 텍스트에서 질문과 답변 분리
+    const questionMatch = generatedText.match(
+      /\*\*질문:\*\*\s*([\s\S]*?)(?=\*\*답변:\*\*)/
+    );
+    const answerMatch = generatedText.match(/\*\*답변:\*\*\s*([\s\S]*?)$/);
+
+    const aiGeneratedQuestion = questionMatch
+      ? questionMatch[1].trim()
+      : "AI가 질문을 생성할 수 없습니다.";
+    const aiGeneratedAnswer = answerMatch
+      ? answerMatch[1].trim()
+      : generatedText;
+
+    // 프롬프트 결과 저장 - AI 생성 질문만 표시
     const promptResult = await savePromptResult(
       {
         id: `generated-${Date.now()}-${category}`,
-        title: `${category} 관련 질문`,
+        title: `${category} 전문가 질문`,
         category: category as any,
-        prompt: categoryPrompt.prompt,
-        tags: [category, "AI생성"],
-        difficulty: "중급" as any,
+        prompt: aiGeneratedQuestion, // AI가 생성한 질문만 저장
+        tags: [category, "AI생성", "전문가수준"],
+        difficulty: "고급" as any,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-      generatedText,
+      aiGeneratedAnswer, // AI가 생성한 답변
       "gpt-3.5-turbo",
       completion.usage?.total_tokens
     );
@@ -124,12 +113,12 @@ async function generateDailyPrompts() {
       generatedResults.push({
         id: `generated-${Date.now()}-${category}`,
         prompt_id: `generated-${Date.now()}-${category}`,
-        prompt_title: `${category} 관련 질문`,
-        prompt_content: categoryPrompt.prompt,
+        prompt_title: `${category} 전문가 질문`,
+        prompt_content: aiGeneratedQuestion, // AI 생성 질문만 표시
         prompt_category: category,
-        prompt_difficulty: "중급",
-        prompt_tags: [category, "AI생성"],
-        ai_result: generatedText,
+        prompt_difficulty: "고급",
+        prompt_tags: [category, "AI생성", "전문가수준"],
+        ai_result: aiGeneratedAnswer, // AI 생성 답변
         ai_model: "gpt-3.5-turbo",
         tokens_used: completion.usage?.total_tokens,
         created_at: new Date().toISOString(),
