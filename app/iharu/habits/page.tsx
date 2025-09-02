@@ -215,7 +215,7 @@ export default function HabitsPage() {
                 href="/iharu/habits/create"
                 className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                습관 만들기
+                <span className="text-white">습관 만들기</span>
               </Link>
             </div>
           ) : (
@@ -278,7 +278,7 @@ export default function HabitsPage() {
                           onClick={() => handleCheckIn(habit.id)}
                           className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                         >
-                          체크인
+                          <span className="text-white">체크인</span>
                         </button>
                       )}
                       {isChecked && (
@@ -288,13 +288,13 @@ export default function HabitsPage() {
                         href={`/iharu/habits/${habit.id}`}
                         className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                       >
-                        상세보기
+                        <span className="text-white">상세보기</span>
                       </Link>
                       <button
                         onClick={() => handleDeleteHabit(habit.id)}
                         className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
                       >
-                        삭제
+                        <span className="text-white">삭제</span>
                       </button>
                     </div>
                   </div>

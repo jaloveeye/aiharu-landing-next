@@ -17,7 +17,7 @@ interface Reward {
 interface PointHistory {
   id: string;
   points: number;
-  type: 'earned' | 'spent';
+  type: "earned" | "spent";
   source?: string;
   notes?: string;
   created_at: string;
@@ -64,7 +64,10 @@ export default function RewardsPage() {
     }
   };
 
-  const handlePurchaseReward = async (rewardId: string, pointsRequired: number) => {
+  const handlePurchaseReward = async (
+    rewardId: string,
+    pointsRequired: number
+  ) => {
     if (totalPoints < pointsRequired) {
       alert("포인트가 부족합니다!");
       return;
@@ -78,25 +81,25 @@ export default function RewardsPage() {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getSourceLabel = (source?: string) => {
     switch (source) {
-      case 'habit_completion':
-        return '습관 완료';
-      case 'goal_achievement':
-        return '목표 달성';
-      case 'reward_purchase':
-        return '보상 구매';
+      case "habit_completion":
+        return "습관 완료";
+      case "goal_achievement":
+        return "목표 달성";
+      case "reward_purchase":
+        return "보상 구매";
       default:
-        return '기타';
+        return "기타";
     }
   };
 
@@ -168,7 +171,9 @@ export default function RewardsPage() {
         <div className="bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl shadow-lg p-6 mb-8 text-white">
           <div className="text-center">
             <div className="text-4xl mb-2">⭐</div>
-            <div className="text-3xl font-bold mb-2">{totalPoints.toLocaleString()} 포인트</div>
+            <div className="text-3xl font-bold mb-2">
+              {totalPoints.toLocaleString()} 포인트
+            </div>
             <p className="text-yellow-100">현재 보유 포인트</p>
           </div>
         </div>
@@ -179,7 +184,7 @@ export default function RewardsPage() {
             href="/iharu/rewards/create"
             className="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors"
           >
-            새 보상 만들기
+            <span className="text-white">새 보상 만들기</span>
           </Link>
         </div>
 
@@ -194,7 +199,7 @@ export default function RewardsPage() {
                 href="/iharu/rewards/create"
                 className="inline-block bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors"
               >
-                보상 만들기
+                <span className="text-white">보상 만들기</span>
               </Link>
             </div>
           ) : (
@@ -207,7 +212,9 @@ export default function RewardsPage() {
                   <div className="text-4xl mb-2">🎁</div>
                   <h3 className="text-lg font-bold mb-2">{reward.title}</h3>
                   {reward.description && (
-                    <p className="text-gray-600 text-sm mb-4">{reward.description}</p>
+                    <p className="text-gray-600 text-sm mb-4">
+                      {reward.description}
+                    </p>
                   )}
                   <div className="text-2xl font-bold text-yellow-600 mb-2">
                     {reward.points_required.toLocaleString()} 포인트
@@ -216,31 +223,43 @@ export default function RewardsPage() {
 
                 <div className="space-y-3">
                   <button
-                    onClick={() => handlePurchaseReward(reward.id, reward.points_required)}
-                    disabled={totalPoints < reward.points_required || !reward.is_active}
+                    onClick={() =>
+                      handlePurchaseReward(reward.id, reward.points_required)
+                    }
+                    disabled={
+                      totalPoints < reward.points_required || !reward.is_active
+                    }
                     className={`w-full px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                       totalPoints >= reward.points_required && reward.is_active
-                        ? 'bg-yellow-600 text-white hover:bg-yellow-700'
-                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        ? "bg-yellow-600 text-white hover:bg-yellow-700"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed"
                     }`}
                   >
-                    {totalPoints >= reward.points_required && reward.is_active
-                      ? '보상 받기'
-                      : totalPoints < reward.points_required
-                      ? '포인트 부족'
-                      : '비활성화됨'
-                    }
+                    <span
+                      className={
+                        totalPoints >= reward.points_required &&
+                        reward.is_active
+                          ? "text-white"
+                          : ""
+                      }
+                    >
+                      {totalPoints >= reward.points_required && reward.is_active
+                        ? "보상 받기"
+                        : totalPoints < reward.points_required
+                        ? "포인트 부족"
+                        : "비활성화됨"}
+                    </span>
                   </button>
-                  
+
                   <div className="flex gap-2">
                     <Link
                       href={`/iharu/rewards/${reward.id}`}
                       className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm text-center"
                     >
-                      상세보기
+                      <span className="text-white">상세보기</span>
                     </Link>
                     <button className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors text-sm">
-                      삭제
+                      <span className="text-white">삭제</span>
                     </button>
                   </div>
                 </div>
@@ -265,12 +284,19 @@ export default function RewardsPage() {
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <div className={`text-2xl ${entry.type === 'earned' ? 'text-green-600' : 'text-red-600'}`}>
-                      {entry.type === 'earned' ? '➕' : '➖'}
+                    <div
+                      className={`text-2xl ${
+                        entry.type === "earned"
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {entry.type === "earned" ? "➕" : "➖"}
                     </div>
                     <div>
                       <div className="font-medium">
-                        {entry.type === 'earned' ? '+' : '-'}{entry.points.toLocaleString()} 포인트
+                        {entry.type === "earned" ? "+" : "-"}
+                        {entry.points.toLocaleString()} 포인트
                       </div>
                       <div className="text-sm text-gray-600">
                         {getSourceLabel(entry.source)}
@@ -293,24 +319,32 @@ export default function RewardsPage() {
             <h3 className="text-lg font-bold mb-4">보상 요약</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{rewards.length}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {rewards.length}
+                </div>
                 <div className="text-sm text-gray-600">전체 보상</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {rewards.filter(r => r.is_active).length}
+                  {rewards.filter((r) => r.is_active).length}
                 </div>
                 <div className="text-sm text-gray-600">활성 보상</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-600">
-                  {pointHistory.filter(p => p.type === 'earned').reduce((sum, p) => sum + p.points, 0).toLocaleString()}
+                  {pointHistory
+                    .filter((p) => p.type === "earned")
+                    .reduce((sum, p) => sum + p.points, 0)
+                    .toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-600">총 획득 포인트</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
-                  {pointHistory.filter(p => p.type === 'spent').reduce((sum, p) => sum + p.points, 0).toLocaleString()}
+                  {pointHistory
+                    .filter((p) => p.type === "spent")
+                    .reduce((sum, p) => sum + p.points, 0)
+                    .toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-600">총 사용 포인트</div>
               </div>

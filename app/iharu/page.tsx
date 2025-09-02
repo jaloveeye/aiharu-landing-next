@@ -285,7 +285,9 @@ export default function IharuPage() {
               className={`block p-6 rounded-xl shadow-sm border-2 transition-all hover:shadow-md hover:scale-105 ${card.color}`}
             >
               <div className="text-4xl mb-4">{card.icon}</div>
-              <h3 className="text-xl font-bold mb-2">{card.title}</h3>
+              <h3 className="text-xl font-bold mb-2">
+                {card.title}
+              </h3>
               <p className="text-gray-700">{card.desc}</p>
             </Link>
           ))}

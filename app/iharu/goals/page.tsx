@@ -152,9 +152,9 @@ export default function GoalsPage() {
         <div className="flex justify-end mb-8">
           <Link
             href="/iharu/goals/create"
-            className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+            className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
           >
-            새 목표 만들기
+            <span className="text-white">목표 만들기</span>
           </Link>
         </div>
 
@@ -169,7 +169,7 @@ export default function GoalsPage() {
                 href="/iharu/goals/create"
                 className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
               >
-                목표 만들기
+                <span className="text-white">목표 만들기</span>
               </Link>
             </div>
           ) : (
