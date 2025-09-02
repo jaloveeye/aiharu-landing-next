@@ -208,7 +208,7 @@ export default function HomeContent() {
                   href="/iharu"
                   variant="secondary"
                   size="md"
-                  className="mt-auto"
+                  className="mt-auto cursor-pointer"
                 >
                   {t("features.child.title")} 시작하기
                 </Button>
@@ -235,7 +235,8 @@ export default function HomeContent() {
                   variant="accent"
                   size="md"
                   disabled={loading}
-                  className="mt-auto"
+                  className="mt-auto cursor-pointer !important"
+                  style={{ cursor: "pointer !important" }}
                 >
                   {loading
                     ? "로딩 중..."

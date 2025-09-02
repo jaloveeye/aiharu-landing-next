@@ -101,6 +101,39 @@ export function getRandomUnusedPrompt(): PromptExample {
   return promptTemplates[randomIndex];
 }
 
+// 맥락 인식을 위한 최근 프롬프트 결과 가져오기
+export async function getRecentContextForCategory(category: string, limit: number = 3): Promise<PromptResult[]> {
+  const supabase = createClient();
+  
+  const { data, error } = await supabase
+    .from('prompt_results')
+    .select('*')
+    .eq('prompt_category', category)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error('Error fetching recent context for category:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+// 카테고리별 맥락 요약 생성
+export function generateContextSummary(results: PromptResult[]): string {
+  if (results.length === 0) return '';
+  
+  const recentTopics = results.map(result => {
+    const title = result.prompt_title;
+    const content = result.prompt_content.substring(0, 100);
+    const date = new Date(result.created_at).toLocaleDateString('ko-KR');
+    return `[${date}] ${title}: ${content}...`;
+  }).join('\n');
+  
+  return `최근 ${results.length}일간 다룬 주제들:\n${recentTopics}`;
+}
+
 // 프롬프트 결과 저장
 export async function savePromptResult(
   prompt: PromptExample,

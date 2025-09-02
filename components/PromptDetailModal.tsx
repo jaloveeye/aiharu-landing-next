@@ -98,6 +98,28 @@ export default function PromptDetailModal({
             </div>
           </div>
 
+          {/* 맥락 정보 (최근 관련 프롬프트) */}
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <span className="text-lg">🔗</span>
+              </div>
+              <h3 className="text-lg font-bold text-gray-800">맥락 정보</h3>
+            </div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl p-6 border border-blue-200 shadow-sm">
+              <Body className="text-gray-700 leading-relaxed text-left">
+                <p className="text-sm text-blue-600 mb-3">
+                  💡 이 프롬프트는 최근 생성된 {promptResult.prompt_category}{" "}
+                  관련 프롬프트들과의 맥락을 고려하여 생성되었습니다.
+                </p>
+                <p className="text-sm text-gray-600">
+                  AI가 이전 프롬프트 결과들을 참고하여 중복을 피하고 자연스럽게
+                  연결되는 새로운 관점과 해결책을 제시했습니다.
+                </p>
+              </Body>
+            </div>
+          </div>
+
           {/* AI 답변 */}
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4">

@@ -8,7 +8,7 @@ import {
 import React from "react";
 
 const BASE_CLASS =
-  "px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2";
+  "px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer !important";
 
 const COLOR_CLASS: Record<Variant, string> = {
   primary: "btn-primary hover:shadow-strong focus:ring-primary",
@@ -39,6 +39,7 @@ interface ButtonComponentProps {
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
+  style?: React.CSSProperties;
 }
 
 export default function Button(props: ButtonComponentProps) {
@@ -50,6 +51,7 @@ export default function Button(props: ButtonComponentProps) {
     size = "md",
     "aria-label": ariaLabel,
     disabled,
+    style,
     ...rest
   } = props;
 
@@ -68,6 +70,7 @@ export default function Button(props: ButtonComponentProps) {
         href={href}
         target={target}
         rel={rel}
+        style={style}
         {...anchorProps}
       >
         {children}
@@ -83,6 +86,7 @@ export default function Button(props: ButtonComponentProps) {
       type={type}
       onClick={onClick}
       disabled={disabled}
+      style={style}
       {...buttonProps}
     >
       {children}

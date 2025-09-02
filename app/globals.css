@@ -86,6 +86,7 @@ button, .btn, [type="submit"] {
   @apply bg-primary hover:bg-primary text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 font-medium;
   border: none;
   outline: none;
+  cursor: pointer !important;
 }
 
 button:focus, .btn:focus, [type="submit"]:focus {

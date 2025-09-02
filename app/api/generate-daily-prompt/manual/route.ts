@@ -3,6 +3,8 @@ import OpenAI from "openai";
 import {
   getTodayAllPromptResults,
   savePromptResult,
+  getRecentContextForCategory,
+  generateContextSummary,
 } from "@/app/utils/promptResults";
 
 const openai = new OpenAI({
@@ -40,14 +42,30 @@ export async function POST(request: NextRequest) {
 
     // 3개의 프롬프트 생성
     for (const category of selectedCategories) {
+      // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
+      const recentContext = await getRecentContextForCategory(category, 3);
+      const contextSummary = generateContextSummary(recentContext);
+      
+      // 맥락 인식 로그 출력
+      console.log(`[맥락 인식] ${category} 카테고리:`);
+      console.log(`- 최근 결과 수: ${recentContext.length}`);
+      console.log(`- 맥락 요약: ${contextSummary || '없음'}`);
+
       // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
       const systemPrompt = `당신은 ${category} 분야의 전문가입니다. 성인 고학력자 수준의 깊이 있고 실용적인 질문과 답변을 생성해주세요.
+
+${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
 
 요구사항:
 - **질문**: 구체적이고 복합적인 상황과 문제를 제시하는 전문가 수준의 질문
 - **답변**: 실용적이고 실행 가능한 구체적인 해결 방법이나 조언
 - 전문성: 해당 분야의 최신 트렌드와 전문 지식을 반영
 - 실용성: 실제 상황에서 바로 적용할 수 있는 내용
+- **맥락 고려**: ${
+        recentContext.length > 0
+          ? "최근 다룬 주제와 자연스럽게 연결되거나 발전된 내용을 제시하되, 반복하지 말 것"
+          : "새로운 관점과 주제를 제시할 것"
+      }
 
 형식:
 **질문:** [전문가 수준의 구체적이고 복합적인 상황과 문제]
