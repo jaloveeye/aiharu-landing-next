@@ -5,12 +5,58 @@ import {
   savePromptResult,
   getRecentContextForCategory,
   generateContextSummary,
+  updatePromptEmbeddingById,
 } from "@/app/utils/promptResults";
 import { promptTemplates } from "@/data/prompts";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// 프롬프트 생성 후 벡터 저장 함수
+async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
+  try {
+    // 1. 프롬프트 저장
+    const promptResultId = await savePromptResult(
+      promptData,
+      aiAnswer,
+      "gpt-3.5-turbo",
+      promptData.tokens_used
+    );
+
+    if (!promptResultId) {
+      throw new Error('프롬프트 저장 실패');
+    }
+
+    // 2. 벡터 생성 및 저장
+    const embeddingResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        text: `${promptData.title} ${promptData.prompt} ${aiAnswer}` 
+      })
+    });
+
+    if (embeddingResponse.ok) {
+      const { embedding } = await embeddingResponse.json();
+      
+      // 3. 벡터를 데이터베이스에 저장
+      const updateSuccess = await updatePromptEmbeddingById(promptResultId, embedding);
+      if (updateSuccess) {
+        console.log(`벡터 저장 완료: ${promptResultId}`);
+      } else {
+        console.warn(`벡터 저장 실패: ${promptResultId}`);
+      }
+    } else {
+      console.warn(`벡터 생성 실패: ${promptData.id}`);
+    }
+
+    return promptResultId;
+  } catch (error) {
+    console.error('프롬프트 및 벡터 저장 오류:', error);
+    throw error;
+  }
+}
 
 // 공통 프롬프트 생성 함수
 async function generateDailyPrompts() {
@@ -111,23 +157,21 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
       : generatedText;
 
     // 프롬프트 결과 저장 - AI 생성 질문만 표시
-    const promptResult = await savePromptResult(
-      {
-        id: `generated-${Date.now()}-${category}`,
-        title: `${category} 전문가 질문`,
-        category: category as any,
-        prompt: aiGeneratedQuestion, // AI가 생성한 질문만 저장
-        tags: [category, "AI생성", "전문가수준"],
-        difficulty: "고급" as any,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      },
-      aiGeneratedAnswer, // AI가 생성한 답변
-      "gpt-3.5-turbo",
-      completion.usage?.total_tokens
-    );
+    const promptData = {
+      id: `generated-${Date.now()}-${category}`,
+      title: `${category} 전문가 질문`,
+      category: category as any,
+      prompt: aiGeneratedQuestion, // AI가 생성한 질문만 저장
+      tags: [category, "AI생성", "전문가수준"],
+      difficulty: "고급" as any,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      tokens_used: completion.usage?.total_tokens,
+    };
 
-    if (promptResult) {
+    const promptResultId = await savePromptWithEmbedding(promptData, aiGeneratedAnswer);
+
+    if (promptResultId) {
       generatedResults.push({
         id: `generated-${Date.now()}-${category}`,
         prompt_id: `generated-${Date.now()}-${category}`,

@@ -140,10 +140,10 @@ export async function savePromptResult(
   aiResult: string,
   model: string = 'gpt-4',
   tokensUsed?: number
-): Promise<boolean> {
+): Promise<string | null> {
   const supabase = createClient();
   
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('prompt_results')
     .insert({
       prompt_id: prompt.id,
@@ -155,14 +155,16 @@ export async function savePromptResult(
       ai_result: aiResult,
       ai_model: model,
       tokens_used: tokensUsed
-    });
+    })
+    .select('id')
+    .single();
 
   if (error) {
     console.error('Error saving prompt result:', error);
-    return false;
+    return null;
   }
 
-  return true;
+  return data?.id || null;
 }
 
 // 매일 자동 생성된 프롬프트 결과 가져오기 (최근 30일)
@@ -204,4 +206,50 @@ export async function getPromptCountByCategory(): Promise<Record<string, number>
   });
 
   return counts;
+}
+
+// 프롬프트 결과에 벡터 저장
+export async function updatePromptEmbedding(promptId: string, embedding: number[]): Promise<boolean> {
+  try {
+    const supabase = createClient();
+    
+    const { error } = await supabase
+      .from('prompt_results')
+      .update({ embedding })
+      .eq('id', promptId);
+
+    if (error) {
+      console.error('Error updating prompt embedding:', error);
+      return false;
+    }
+
+    console.log(`벡터 업데이트 완료: ${promptId}`);
+    return true;
+  } catch (error) {
+    console.error('Error updating prompt embedding:', error);
+    return false;
+  }
+}
+
+// 프롬프트 결과에 벡터 저장 (ID로)
+export async function updatePromptEmbeddingById(id: string, embedding: number[]): Promise<boolean> {
+  try {
+    const supabase = createClient();
+    
+    const { error } = await supabase
+      .from('prompt_results')
+      .update({ embedding })
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error updating prompt embedding by ID:', error);
+      return false;
+    }
+
+    console.log(`벡터 업데이트 완료 (ID): ${id}`);
+    return true;
+  } catch (error) {
+    console.error('Error updating prompt embedding by ID:', error);
+    return false;
+  }
 }

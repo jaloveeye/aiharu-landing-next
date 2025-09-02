@@ -131,6 +131,51 @@ export default function AiPromptsPage() {
               실용적이고 전문적인 주제들을 다룹니다.
             </p>
           </div>
+
+          {/* 🚀 벡터 기반 맥락 인식 시스템 소개 */}
+          <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-xl">🧠</span>
+              </div>
+              <h3 className="text-xl font-bold text-blue-800">
+                AI 지능의 진화
+              </h3>
+            </div>
+            <div className="grid md:grid-cols-3 gap-4 text-sm">
+              <div className="text-center">
+                <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <span className="text-blue-700 font-bold">1</span>
+                </div>
+                <p className="font-semibold text-blue-800 mb-1">맥락 기억</p>
+                <p className="text-blue-700">
+                  이전 대화를 기억하고 연속성 유지
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <span className="text-blue-700 font-bold">2</span>
+                </div>
+                <p className="font-semibold text-blue-800 mb-1">벡터 검색</p>
+                <p className="text-blue-700">
+                  OpenAI + pgvector로 정확한 유사도 매칭
+                </p>
+              </div>
+              <div className="text-center">
+                <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-2">
+                  <span className="text-blue-700 font-bold">3</span>
+                </div>
+                <p className="font-semibold text-blue-800 mb-1">체계적 학습</p>
+                <p className="text-blue-700">중복 없는 체계적인 지식 구조화</p>
+              </div>
+            </div>
+            <div className="mt-4 text-center">
+              <p className="text-blue-600 font-medium">
+                🎯 이제 AI는 단순한 질문 생성기가 아닌,{" "}
+                <strong>지능적인 학습 동반자</strong>입니다!
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* 오늘의 프롬프트가 없을 때 안내 메시지 */}
@@ -222,9 +267,19 @@ export default function AiPromptsPage() {
         {/* 최근 프롬프트 결과들 */}
         {!selectedCategory && !loadingResults && recentResults.length > 0 && (
           <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h3 className="text-xl font-bold text-gray-800 mb-6">
-              📚 최근 프롬프트 결과
-            </h3>
+            <div className="flex items-center gap-3 mb-6">
+              <h3 className="text-xl font-bold text-gray-800">
+                📚 최근 프롬프트 결과
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                  🧠 맥락 인식
+                </span>
+                <span className="text-sm text-blue-600">
+                  AI가 이전 결과를 참고하여 연속성 있는 질문 생성
+                </span>
+              </div>
+            </div>
             <div className="grid gap-4">
               {recentResults.slice(0, 5).map((result) => (
                 <div
@@ -273,6 +328,34 @@ export default function AiPromptsPage() {
           <h3 className="text-xl font-bold text-gray-800 mb-6">
             📂 프롬프트 카테고리
           </h3>
+
+          {/* 🚀 기술 스택 표시 */}
+          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-lg">⚡</span>
+              <h4 className="font-semibold text-green-800">
+                Powered by Advanced AI Technology
+              </h4>
+            </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
+                OpenAI GPT-3.5-turbo
+              </span>
+              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
+                OpenAI Embedding API
+              </span>
+              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
+                Supabase pgvector
+              </span>
+              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
+                Cosine Similarity
+              </span>
+              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
+                Context Awareness
+              </span>
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {Array.from(new Set(promptTemplates.map((p) => p.category))).map(
               (category) => (
@@ -294,6 +377,134 @@ export default function AiPromptsPage() {
                 </div>
               )
             )}
+          </div>
+        </div>
+
+        {/* 🧠 맥락 인식 시스템 작동 원리 설명 */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 mt-8">
+          <div className="text-center mb-6">
+            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-white text-xl">🧠</span>
+            </div>
+            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+              맥락 인식 시스템 작동 원리
+            </h3>
+            <p className="text-gray-600">
+              AI가 어떻게 이전 대화를 기억하고 연속성 있는 질문을 생성하는지
+              알아보세요
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* 왼쪽: 작동 과정 */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-blue-600">🔄</span>
+                작동 과정
+              </h4>
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                    1
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">프롬프트 생성</p>
+                    <p className="text-sm text-gray-600">
+                      AI가 새로운 질문과 답변을 생성
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                    2
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">벡터 변환</p>
+                    <p className="text-sm text-gray-600">
+                      OpenAI Embedding API로 1536차원 벡터 생성
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                    3
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">벡터 저장</p>
+                    <p className="text-sm text-gray-600">
+                      Supabase pgvector에 벡터 데이터 저장
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                    4
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">맥락 검색</p>
+                    <p className="text-sm text-gray-600">
+                      코사인 유사도로 관련 프롬프트 검색
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
+                    5
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">연속성 생성</p>
+                    <p className="text-sm text-gray-600">
+                      이전 맥락을 참고한 새로운 질문 생성
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 오른쪽: 실제 예시 */}
+            <div>
+              <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-green-600">💡</span>
+                실제 예시
+              </h4>
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
+                <div className="space-y-3">
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-xs text-gray-500 mb-1">1일차</p>
+                    <p className="text-sm font-medium text-gray-800">
+                      "아이 감정 통제 문제"
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <span className="text-green-600 text-lg">↓</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-xs text-gray-500 mb-1">
+                      2일차 (맥락 인식)
+                    </p>
+                    <p className="text-sm font-medium text-gray-800">
+                      "감정 통제 후 사회성 발달 방법"
+                    </p>
+                  </div>
+                  <div className="flex justify-center">
+                    <span className="text-green-600 text-lg">↓</span>
+                  </div>
+                  <div className="bg-white rounded-lg p-3 shadow-sm">
+                    <p className="text-xs text-gray-500 mb-1">
+                      3일차 (맥락 인식)
+                    </p>
+                    <p className="text-sm font-medium text-gray-800">
+                      "사회성 발달을 위한 놀이 방법"
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 text-center">
+                  <p className="text-xs text-green-700 font-medium">
+                    🎯 체계적이고 연속성 있는 학습 경험 제공
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

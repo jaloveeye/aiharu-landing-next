@@ -5,11 +5,63 @@ import {
   savePromptResult,
   getRecentContextForCategory,
   generateContextSummary,
+  updatePromptEmbeddingById,
 } from "@/app/utils/promptResults";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// 프롬프트 생성 후 벡터 저장 함수
+async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
+  try {
+    // 1. 프롬프트 저장
+    const promptResultId = await savePromptResult(
+      promptData,
+      aiAnswer,
+      "gpt-3.5-turbo",
+      promptData.tokens_used
+    );
+
+    if (!promptResultId) {
+      throw new Error("프롬프트 저장 실패");
+    }
+
+    // 2. 벡터 생성 및 저장
+    const embeddingResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: `${promptData.title} ${promptData.prompt} ${aiAnswer}`,
+        }),
+      }
+    );
+
+    if (embeddingResponse.ok) {
+      const { embedding } = await embeddingResponse.json();
+
+      // 3. 벡터를 데이터베이스에 저장 (실제 데이터베이스 ID 사용)
+      const updateSuccess = await updatePromptEmbeddingById(
+        promptResultId,
+        embedding
+      );
+      if (updateSuccess) {
+        console.log(`벡터 저장 완료: ${promptResultId}`);
+      } else {
+        console.warn(`벡터 저장 실패: ${promptResultId}`);
+      }
+    } else {
+      console.warn(`벡터 생성 실패: ${promptData.id}`);
+    }
+
+    return promptResultId;
+  } catch (error) {
+    console.error("프롬프트 및 벡터 저장 오류:", error);
+    throw error;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,11 +97,11 @@ export async function POST(request: NextRequest) {
       // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
       const recentContext = await getRecentContextForCategory(category, 3);
       const contextSummary = generateContextSummary(recentContext);
-      
+
       // 맥락 인식 로그 출력
       console.log(`[맥락 인식] ${category} 카테고리:`);
       console.log(`- 최근 결과 수: ${recentContext.length}`);
-      console.log(`- 맥락 요약: ${contextSummary || '없음'}`);
+      console.log(`- 맥락 요약: ${contextSummary || "없음"}`);
 
       // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
       const systemPrompt = `당신은 ${category} 분야의 전문가입니다. 성인 고학력자 수준의 깊이 있고 실용적인 질문과 답변을 생성해주세요.
@@ -104,23 +156,24 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
         : generatedText;
 
       // 프롬프트 결과 저장 - AI 생성 질문만 표시
-      const promptResult = await savePromptResult(
-        {
-          id: `manual-${Date.now()}-${category}`,
-          title: `${category} 전문가 질문`,
-          category: category as any,
-          prompt: aiGeneratedQuestion, // AI가 생성한 질문만 저장
-          tags: [category, "AI생성", "전문가수준", "수동생성"],
-          difficulty: "고급" as any,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        aiGeneratedAnswer, // AI가 생성한 답변
-        "gpt-3.5-turbo",
-        completion.usage?.total_tokens
+      const promptData = {
+        id: `manual-${Date.now()}-${category}`,
+        title: `${category} 전문가 질문`,
+        category: category as any,
+        prompt: aiGeneratedQuestion, // AI가 생성한 질문만 저장
+        tags: [category, "AI생성", "전문가수준", "수동생성"],
+        difficulty: "고급" as any,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        tokens_used: completion.usage?.total_tokens,
+      };
+
+      const promptResultId = await savePromptWithEmbedding(
+        promptData,
+        aiGeneratedAnswer
       );
 
-      if (promptResult) {
+      if (promptResultId) {
         generatedResults.push({
           id: `manual-${Date.now()}-${category}`,
           prompt_id: `manual-${Date.now()}-${category}`,
