@@ -257,13 +257,13 @@ export default function PromptQualityPage() {
               </div>
             ) : (
               <div className="space-y-8">
-                {/* 종합 점수 */}
-                <div className="text-center p-8 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-3xl border border-blue-100">
-                  <div className="text-2xl font-bold text-blue-800 mb-4">
+                {/* 종합 점수와 등급만 표시 */}
+                <div className="text-center p-10 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-3xl border border-blue-100">
+                  <div className="text-2xl font-bold text-blue-800 mb-3">
                     종합 점수
                   </div>
                   <div
-                    className={`text-7xl font-bold ${getGradeColor(
+                    className={`text-7xl font-extrabold ${getGradeColor(
                       analysisResult.quality_grade
                     )} mb-4 drop-shadow-lg`}
                   >
@@ -272,113 +272,11 @@ export default function PromptQualityPage() {
                   <div
                     className={`text-3xl font-semibold ${getGradeColor(
                       analysisResult.quality_grade
-                    )} bg-white/60 px-6 py-2 rounded-2xl inline-block`}
+                    )} bg-white/70 px-6 py-2 rounded-2xl inline-block`}
                   >
                     {analysisResult.quality_grade}
                   </div>
                 </div>
-
-                {/* 세부 점수 */}
-                <div className="space-y-6">
-                  <h3 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-                    <span className="text-2xl">🎯</span>
-                    세부 점수
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200 hover:scale-105 transition-transform duration-200">
-                      <div className="text-sm text-blue-700 mb-2 font-medium">
-                        구조화
-                      </div>
-                      <div
-                        className={`text-2xl font-bold ${getScoreColor(
-                          analysisResult.quality_metrics.structureScore
-                        )}`}
-                      >
-                        {analysisResult.quality_metrics.structureScore}
-                      </div>
-                    </div>
-
-                    <div className="text-center p-4 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200 hover:scale-105 transition-transform duration-200">
-                      <div className="text-sm text-green-700 mb-2 font-medium">
-                        전문성
-                      </div>
-                      <div
-                        className={`text-2xl font-bold ${getScoreColor(
-                          analysisResult.quality_metrics.expertiseScore
-                        )}`}
-                      >
-                        {analysisResult.quality_metrics.expertiseScore}
-                      </div>
-                    </div>
-
-                    <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl border border-purple-200 hover:scale-105 transition-transform duration-200">
-                      <div className="text-sm text-purple-700 mb-2 font-medium">
-                        맥락 연관성
-                      </div>
-                      <div
-                        className={`text-2xl font-bold ${getScoreColor(
-                          analysisResult.quality_metrics.contextScore
-                        )}`}
-                      >
-                        {analysisResult.quality_metrics.contextScore}
-                      </div>
-                    </div>
-
-                    <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-orange-100 rounded-2xl border border-orange-200 hover:scale-105 transition-transform duration-200">
-                      <div className="text-sm text-orange-700 mb-2 font-medium">
-                        실용성
-                      </div>
-                      <div
-                        className={`text-2xl font-bold ${getScoreColor(
-                          analysisResult.quality_metrics.practicalityScore
-                        )}`}
-                      >
-                        {analysisResult.quality_metrics.practicalityScore}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 강점 */}
-                {analysisResult.analysis_summary.strengths.length > 0 && (
-                  <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <span className="text-2xl">✅</span>
-                      강점
-                    </h3>
-                    <ul className="space-y-3">
-                      {analysisResult.analysis_summary.strengths.map(
-                        (strength, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <span className="text-green-500 text-xl">✓</span>
-                            <span className="text-gray-700">{strength}</span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                )}
-
-                {/* 개선 제안 */}
-                {analysisResult.quality_suggestions.length > 0 && (
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
-                    <h3 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                      <span className="text-2xl">💡</span>
-                      개선 제안
-                    </h3>
-                    <ul className="space-y-3">
-                      {analysisResult.quality_suggestions.map(
-                        (suggestion, index) => (
-                          <li key={index} className="flex items-start gap-3">
-                            <span className="text-blue-500 text-xl">💡</span>
-                            <span className="text-gray-700">{suggestion}</span>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-                )}
               </div>
             )}
           </div>

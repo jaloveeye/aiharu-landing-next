@@ -135,7 +135,7 @@ export default function PromptDetailModal({
             </div>
           </div>
 
-          {/* 품질 분석 결과 */}
+          {/* 품질 분석 결과: 종합 점수와 등급만 표시 */}
           {promptResult.quality_metrics && (
             <div className="mb-6">
               <div className="flex items-center gap-2 mb-4">
@@ -147,56 +147,26 @@ export default function PromptDetailModal({
                 </h3>
               </div>
               <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-6 border border-purple-200 shadow-sm">
-                {/* 종합 점수와 등급 */}
-                <div className="text-center mb-4">
+                <div className="text-center">
                   <div className="text-4xl font-bold text-purple-600 mb-2">
                     {promptResult.quality_metrics.overall_score}점
                   </div>
                   {promptResult.quality_grade && (
-                    <div className={`text-lg font-semibold px-4 py-2 rounded-xl inline-block ${
-                      promptResult.quality_grade.startsWith('A') ? 'bg-green-100 text-green-700' :
-                      promptResult.quality_grade.startsWith('B') ? 'bg-yellow-100 text-yellow-700' :
-                      promptResult.quality_grade.startsWith('C') ? 'bg-orange-100 text-orange-700' :
-                      'bg-red-100 text-red-700'
-                    }`}>
+                    <div
+                      className={`text-lg font-semibold px-4 py-2 rounded-xl inline-block ${
+                        promptResult.quality_grade.startsWith("A")
+                          ? "bg-green-100 text-green-700"
+                          : promptResult.quality_grade.startsWith("B")
+                          ? "bg-yellow-100 text-yellow-700"
+                          : promptResult.quality_grade.startsWith("C")
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-red-100 text-red-700"
+                      }`}
+                    >
                       {promptResult.quality_grade}
                     </div>
                   )}
                 </div>
-
-                {/* 핵심 점수만 표시 */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="text-center p-3 bg-white/60 rounded-xl border border-purple-200">
-                    <div className="text-sm text-purple-700 mb-1 font-medium">구조화</div>
-                    <div className="text-lg font-bold text-purple-600">
-                      {Math.round(promptResult.quality_metrics.structure_score)}
-                    </div>
-                  </div>
-                  <div className="text-center p-3 bg-white/60 rounded-xl border border-purple-200">
-                    <div className="text-sm text-purple-700 mb-1 font-medium">전문성</div>
-                    <div className="text-lg font-bold text-purple-600">
-                      {Math.round(promptResult.quality_metrics.expertise_score)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 개선 제안 (간단하게) */}
-                {promptResult.quality_suggestions && promptResult.quality_suggestions.length > 0 && (
-                  <div className="mt-4 p-3 bg-white/60 rounded-xl border border-purple-200">
-                    <h4 className="font-semibold text-purple-800 mb-2 flex items-center gap-2">
-                      <span className="text-lg">💡</span>
-                      개선 제안
-                    </h4>
-                    <ul className="space-y-1">
-                      {promptResult.quality_suggestions.slice(0, 2).map((suggestion, index) => (
-                        <li key={index} className="flex items-start gap-2 text-sm text-purple-700">
-                          <span className="text-purple-500">•</span>
-                          {suggestion}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
               </div>
             </div>
           )}
