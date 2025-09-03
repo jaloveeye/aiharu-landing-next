@@ -14,24 +14,38 @@ export interface PromptResult {
   tokens_used?: number;
   created_at: string;
   updated_at: string;
+  // 품질 분석 관련 필드들
+  quality_metrics?: {
+    structure_score: number;
+    expertise_score: number;
+    context_score: number;
+    practicality_score: number;
+    question_clarity_score: number;
+    question_expertise_score: number;
+    question_complexity_score: number;
+    overall_score: number;
+  };
+  quality_grade?: string;
+  quality_suggestions?: string[];
 }
 
 // 오늘 날짜의 프롬프트 결과가 있는지 확인 (단일)
 export async function getTodayPromptResult(): Promise<PromptResult | null> {
   const supabase = createClient();
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split("T")[0];
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('*')
-    .gte('created_at', `${today}T00:00:00`)
-    .lte('created_at', `${today}T23:59:59`)
-    .order('created_at', { ascending: false })
+    .from("prompt_results")
+    .select("*")
+    .gte("created_at", `${today}T00:00:00`)
+    .lte("created_at", `${today}T23:59:59`)
+    .order("created_at", { ascending: false })
     .limit(1)
     .single();
 
-  if (error && error.code !== 'PGRST116') { // PGRST116는 결과가 없을 때
-    console.error('Error fetching today\'s prompt result:', error);
+  if (error && error.code !== "PGRST116") {
+    // PGRST116는 결과가 없을 때
+    console.error("Error fetching today's prompt result:", error);
     return null;
   }
 
@@ -41,17 +55,17 @@ export async function getTodayPromptResult(): Promise<PromptResult | null> {
 // 오늘 날짜의 모든 프롬프트 결과 가져오기
 export async function getTodayAllPromptResults(): Promise<PromptResult[]> {
   const supabase = createClient();
-  const today = new Date().toISOString().split('T')[0];
-  
+  const today = new Date().toISOString().split("T")[0];
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('*')
-    .gte('created_at', `${today}T00:00:00`)
-    .lte('created_at', `${today}T23:59:59`)
-    .order('created_at', { ascending: false });
+    .from("prompt_results")
+    .select("*")
+    .gte("created_at", `${today}T00:00:00`)
+    .lte("created_at", `${today}T23:59:59`)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching today\'s prompt results:', error);
+    console.error("Error fetching today's prompt results:", error);
     return [];
   }
 
@@ -61,14 +75,14 @@ export async function getTodayAllPromptResults(): Promise<PromptResult[]> {
 // 모든 프롬프트 결과 가져오기 (최신순)
 export async function getAllPromptResults(): Promise<PromptResult[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('*')
-    .order('created_at', { ascending: false });
+    .from("prompt_results")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching prompt results:', error);
+    console.error("Error fetching prompt results:", error);
     return [];
   }
 
@@ -76,17 +90,19 @@ export async function getAllPromptResults(): Promise<PromptResult[]> {
 }
 
 // 카테고리별 프롬프트 결과 가져오기
-export async function getPromptResultsByCategory(category: string): Promise<PromptResult[]> {
+export async function getPromptResultsByCategory(
+  category: string
+): Promise<PromptResult[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('*')
-    .eq('prompt_category', category)
-    .order('created_at', { ascending: false });
+    .from("prompt_results")
+    .select("*")
+    .eq("prompt_category", category)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('Error fetching prompt results by category:', error);
+    console.error("Error fetching prompt results by category:", error);
     return [];
   }
 
@@ -102,18 +118,21 @@ export function getRandomUnusedPrompt(): PromptExample {
 }
 
 // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
-export async function getRecentContextForCategory(category: string, limit: number = 3): Promise<PromptResult[]> {
+export async function getRecentContextForCategory(
+  category: string,
+  limit: number = 3
+): Promise<PromptResult[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('*')
-    .eq('prompt_category', category)
-    .order('created_at', { ascending: false })
+    .from("prompt_results")
+    .select("*")
+    .eq("prompt_category", category)
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
-    console.error('Error fetching recent context for category:', error);
+    console.error("Error fetching recent context for category:", error);
     return [];
   }
 
@@ -122,15 +141,17 @@ export async function getRecentContextForCategory(category: string, limit: numbe
 
 // 카테고리별 맥락 요약 생성
 export function generateContextSummary(results: PromptResult[]): string {
-  if (results.length === 0) return '';
-  
-  const recentTopics = results.map(result => {
-    const title = result.prompt_title;
-    const content = result.prompt_content.substring(0, 100);
-    const date = new Date(result.created_at).toLocaleDateString('ko-KR');
-    return `[${date}] ${title}: ${content}...`;
-  }).join('\n');
-  
+  if (results.length === 0) return "";
+
+  const recentTopics = results
+    .map((result) => {
+      const title = result.prompt_title;
+      const content = result.prompt_content.substring(0, 100);
+      const date = new Date(result.created_at).toLocaleDateString("ko-KR");
+      return `[${date}] ${title}: ${content}...`;
+    })
+    .join("\n");
+
   return `최근 ${results.length}일간 다룬 주제들:\n${recentTopics}`;
 }
 
@@ -138,13 +159,13 @@ export function generateContextSummary(results: PromptResult[]): string {
 export async function savePromptResult(
   prompt: PromptExample,
   aiResult: string,
-  model: string = 'gpt-4',
+  model: string = "gpt-4",
   tokensUsed?: number
 ): Promise<string | null> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('prompt_results')
+    .from("prompt_results")
     .insert({
       prompt_id: prompt.id,
       prompt_title: prompt.title,
@@ -154,13 +175,13 @@ export async function savePromptResult(
       prompt_tags: prompt.tags,
       ai_result: aiResult,
       ai_model: model,
-      tokens_used: tokensUsed
+      tokens_used: tokensUsed,
     })
-    .select('id')
+    .select("id")
     .single();
 
   if (error) {
-    console.error('Error saving prompt result:', error);
+    console.error("Error saving prompt result:", error);
     return null;
   }
 
@@ -168,17 +189,19 @@ export async function savePromptResult(
 }
 
 // 매일 자동 생성된 프롬프트 결과 가져오기 (최근 30일)
-export async function getRecentPromptResults(limit: number = 30): Promise<PromptResult[]> {
+export async function getRecentPromptResults(
+  limit: number = 30
+): Promise<PromptResult[]> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('*')
-    .order('created_at', { ascending: false })
+    .from("prompt_results")
+    .select("*")
+    .order("created_at", { ascending: false })
     .limit(limit);
 
   if (error) {
-    console.error('Error fetching recent prompt results:', error);
+    console.error("Error fetching recent prompt results:", error);
     return [];
   }
 
@@ -186,15 +209,17 @@ export async function getRecentPromptResults(limit: number = 30): Promise<Prompt
 }
 
 // 카테고리별 프롬프트 개수 가져오기
-export async function getPromptCountByCategory(): Promise<Record<string, number>> {
+export async function getPromptCountByCategory(): Promise<
+  Record<string, number>
+> {
   const supabase = createClient();
-  
+
   const { data, error } = await supabase
-    .from('prompt_results')
-    .select('prompt_category');
+    .from("prompt_results")
+    .select("prompt_category");
 
   if (error) {
-    console.error('Error fetching prompt counts by category:', error);
+    console.error("Error fetching prompt counts by category:", error);
     return {};
   }
 
@@ -209,47 +234,53 @@ export async function getPromptCountByCategory(): Promise<Record<string, number>
 }
 
 // 프롬프트 결과에 벡터 저장
-export async function updatePromptEmbedding(promptId: string, embedding: number[]): Promise<boolean> {
+export async function updatePromptEmbedding(
+  promptId: string,
+  embedding: number[]
+): Promise<boolean> {
   try {
     const supabase = createClient();
-    
+
     const { error } = await supabase
-      .from('prompt_results')
+      .from("prompt_results")
       .update({ embedding })
-      .eq('id', promptId);
+      .eq("id", promptId);
 
     if (error) {
-      console.error('Error updating prompt embedding:', error);
+      console.error("Error updating prompt embedding:", error);
       return false;
     }
 
     console.log(`벡터 업데이트 완료: ${promptId}`);
     return true;
   } catch (error) {
-    console.error('Error updating prompt embedding:', error);
+    console.error("Error updating prompt embedding:", error);
     return false;
   }
 }
 
 // 프롬프트 결과에 벡터 저장 (ID로)
-export async function updatePromptEmbeddingById(id: string, embedding: number[]): Promise<boolean> {
+export async function updatePromptEmbeddingById(
+  id: string,
+  embedding: number[]
+): Promise<boolean> {
   try {
     const supabase = createClient();
-    
+
     const { error } = await supabase
-      .from('prompt_results')
+      .from("prompt_results")
       .update({ embedding })
-      .eq('id', id);
+      .eq("id", id);
 
     if (error) {
-      console.error('Error updating prompt embedding by ID:', error);
+      console.error("Error updating prompt embedding by ID:", error);
       return false;
     }
 
     console.log(`벡터 업데이트 완료 (ID): ${id}`);
     return true;
   } catch (error) {
-    console.error('Error updating prompt embedding by ID:', error);
+    console.error("Error updating prompt embedding by ID:", error);
     return false;
   }
 }

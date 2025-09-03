@@ -32,6 +32,83 @@ export default function AiPromptsPage() {
   const [selectedPromptResult, setSelectedPromptResult] =
     useState<PromptResult | null>(null);
 
+  // 품질 분석 관련 상태
+  const [pendingAnalysisCount, setPendingAnalysisCount] = useState<number>(0);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState<string>("");
+
+  // 품질 분석이 필요한 프롬프트 개수 확인
+  const checkPendingAnalysisCount = async () => {
+    try {
+      const response = await fetch("/api/analyze-existing-prompts");
+      if (response.ok) {
+        const data = await response.json();
+        setPendingAnalysisCount(data.pendingAnalysisCount || 0);
+      }
+    } catch (error) {
+      console.error("Error checking pending analysis count:", error);
+    }
+  };
+
+  // 기존 프롬프트들 품질 분석 수행
+  const handleAnalyzeExistingPrompts = async () => {
+    if (
+      !confirm(
+        `${pendingAnalysisCount}개의 프롬프트에 대해 품질 분석을 수행하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setAnalysisProgress("품질 분석을 시작합니다...");
+
+    try {
+      const response = await fetch("/api/analyze-existing-prompts", {
+        method: "POST",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`${data.message}\n분석 완료: ${data.analyzedCount}개`);
+
+        // 결과 다시 로드
+        await loadResults();
+        await checkPendingAnalysisCount();
+      } else {
+        const errorData = await response.json();
+        alert(`품질 분석 실패: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error("Error analyzing existing prompts:", error);
+      alert("품질 분석 중 오류가 발생했습니다.");
+    } finally {
+      setIsAnalyzing(false);
+      setAnalysisProgress("");
+    }
+  };
+
+  // 결과 로드 함수
+  const loadResults = async () => {
+    try {
+      const [today, recent, counts] = await Promise.all([
+        getTodayPromptResult(),
+        getRecentPromptResults(10),
+        getPromptCountByCategory(),
+      ]);
+
+      setTodayResult(today);
+      setRecentResults(recent);
+      setCategoryCounts(counts);
+
+      if (today) {
+        setAiResult(today.ai_result);
+      }
+    } catch (error) {
+      console.error("Error loading results:", error);
+    }
+  };
+
   useEffect(() => {
     // 페이지 로드 시 저장된 결과들 가져오기
     const loadResults = async () => {
@@ -50,6 +127,9 @@ export default function AiPromptsPage() {
         if (today) {
           setAiResult(today.ai_result);
         }
+
+        // 품질 분석이 필요한 프롬프트 개수 확인
+        checkPendingAnalysisCount();
       } catch (error) {
         console.error("Error loading results:", error);
       } finally {
@@ -78,6 +158,66 @@ export default function AiPromptsPage() {
   const handlePromptClick = (promptResult: PromptResult) => {
     setSelectedPromptResult(promptResult);
     setIsModalOpen(true);
+  };
+
+  // 개별 프롬프트 품질 분석
+  const handleAnalyzeIndividualPrompt = async (promptResult: PromptResult) => {
+    if (
+      !confirm(
+        `"${promptResult.prompt_title}" 프롬프트에 대해 품질 분석을 수행하시겠습니까?`
+      )
+    ) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/analyze-prompt-quality", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          promptContent: promptResult.prompt_content,
+          aiResult: promptResult.ai_result,
+          category: promptResult.prompt_category,
+          tokensUsed:
+            promptResult.tokens_used ||
+            Math.ceil((promptResult.ai_result.length * 1.3) / 4),
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+
+        // 데이터베이스 업데이트
+        const updateResponse = await fetch(`/api/update-prompt-quality`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            promptId: promptResult.id,
+            qualityMetrics: result.quality_metrics,
+            qualityGrade: result.quality_grade,
+            qualitySuggestions: result.quality_suggestions,
+          }),
+        });
+
+        if (updateResponse.ok) {
+          alert("품질 분석이 완료되었습니다!");
+          // 결과 다시 로드
+          await loadResults();
+          await checkPendingAnalysisCount();
+        } else {
+          alert("품질 분석은 완료되었지만 저장에 실패했습니다.");
+        }
+      } else {
+        alert("품질 분석에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Error analyzing individual prompt:", error);
+      alert("품질 분석 중 오류가 발생했습니다.");
+    }
   };
 
   const getCategoryColor = (category: string) => {
@@ -131,6 +271,43 @@ export default function AiPromptsPage() {
               실용적이고 전문적인 주제들을 다룹니다.
             </p>
           </div>
+
+          {/* 품질 분석 상태 및 버튼 */}
+          {pendingAnalysisCount > 0 && (
+            <div className="mt-8 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200 shadow-sm">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                  <span className="text-xl">📊</span>
+                </div>
+                <h3 className="text-xl font-bold text-orange-800">
+                  품질 분석 필요
+                </h3>
+              </div>
+              <p className="text-orange-700 mb-4">
+                {pendingAnalysisCount}개의 프롬프트에 대해 품질 분석이
+                필요합니다.
+              </p>
+              <button
+                onClick={handleAnalyzeExistingPrompts}
+                disabled={isAnalyzing}
+                className="px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold rounded-xl transition-all duration-200 disabled:cursor-not-allowed"
+              >
+                {isAnalyzing ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    품질 분석 중...
+                  </div>
+                ) : (
+                  "품질 분석 시작하기"
+                )}
+              </button>
+              {analysisProgress && (
+                <p className="text-sm text-orange-600 mt-3">
+                  {analysisProgress}
+                </p>
+              )}
+            </div>
+          )}
 
           {/* 🚀 벡터 기반 맥락 인식 시스템 소개 */}
           <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm">
@@ -241,6 +418,30 @@ export default function AiPromptsPage() {
                       >
                         {result.prompt_difficulty}
                       </span>
+                      {/* 품질 점수 표시 */}
+                      {result.quality_metrics && (
+                        <div className="flex items-center gap-2 mt-3">
+                          <div className="text-xs text-gray-500">품질:</div>
+                          <div className="text-sm font-semibold text-purple-600">
+                            {Math.round(result.quality_metrics.overall_score)}점
+                          </div>
+                          {result.quality_grade && (
+                            <div
+                              className={`text-xs px-2 py-1 rounded-full ${
+                                result.quality_grade.startsWith("A")
+                                  ? "bg-green-100 text-green-700"
+                                  : result.quality_grade.startsWith("B")
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : result.quality_grade.startsWith("C")
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {result.quality_grade}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                       {result.ai_result.substring(0, 150)}...
@@ -311,6 +512,32 @@ export default function AiPromptsPage() {
                       {result.prompt_difficulty}
                     </span>
                   </div>
+
+                  {/* 품질 점수 표시 */}
+                  {result.quality_metrics && (
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="text-xs text-gray-500">품질:</div>
+                      <div className="text-sm font-semibold text-purple-600">
+                        {Math.round(result.quality_metrics.overall_score)}점
+                      </div>
+                      {result.quality_grade && (
+                        <div
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            result.quality_grade.startsWith("A")
+                              ? "bg-green-100 text-green-700"
+                              : result.quality_grade.startsWith("B")
+                              ? "bg-yellow-100 text-yellow-700"
+                              : result.quality_grade.startsWith("C")
+                              ? "bg-orange-100 text-orange-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {result.quality_grade}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <p className="text-sm text-gray-600 line-clamp-2 mb-3">
                     {result.ai_result.substring(0, 150)}...
                   </p>

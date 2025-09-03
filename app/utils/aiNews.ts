@@ -36,17 +36,23 @@ export async function getTodayAINews(): Promise<AINews[]> {
 }
 
 // 최근 AI 뉴스 가져오기 (최근 7일)
-export async function getRecentAINews(limit: number = 20): Promise<AINews[]> {
+export async function getRecentAINews(limit?: number): Promise<AINews[]> {
   const supabase = createClient();
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   
-  const { data, error } = await supabase
+  let query = supabase
     .from('ai_news')
     .select('*')
     .gte('published_at', sevenDaysAgo.toISOString())
-    .order('published_at', { ascending: false })
-    .limit(limit);
+    .order('published_at', { ascending: false });
+  
+  // limit이 지정된 경우에만 적용
+  if (limit) {
+    query = query.limit(limit);
+  }
+  
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching recent AI news:', error);

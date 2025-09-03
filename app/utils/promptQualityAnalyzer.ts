@@ -4,15 +4,15 @@ export interface QualityMetrics {
   expertiseScore: number; // 전문성 점수 (0-100)
   contextScore: number; // 맥락 연관성 점수 (0-100)
   practicalityScore: number; // 실용성 점수 (0-100)
-  
+
   // 질문 품질 점수 (새로 추가!)
-  questionClarityScore: number;    // 질문 명확성 점수 (0-100)
-  questionExpertiseScore: number;  // 질문 전문성 점수 (0-100)
+  questionClarityScore: number; // 질문 명확성 점수 (0-100)
+  questionExpertiseScore: number; // 질문 전문성 점수 (0-100)
   questionComplexityScore: number; // 질문 복잡성/깊이 점수 (0-100)
-  
+
   // 종합 점수
   overallScore: number; // 종합 점수 (0-100)
-  
+
   details: {
     hasStepByStep: boolean; // 단계별 가이드 포함 여부
     hasWarnings: boolean; // 주의사항 포함 여부
@@ -20,10 +20,10 @@ export interface QualityMetrics {
     hasConcreteMethods: boolean; // 구체적 실행 방법 포함 여부
     tokenEfficiency: number; // 토큰 효율성 (0-100)
     categoryKeywords: string[]; // 카테고리별 키워드 매칭
-    
+
     // 질문 품질 세부사항 (새로 추가!)
-    questionHasSpecificity: boolean;    // 구체적 상황/사례 포함 여부
-    questionHasComplexity: boolean;    // 복합적 문제 상황 포함 여부
+    questionHasSpecificity: boolean; // 구체적 상황/사례 포함 여부
+    questionHasComplexity: boolean; // 복합적 문제 상황 포함 여부
     questionHasProfessionalTerms: boolean; // 전문 용어 포함 여부
   };
 }
@@ -40,23 +40,26 @@ export function analyzePromptQuality(
   const expertiseScore = analyzeExpertise(aiResult, category);
   const contextScore = analyzeContext(promptContent, aiResult);
   const practicalityScore = analyzePracticality(aiResult);
-  
+
   // 질문 품질 분석 (새로 추가!)
   const questionClarityScore = analyzeQuestionClarity(promptContent);
-  const questionExpertiseScore = analyzeQuestionExpertise(promptContent, category);
+  const questionExpertiseScore = analyzeQuestionExpertise(
+    promptContent,
+    category
+  );
   const questionComplexityScore = analyzeQuestionComplexity(promptContent);
-  
+
   // 종합 점수 계산 (질문과 답변 모두 반영)
   const overallScore = Math.round(
     // 답변 품질 (60%)
-    (structureScore * 0.2) + 
-    (expertiseScore * 0.2) + 
-    (contextScore * 0.15) + 
-    (practicalityScore * 0.15) +
-    // 질문 품질 (40%)
-    (questionClarityScore * 0.15) +
-    (questionExpertiseScore * 0.15) +
-    (questionComplexityScore * 0.1)
+    structureScore * 0.2 +
+      expertiseScore * 0.2 +
+      contextScore * 0.15 +
+      practicalityScore * 0.15 +
+      // 질문 품질 (40%)
+      questionClarityScore * 0.15 +
+      questionExpertiseScore * 0.15 +
+      questionComplexityScore * 0.1
   );
 
   return {
@@ -77,8 +80,11 @@ export function analyzePromptQuality(
       categoryKeywords: extractCategoryKeywords(aiResult, category),
       questionHasSpecificity: detectQuestionSpecificity(promptContent),
       questionHasComplexity: detectQuestionComplexity(promptContent),
-      questionHasProfessionalTerms: detectQuestionProfessionalTerms(promptContent, category)
-    }
+      questionHasProfessionalTerms: detectQuestionProfessionalTerms(
+        promptContent,
+        category
+      ),
+    },
   };
 }
 
@@ -87,19 +93,22 @@ function analyzeStructure(text: string): number {
   let score = 0;
 
   // 단계별 가이드 감지 (개선된 로직)
-  if (detectStepByStep(text)) score += 35;
+  if (detectStepByStep(text)) score += 40;
 
   // 번호 매기기 또는 글머리 기호 감지 (더 포괄적으로)
-  if (/\d+\.|•|\-|\*|▶|→|✓/.test(text)) score += 25;
+  if (/\d+\.|•|\-|\*|▶|→|✓/.test(text)) score += 30;
 
   // 구체적 방법 제시
-  if (detectConcreteMethods(text)) score += 20;
+  if (detectConcreteMethods(text)) score += 25;
 
   // 주의사항/추가 고려사항
-  if (detectWarnings(text)) score += 10;
-  if (detectAlternatives(text)) score += 10;
+  if (detectWarnings(text)) score += 15;
+  if (detectAlternatives(text)) score += 15;
 
-  return Math.min(score, 100);
+  // 기본 점수 (구조가 있으면 기본적으로 높은 점수)
+  if (score > 0) score += 20;
+
+  return Math.min(Math.round(score), 100);
 }
 
 // 전문성 분석 (전문 용어, 카테고리별 키워드)
@@ -112,17 +121,19 @@ function analyzeExpertise(text: string, category: string): number {
     text.toLowerCase().includes(keyword.toLowerCase())
   );
 
-  // 키워드 매칭 점수 (대폭 증가)
-  const keywordScore = Math.min(
-    (matchedKeywords.length / Math.max(categoryKeywords.length, 1)) * 50,
-    50
+  // 키워드 매칭 점수 (대폭 증가) - Math.round 적용
+  const keywordScore = Math.round(
+    Math.min(
+      (matchedKeywords.length / Math.max(categoryKeywords.length, 1)) * 60,
+      60
+    )
   );
   score += keywordScore;
 
   // 키워드 매칭 보너스 점수 (매칭된 키워드 수에 따른 추가 점수)
-  if (matchedKeywords.length >= 5) score += 20;
-  if (matchedKeywords.length >= 10) score += 25;
-  if (matchedKeywords.length >= 15) score += 30;
+  if (matchedKeywords.length >= 5) score += 25;
+  if (matchedKeywords.length >= 10) score += 30;
+  if (matchedKeywords.length >= 15) score += 35;
 
   // 전문적 표현 감지 (확장)
   if (
@@ -130,117 +141,128 @@ function analyzeExpertise(text: string, category: string): number {
       text
     )
   )
-    score += 20;
+    score += 25;
 
   // 구체적 수치나 단위 포함
-  if (/\d+%|\d+단계|\d+시간|\d+일|\d+개|\d+가지/.test(text)) score += 20;
+  if (/\d+%|\d+단계|\d+시간|\d+일|\d+개|\d+가지/.test(text)) score += 25;
 
   // 연구/트렌드 언급 (확장)
   if (
-    /\b(연구|트렌드|최신|동향|사례|분석|경험|실무|적용|실행|효과|결과|성과|성공)\b/.test(
+    /\b(연구|트렌드|최신|동향|사례|데이터|통계|분석|결과|효과|성과|성공|실패|경험)\b/.test(
       text
     )
   )
     score += 20;
 
-  // 카테고리별 전문 표현 추가 점수 (대폭 증가)
-  if (
-    category === "육아" &&
-    /\b(아동심리|발달단계|양육|육아|부모|아이|아동|심리|행동|관리|조절|안전|환경|공간|제공|도움|지원|가르침|학습|발달|성장|변화|향상|능력)\b/.test(
-      text
-    )
-  ) {
-    score += 25;
-    console.log("육아 전문 표현 추가 점수 +25");
-  }
+  // 카테고리별 보너스 점수
+  if (category === "육아") score += 20;
+  if (category === "육아창업") score += 25;
+  if (category === "비즈니스마케팅") score += 25;
 
-  // 디버깅용 로그
-  console.log(
-    `전문성 분석 - 카테고리: ${category}, 키워드 매칭: ${matchedKeywords.length}/${categoryKeywords.length}, 최종 점수: ${score}`
-  );
-  
-  // 육아 카테고리 보너스 점수 (직접 추가)
-  if (category === '육아') {
-    score += 20;
-    console.log('육아 카테고리 보너스 점수 +20');
-  }
+  // 기본 점수 (전문성이 있으면 기본적으로 높은 점수)
+  if (score > 0) score += 15;
 
-  return Math.min(score, 100);
+  // 최종 점수를 반올림하여 반환
+  return Math.min(Math.round(score), 100);
 }
 
 // 질문 품질 분석 함수들 (새로 추가!)
 function analyzeQuestionClarity(question: string): number {
   let score = 0;
-  
+
   // 질문의 명확성 (어떻게, 무엇, 언제, 어디서, 왜)
-  if (/\b(어떻게|무엇|언제|어디서|왜|어떤|어느|몇|얼마나)\b/.test(question)) score += 30;
-  
+  if (/\b(어떻게|무엇|언제|어디서|왜|어떤|어느|몇|얼마나)\b/.test(question))
+    score += 30;
+
   // 구체적 상황이나 사례 포함
   if (detectQuestionSpecificity(question)) score += 25;
-  
+
   // 복합적 문제 상황 포함
   if (detectQuestionComplexity(question)) score += 25;
-  
+
   // 질문의 길이와 상세함
   if (question.length >= 50) score += 20;
-  
-  return Math.min(score, 100);
+
+  return Math.min(Math.round(score), 100);
 }
 
 function analyzeQuestionExpertise(question: string, category: string): number {
   let score = 0;
-  
+
   // 전문 용어 포함 여부
   if (detectQuestionProfessionalTerms(question, category)) score += 40;
-  
+
   // 카테고리별 전문 키워드 매칭
   const categoryKeywords = getCategoryKeywords(category);
-  const matchedKeywords = categoryKeywords.filter(keyword => 
+  const matchedKeywords = categoryKeywords.filter((keyword) =>
     question.toLowerCase().includes(keyword.toLowerCase())
   );
-  
-  const keywordScore = Math.min((matchedKeywords.length / Math.max(categoryKeywords.length, 1)) * 30, 30);
+
+  const keywordScore = Math.min(
+    (matchedKeywords.length / Math.max(categoryKeywords.length, 1)) * 30,
+    30
+  );
   score += keywordScore;
-  
+
   // 전문적 표현 감지
-  if (/\b(전략|방법론|프로세스|시스템|접근법|기법|도구|방법|절차|과정|단계|순서)\b/.test(question)) score += 20;
-  
+  if (
+    /\b(전략|방법론|프로세스|시스템|접근법|기법|도구|방법|절차|과정|단계|순서)\b/.test(
+      question
+    )
+  )
+    score += 20;
+
   // 연구/트렌드 언급
-  if (/\b(연구|트렌드|최신|동향|사례|분석|경험|실무|적용|실행)\b/.test(question)) score += 10;
-  
-  return Math.min(score, 100);
+  if (
+    /\b(연구|트렌드|최신|동향|사례|분석|경험|실무|적용|실행)\b/.test(question)
+  )
+    score += 10;
+
+  return Math.min(Math.round(score), 100);
 }
 
 function analyzeQuestionComplexity(question: string): number {
   let score = 0;
-  
+
   // 복합적 문제 상황 포함
   if (detectQuestionComplexity(question)) score += 40;
-  
+
   // 구체적 상황/사례 포함
   if (detectQuestionSpecificity(question)) score += 30;
-  
+
   // 조건이나 제약사항 포함
-  if (/\b(하지만|그런데|하지만|그러나|만약|경우|상황|제약|한계|도전|어려움)\b/.test(question)) score += 20;
-  
+  if (
+    /\b(하지만|그런데|하지만|그러나|만약|경우|상황|제약|한계|도전|어려움)\b/.test(
+      question
+    )
+  )
+    score += 20;
+
   // 질문의 깊이 (복잡한 문장 구조)
-  if (question.includes(',') && question.includes('그리고')) score += 10;
-  
-  return Math.min(score, 100);
+  if (question.includes(",") && question.includes("그리고")) score += 10;
+
+  return Math.min(Math.round(score), 100);
 }
 
 // 질문 품질 감지 헬퍼 함수들
 function detectQuestionSpecificity(question: string): boolean {
-  return /\b(구체적|상황|사례|경험|실제|현실|구체|특정|이런|저런|그런)\b/.test(question);
+  return /\b(구체적|상황|사례|경험|실제|현실|구체|특정|이런|저런|그런)\b/.test(
+    question
+  );
 }
 
 function detectQuestionComplexity(question: string): boolean {
-  return /\b(복합적|복잡|다양|여러|여러가지|다양한|복합|통합|연결|관련|상호작용)\b/.test(question);
+  return /\b(복합적|복잡|다양|여러|여러가지|다양한|복합|통합|연결|관련|상호작용)\b/.test(
+    question
+  );
 }
 
-function detectQuestionProfessionalTerms(question: string, category: string): boolean {
+function detectQuestionProfessionalTerms(
+  question: string,
+  category: string
+): boolean {
   const categoryKeywords = getCategoryKeywords(category);
-  return categoryKeywords.some(keyword => 
+  return categoryKeywords.some((keyword) =>
     question.toLowerCase().includes(keyword.toLowerCase())
   );
 }
@@ -250,62 +272,78 @@ function analyzeContext(prompt: string, answer: string): number {
   let score = 0;
 
   // 질문의 핵심 키워드가 답변에 포함되는지 확인
-  const promptKeywords = extractKeywords(prompt);
-  const answerKeywords = extractKeywords(answer);
+  const promptKeywords = prompt
+    .toLowerCase()
+    .match(
+      /\b(어떻게|무엇|언제|어디서|왜|방법|과정|단계|전략|기법|도구|방법|절차|과정|단계|순서)\b/g
+    );
 
-  const commonKeywords = promptKeywords.filter((keyword) =>
-    answerKeywords.includes(keyword)
-  );
-
-  // 키워드 매칭 점수 (대폭 증가)
-  const keywordScore = Math.min(
-    (commonKeywords.length / Math.max(promptKeywords.length, 1)) * 60,
-    60
-  );
-  score += keywordScore;
-
-  // 질문의 구체적 요구사항이 답변에서 다뤄지는지 확인 (확장)
-  if (
-    /\b(어떻게|방법|단계|과정|절차|대응|해결|처리)\b/.test(prompt) &&
-    /\b(단계|절차|과정|방법|가이드|제시|가르쳐|찾아보고|보여줌)\b/.test(answer)
-  ) {
-    score += 25;
+  if (promptKeywords) {
+    const matchedKeywords = promptKeywords.filter((keyword) =>
+      answer.toLowerCase().includes(keyword)
+    );
+    // Math.round 적용
+    score += Math.round(
+      Math.min((matchedKeywords.length / promptKeywords.length) * 40, 40)
+    );
   }
 
-  // 질문과 답변의 주제 일치성 확인 (확장)
+  // 구체적 요구사항 대응
   if (
-    /\b(감정|통제|화|짜증)\b/.test(prompt) &&
-    /\b(감정|통제|화|짜증)\b/.test(answer)
-  ) {
-    score += 15;
-  }
+    /\b(어떻게)\b/.test(prompt) &&
+    /\b(단계|방법|가이드|과정|절차)\b/.test(answer)
+  )
+    score += 30;
+  if (
+    /\b(무엇)\b/.test(prompt) &&
+    /\b(정의|개념|의미|내용|구성요소)\b/.test(answer)
+  )
+    score += 30;
+  if (
+    /\b(언제)\b/.test(prompt) &&
+    /\b(시기|타이밍|시점|단계|순서)\b/.test(answer)
+  )
+    score += 30;
 
-  // 추가 맥락 연결성 점수 (대폭 증가)
-  if (commonKeywords.length >= 3) score += 15;
-  if (commonKeywords.length >= 5) score += 20;
-  if (commonKeywords.length >= 8) score += 25;
+  // 질문과 답변의 주제 일치성
+  const promptTopic = prompt
+    .toLowerCase()
+    .match(/\b(육아|창업|마케팅|비즈니스|교육|학습|성장|발달)\b/);
+  if (promptTopic && answer.toLowerCase().includes(promptTopic[0])) score += 20;
 
-  return Math.min(score, 100);
+  // 기본 점수 (맥락이 있으면 기본적으로 높은 점수)
+  if (score > 0) score += 20;
+
+  return Math.min(Math.round(score), 100);
 }
 
-// 실용성 분석 (구체적 실행 가능성)
+// 실용성 분석 (실행 가능성, 구체적 방법)
 function analyzePracticality(text: string): number {
   let score = 0;
 
-  // 구체적 실행 방법 제시 (점수 증가)
+  // 구체적 실행 방법 제시
   if (detectConcreteMethods(text)) score += 45;
 
-  // 단계별 가이드 (점수 증가)
+  // 단계별 가이드 제공
   if (detectStepByStep(text)) score += 40;
 
-  // 주의사항 및 대안
-  if (detectWarnings(text)) score += 15;
-  if (detectAlternatives(text)) score += 10;
+  // 주의사항/경고 포함
+  if (detectWarnings(text)) score += 25;
 
-  // 즉시 적용 가능한 표현 (확장)
-  if (/\b(바로|즉시|당장|지금|이제|곧|빠르게|쉽게)\b/.test(text)) score += 10;
+  // 대안/추가 고려사항
+  if (detectAlternatives(text)) score += 25;
 
-  return Math.min(score, 100);
+  // 구체적 수치나 단위 포함
+  if (/\d+%|\d+단계|\d+시간|\d+일|\d+개|\d+가지/.test(text)) score += 20;
+
+  // 즉시 실행 가능한 표현
+  if (/\b(지금|바로|즉시|당장|오늘|내일|이번주|다음주)\b/.test(text))
+    score += 15;
+
+  // 기본 점수 (실용성이 있으면 기본적으로 높은 점수)
+  if (score > 0) score += 20;
+
+  return Math.min(Math.round(score), 100);
 }
 
 // 헬퍼 함수들
