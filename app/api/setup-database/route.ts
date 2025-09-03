@@ -22,6 +22,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // 품질 분석 관련 컬럼 추가
+    console.log("품질 분석 관련 컬럼 추가 중...");
+    const { error: qualityError } = await supabase.rpc("exec_sql", {
+      sql: `
+        ALTER TABLE prompt_results 
+        ADD COLUMN IF NOT EXISTS quality_metrics JSONB,
+        ADD COLUMN IF NOT EXISTS quality_grade VARCHAR(10),
+        ADD COLUMN IF NOT EXISTS quality_suggestions TEXT[];
+      `,
+    });
+
+    if (qualityError) {
+      console.error("품질 분석 컬럼 추가 실패:", qualityError);
+    } else {
+      console.log("✅ 품질 분석 컬럼 추가 완료");
+    }
+
     return NextResponse.json({
       success: true,
       message: "데이터베이스 설정 완료 - RLS 비활성화됨",

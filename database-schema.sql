@@ -10,6 +10,10 @@ CREATE TABLE prompt_results (
   ai_result TEXT NOT NULL,
   ai_model VARCHAR(50),
   tokens_used INTEGER,
+  embedding VECTOR(1536),
+  quality_metrics JSONB,
+  quality_grade VARCHAR(10),
+  quality_suggestions TEXT[],
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

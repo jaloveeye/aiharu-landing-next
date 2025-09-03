@@ -13,6 +13,7 @@ import {
   generateQualitySuggestions,
 } from "@/app/utils/promptQualityAnalyzer";
 import { promptTemplates } from "@/data/prompts";
+import { createClient } from "@/app/utils/supabase/server";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -70,7 +71,11 @@ async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
 }
 
 // 공통 프롬프트 생성 함수
-async function generateDailyPrompts() {
+export async function generateDailyPrompts() {
+  // 품질 기준 설정
+  const QUALITY_THRESHOLD = 50; // 최소 품질 점수 (75에서 50으로 낮춤)
+  const MAX_RETRY = 3; // 최대 재시도 횟수
+
   // 오늘 이미 생성된 프롬프트가 있는지 확인
   const todayResults = await getTodayAllPromptResults();
 
@@ -98,6 +103,8 @@ async function generateDailyPrompts() {
 
   // 3개의 프롬프트 생성
   for (const category of selectedCategories) {
+    console.log(`\n🚀 === ${category} 카테고리 프롬프트 생성 시작 ===`);
+
     // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
     const recentContext = await getRecentContextForCategory(category, 3);
     const contextSummary = generateContextSummary(recentContext);
@@ -127,6 +134,10 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
 **질문:** [전문가 수준의 구체적이고 복합적인 상황과 문제]
 **답변:** [실용적이고 구체적인 해결 방법이나 조언]`;
 
+    console.log(
+      `📝 시스템 프롬프트 구성 완료 (길이: ${systemPrompt.length}자)`
+    );
+
     // 선택된 카테고리의 프롬프트 생성 가이드 가져오기
     const categoryPrompt = promptTemplates.find((p) => p.category === category);
     if (!categoryPrompt) {
@@ -134,102 +145,500 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
       continue;
     }
 
-    // OpenAI API 호출 - 질문과 답변을 각각 생성
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: `카테고리: ${category}\n\n이 카테고리에서 성인 고학력자 전문가 수준의 질문과 답변을 생성해주세요.`,
-        },
-      ],
-      max_tokens: 800,
-      temperature: 0.7,
-    });
+    let bestQuality = 0;
+    let bestQuestion = "";
+    let bestAnswer = "";
+    let bestTokens = 0;
 
-    const generatedText = completion.choices[0]?.message?.content || "";
-    console.log(`카테고리 ${category} 프롬프트 생성 완료`);
+    // 품질 기준을 만족할 때까지 재생성
+    for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
+      console.log(`\n🔄 ${category} 카테고리 ${attempt}번째 시도 시작...`);
+      console.log(`   - Temperature: ${0.7 + (attempt - 1) * 0.1}`);
+      console.log(`   - 품질 기준: ${QUALITY_THRESHOLD}점 이상`);
 
-    // 생성된 텍스트에서 질문과 답변 분리
-    const questionMatch = generatedText.match(
-      /\*\*질문:\*\*\s*([\s\S]*?)(?=\*\*답변:\*\*)/
-    );
-    const answerMatch = generatedText.match(/\*\*답변:\*\*\s*([\s\S]*?)$/);
+      // OpenAI API 호출 - 질문과 답변을 각각 생성
+      const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt,
+          },
+          {
+            role: "user",
+            content: `카테고리: ${category}
 
-    const aiGeneratedQuestion = questionMatch
-      ? questionMatch[1].trim()
-      : "AI가 질문을 생성할 수 없습니다.";
-    const aiGeneratedAnswer = answerMatch
-      ? answerMatch[1].trim()
-      : generatedText;
+이 카테고리에서 성인 고학력자 전문가 수준의 질문과 답변을 생성해주세요.
 
-    // 프롬프트 결과 저장 - AI 생성 질문만 표시
-    const promptData = {
-      id: `generated-${Date.now()}-${category}`,
-      title: `${category} 전문가 질문`,
-      category: category as any,
-      prompt: aiGeneratedQuestion, // AI가 생성한 질문만 저장
-      tags: [category, "AI생성", "전문가수준"],
-      difficulty: "고급" as any,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      tokens_used: completion.usage?.total_tokens,
-    };
+반드시 다음 형식으로 작성해주세요. 다른 형식은 절대 사용하지 마세요:
 
-    const promptResultId = await savePromptWithEmbedding(
-      promptData,
-      aiGeneratedAnswer
-    );
+**질문:**
+[전문가 수준의 구체적이고 실용적인 질문을 작성]
 
-    if (promptResultId) {
+**답변:**
+[전문적이고 깊이 있는 답변을 단계별로 작성]
+
+위 형식을 정확히 지켜주세요.`,
+          },
+        ],
+        max_tokens: 800,
+        temperature: 0.7 + (attempt - 1) * 0.1, // 재시도마다 창의성 증가
+      });
+
+      const generatedText = completion.choices[0]?.message?.content || "";
+      const tokensUsed = completion.usage?.total_tokens || 0;
+
+      console.log(
+        `✅ ${category} 카테고리 프롬프트 생성 완료 (시도 ${attempt})`
+      );
+      console.log(`   - 생성된 텍스트 길이: ${generatedText.length}자`);
+      console.log(`   - 사용된 토큰: ${tokensUsed}개`);
+
+      // 생성된 텍스트에서 질문과 답변 분리
+      const questionMatch = generatedText.match(
+        /\*\*질문:\*\*\s*([\s\S]*?)(?=\*\*답변:\*\*)/
+      );
+      const answerMatch = generatedText.match(/\*\*답변:\*\*\s*([\s\S]*?)$/);
+
+      let aiGeneratedQuestion = questionMatch ? questionMatch[1].trim() : "";
+      let aiGeneratedAnswer = answerMatch ? answerMatch[1].trim() : "";
+
+      // 백업 분리 로직: 만약 정규식으로 분리되지 않았다면
+      if (!aiGeneratedQuestion || !aiGeneratedAnswer) {
+        console.log(`⚠️ 정규식 분리 실패, 백업 분리 로직 실행...`);
+
+        // 텍스트를 줄 단위로 분리
+        const lines = generatedText.split("\n").filter((line) => line.trim());
+
+        if (lines.length >= 2) {
+          // 중간 지점을 기준으로 분리
+          const midPoint = Math.floor(lines.length / 2);
+
+          if (!aiGeneratedQuestion) {
+            aiGeneratedQuestion = lines.slice(0, midPoint).join("\n").trim();
+            console.log(
+              `📝 백업 질문 생성: ${aiGeneratedQuestion.substring(0, 100)}...`
+            );
+          }
+
+          if (!aiGeneratedAnswer) {
+            aiGeneratedAnswer = lines.slice(midPoint).join("\n").trim();
+            console.log(
+              `📝 백업 답변 생성: ${aiGeneratedAnswer.substring(0, 100)}...`
+            );
+          }
+        }
+      }
+
+      // 최종 검증 및 기본값 설정
+      if (!aiGeneratedQuestion || aiGeneratedQuestion.length < 10) {
+        aiGeneratedQuestion = generatedText
+          .substring(0, Math.floor(generatedText.length / 2))
+          .trim();
+        console.log(`⚠️ 질문이 너무 짧음, 전체 텍스트의 절반을 질문으로 사용`);
+      }
+
+      if (!aiGeneratedAnswer || aiGeneratedAnswer.length < 10) {
+        aiGeneratedAnswer = generatedText
+          .substring(Math.floor(generatedText.length / 2))
+          .trim();
+        console.log(`⚠️ 답변이 너무 짧음, 전체 텍스트의 절반을 답변으로 사용`);
+      }
+
+      console.log(`📋 텍스트 분리 결과:`);
+      console.log(`   - 질문 길이: ${aiGeneratedQuestion.length}자`);
+      console.log(`   - 답변 길이: ${aiGeneratedAnswer.length}자`);
+      console.log(`   - 질문: ${aiGeneratedQuestion.substring(0, 100)}...`);
+      console.log(`   - 답변: ${aiGeneratedAnswer.substring(0, 100)}...`);
+
       // 품질 분석 수행
+      console.log(`🔍 품질 분석 시작...`);
       const qualityMetrics = analyzePromptQuality(
         aiGeneratedQuestion,
         aiGeneratedAnswer,
         category,
-        completion.usage?.total_tokens || 0
+        tokensUsed
       );
       const qualityGrade = getQualityGrade(qualityMetrics.overallScore);
-      const qualitySuggestions = generateQualitySuggestions(qualityMetrics, category);
 
-      console.log(`[품질 분석] ${category} 카테고리:`);
-      console.log(`- 전체 점수: ${qualityMetrics.overallScore}/100`);
-      console.log(`- 품질 등급: ${qualityGrade}`);
-      console.log(`- 개선 제안: ${qualitySuggestions.length}개`);
+      console.log(`📊 [품질 분석] ${category} 카테고리 (시도 ${attempt}):`);
+      console.log(`   - 전체 점수: ${qualityMetrics.overallScore}/100`);
+      console.log(`   - 등급: ${qualityGrade}`);
+      console.log(`   - 구조화: ${qualityMetrics.structureScore}/100`);
+      console.log(`   - 전문성: ${qualityMetrics.expertiseScore}/100`);
+      console.log(`   - 맥락 연관성: ${qualityMetrics.contextScore}/100`);
+      console.log(`   - 실용성: ${qualityMetrics.practicalityScore}/100`);
+      console.log(
+        `   - 질문 명확성: ${qualityMetrics.questionClarityScore}/100`
+      );
+      console.log(
+        `   - 질문 전문성: ${qualityMetrics.questionExpertiseScore}/100`
+      );
+      console.log(
+        `   - 질문 복잡성: ${qualityMetrics.questionComplexityScore}/100`
+      );
 
-      generatedResults.push({
-        id: `generated-${Date.now()}-${category}`,
-        prompt_id: `generated-${Date.now()}-${category}`,
-        prompt_title: `${category} 전문가 질문`,
-        prompt_content: aiGeneratedQuestion, // AI 생성 질문만 표시
-        prompt_category: category,
-        prompt_difficulty: "고급",
-        prompt_tags: [category, "AI생성", "전문가수준"],
-        ai_result: aiGeneratedAnswer, // AI 생성 답변
-        ai_model: "gpt-3.5-turbo",
-        tokens_used: completion.usage?.total_tokens,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        quality_metrics: qualityMetrics,
-        quality_grade: qualityGrade,
-        quality_suggestions: qualitySuggestions,
-      });
+      // 품질 점수 확인 및 로깅
+      console.log(
+        `🔍 ${category} 카테고리 ${attempt}번째 시도 품질 점수: ${qualityMetrics.overallScore}/100`
+      );
+      console.log(`   - 품질 기준: ${QUALITY_THRESHOLD}점`);
+      console.log(`   - 현재 최고 점수: ${bestQuality}점`);
+
+      // 품질 점수가 기준을 넘으면 즉시 저장하고 다음 카테고리로
+      if (qualityMetrics.overallScore >= QUALITY_THRESHOLD) {
+        console.log(
+          `🎯 ${category} 카테고리 품질 기준 달성 (${attempt}번째 시도)`
+        );
+        console.log(`   - 기준: ${QUALITY_THRESHOLD}점 이상`);
+        console.log(`   - 달성: ${qualityMetrics.overallScore}점`);
+        bestQuality = qualityMetrics.overallScore;
+        bestQuestion = aiGeneratedQuestion;
+        bestAnswer = aiGeneratedAnswer;
+        bestTokens = tokensUsed;
+        break; // 즉시 중단하고 저장 프로세스로
+      }
+
+      // 품질이 낮으면 더 나은 결과를 위해 저장
+      if (qualityMetrics.overallScore > bestQuality) {
+        console.log(
+          `📈 더 나은 품질 결과 발견 (이전: ${bestQuality}점 → 현재: ${qualityMetrics.overallScore}점)`
+        );
+        bestQuality = qualityMetrics.overallScore;
+        bestQuestion = aiGeneratedQuestion;
+        bestAnswer = aiGeneratedAnswer;
+        bestTokens = tokensUsed;
+      }
+
+      // 첫 번째 시도라면 기본값으로 설정
+      if (attempt === 1 && bestQuality === 0) {
+        console.log(`📝 첫 번째 시도 결과를 기본값으로 설정`);
+        bestQuality = qualityMetrics.overallScore;
+        bestQuestion = aiGeneratedQuestion;
+        bestAnswer = aiGeneratedAnswer;
+        bestTokens = tokensUsed;
+      }
+
+      // 품질이 낮은 경우에만 재시도
+      if (attempt < MAX_RETRY) {
+        console.log(
+          `⚠️ ${category} 카테고리 품질 미달 (${qualityMetrics.overallScore}/100), 재시도...`
+        );
+        console.log(`   - 남은 시도 횟수: ${MAX_RETRY - attempt}회`);
+        // 잠시 대기 후 재시도
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } else {
+        console.log(
+          `⚠️ ${category} 카테고리 최대 시도 횟수 도달, 최고 품질 결과 사용 (${bestQuality}/100)`
+        );
+        break; // 저장 프로세스로 진행
+      }
     }
-  }
 
-  console.log(
-    `${generatedResults.length}개의 프롬프트가 성공적으로 생성되었습니다.`
-  );
+    console.log(`\n💾💾💾 ${category} 카테고리 DB 저장 프로세스 시작 💾💾💾`);
+    console.log(`[DEBUG-1] bestQuestion 길이: ${bestQuestion.length}`);
+    console.log(`[DEBUG-2] bestAnswer 길이: ${bestAnswer.length}`);
+    console.log(`[DEBUG-3] bestQuality: ${bestQuality}`);
+    console.log(`[DEBUG-4] bestTokens: ${bestTokens}`);
+    console.log(`   - 최종 질문: ${bestQuestion.substring(0, 100)}...`);
+    console.log(`   - 최종 답변: ${bestAnswer.substring(0, 100)}...`);
+    console.log(`   - 최종 품질: ${bestQuality}/100`);
+    console.log(`   - 최종 토큰: ${bestTokens}개`);
+
+    // 품질 측정을 먼저 수행
+    console.log(`[DEBUG-5] 품질 분석 함수 호출 시작`);
+    console.log(`🔍 ${category} 카테고리 품질 분석 시작...`);
+    const finalQualityMetrics = analyzePromptQuality(
+      bestQuestion,
+      bestAnswer,
+      category,
+      bestTokens
+    );
+    console.log(`[DEBUG-6] 품질 분석 완료`);
+    const finalQualityGrade = getQualityGrade(finalQualityMetrics.overallScore);
+    console.log(`[DEBUG-7] 품질 등급 계산 완료`);
+    const finalQualitySuggestions = generateQualitySuggestions(
+      finalQualityMetrics,
+      category
+    );
+    console.log(`[DEBUG-8] 품질 제안 생성 완료`);
+
+    console.log(`📊 ${category} 카테고리 품질 분석 결과:`);
+    console.log(`   - 전체 점수: ${finalQualityMetrics.overallScore}/100`);
+    console.log(`   - 등급: ${finalQualityGrade}`);
+    console.log(`   - 구조화: ${finalQualityMetrics.structureScore}/100`);
+    console.log(`   - 전문성: ${finalQualityMetrics.expertiseScore}/100`);
+    console.log(`   - 맥락 연관성: ${finalQualityMetrics.contextScore}/100`);
+    console.log(`   - 실용성: ${finalQualityMetrics.practicalityScore}/100`);
+    console.log(
+      `   - 질문 명확성: ${finalQualityMetrics.questionClarityScore}/100`
+    );
+    console.log(
+      `   - 질문 전문성: ${finalQualityMetrics.questionExpertiseScore}/100`
+    );
+    console.log(
+      `   - 질문 복잡성: ${finalQualityMetrics.questionComplexityScore}/100`
+    );
+    console.log(`   - 개선 제안: ${finalQualitySuggestions.length}개`);
+
+    // 최종 결과 저장 (품질 측정 결과 포함)
+    const promptData = {
+      id: `generated-${Date.now()}-${category}`,
+      title: `${category} 전문가 질문`,
+      category: category as any,
+      prompt: bestQuestion,
+      tags: [category, "AI생성", "전문가수준"],
+      difficulty: "고급" as any,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      tokens_used: bestTokens,
+    };
+
+    // 프롬프트 결과를 데이터베이스에 직접 저장 (품질 측정 결과 포함)
+    console.log(`[DEBUG-9] DB 저장 시작`);
+    console.log(`💾 ${category} 카테고리 데이터베이스 저장 시작...`);
+
+    try {
+      console.log(`[DEBUG-10] Supabase 클라이언트 생성 시작`);
+      const supabase = await createClient();
+      console.log(`[DEBUG-11] Supabase 클라이언트 생성 완료`);
+      console.log(`✅ Supabase 클라이언트 생성 성공`);
+
+      console.log(`[DEBUG-12] insertData 객체 생성 시작`);
+      const insertData: any = {
+        prompt_id: promptData.id,
+        prompt_title: promptData.title,
+        prompt_content: promptData.prompt,
+        prompt_category: promptData.category,
+        prompt_difficulty: promptData.difficulty,
+        prompt_tags: promptData.tags,
+        ai_result: bestAnswer,
+        ai_model: "gpt-3.5-turbo",
+        tokens_used: promptData.tokens_used,
+        created_at: promptData.createdAt,
+        updated_at: promptData.updatedAt,
+        // 품질 측정 결과를 함께 저장
+        quality_metrics: {
+          structure_score: finalQualityMetrics.structureScore,
+          expertise_score: finalQualityMetrics.expertiseScore,
+          context_score: finalQualityMetrics.contextScore,
+          practicality_score: finalQualityMetrics.practicalityScore,
+          question_clarity_score: finalQualityMetrics.questionClarityScore,
+          question_expertise_score: finalQualityMetrics.questionExpertiseScore,
+          question_complexity_score:
+            finalQualityMetrics.questionComplexityScore,
+          overall_score: finalQualityMetrics.overallScore,
+          details: finalQualityMetrics.details,
+        },
+        quality_grade: finalQualityGrade,
+        quality_suggestions: finalQualitySuggestions,
+      };
+      console.log(`[DEBUG-13] insertData 객체 생성 완료`);
+
+      console.log(`[DEBUG-14] insertData 로깅 시작`);
+      console.log(
+        `📝 저장할 데이터 구조:`,
+        JSON.stringify(insertData, null, 2)
+      );
+
+      // 각 컬럼별 데이터 상세 출력
+      console.log(`🔍 [컬럼별 데이터 상세]`);
+      console.log(
+        `   - prompt_id: "${
+          insertData.prompt_id
+        }" (타입: ${typeof insertData.prompt_id})`
+      );
+      console.log(
+        `   - prompt_title: "${
+          insertData.prompt_title
+        }" (타입: ${typeof insertData.prompt_title})`
+      );
+      console.log(
+        `   - prompt_content: "${insertData.prompt_content.substring(
+          0,
+          100
+        )}..." (타입: ${typeof insertData.prompt_content}, 길이: ${
+          insertData.prompt_content.length
+        })`
+      );
+      console.log(
+        `   - prompt_category: "${
+          insertData.prompt_category
+        }" (타입: ${typeof insertData.prompt_category})`
+      );
+      console.log(
+        `   - prompt_difficulty: "${
+          insertData.prompt_difficulty
+        }" (타입: ${typeof insertData.prompt_difficulty})`
+      );
+      console.log(
+        `   - prompt_tags: [${insertData.prompt_tags.join(
+          ", "
+        )}] (타입: ${typeof insertData.prompt_tags})`
+      );
+      console.log(
+        `   - ai_result: "${insertData.ai_result.substring(
+          0,
+          100
+        )}..." (타입: ${typeof insertData.ai_result}, 길이: ${
+          insertData.ai_result.length
+        })`
+      );
+      console.log(
+        `   - ai_model: "${
+          insertData.ai_model
+        }" (타입: ${typeof insertData.ai_model})`
+      );
+      console.log(
+        `   - tokens_used: ${
+          insertData.tokens_used
+        } (타입: ${typeof insertData.tokens_used})`
+      );
+      console.log(
+        `   - created_at: "${
+          insertData.created_at
+        }" (타입: ${typeof insertData.created_at})`
+      );
+      console.log(
+        `   - updated_at: "${
+          insertData.updated_at
+        }" (타입: ${typeof insertData.updated_at})`
+      );
+
+      // 품질 관련 컬럼 상세 출력
+      console.log(`🔍 [품질 관련 컬럼 상세]`);
+      console.log(
+        `   - quality_metrics:`,
+        JSON.stringify(insertData.quality_metrics, null, 2)
+      );
+      console.log(
+        `   - quality_grade: "${
+          insertData.quality_grade
+        }" (타입: ${typeof insertData.quality_grade})`
+      );
+      console.log(
+        `   - quality_suggestions: [${insertData.quality_suggestions.join(
+          ", "
+        )}] (타입: ${typeof insertData.quality_suggestions})`
+      );
+
+      console.log(`[DEBUG-15] insertData 로깅 완료`);
+
+      console.log(`[DEBUG-16] Supabase insert 실행 시작`);
+      const { data: promptResult, error: insertError } = await supabase
+        .from("prompt_results")
+        .insert(insertData)
+        .select()
+        .single();
+      console.log(`[DEBUG-17] Supabase insert 실행 완료`);
+
+      if (insertError) {
+        console.error(
+          `❌ ${category} 카테고리 프롬프트 저장 실패:`,
+          insertError
+        );
+        console.log(`   - 에러 코드: ${insertError.code}`);
+        console.log(`   - 에러 메시지: ${insertError.message}`);
+        console.log(`   - 에러 상세: ${insertError.details}`);
+        console.log(
+          `   - 저장하려던 데이터:`,
+          JSON.stringify(
+            {
+              prompt_id: promptData.id,
+              prompt_title: promptData.title,
+              prompt_category: promptData.category,
+              prompt_difficulty: promptData.difficulty,
+              tokens_used: promptData.tokens_used,
+            },
+            null,
+            2
+          )
+        );
+        console.log(`⚠️ ${category} 카테고리 저장 실패로 다음 카테고리로 진행`);
+        continue;
+      }
+
+      const promptResultId = promptResult.id;
+      console.log(
+        `✅ ${category} 카테고리 프롬프트 저장 완료 (ID: ${promptResultId})`
+      );
+      console.log(
+        `🔍 promptResultId 확인: ${promptResultId} (타입: ${typeof promptResultId})`
+      );
+      console.log(`   - 품질 측정 결과도 함께 저장됨`);
+      console.log(
+        `   - promptResult 객체:`,
+        JSON.stringify(promptResult, null, 2)
+      );
+
+      // 임베딩 생성 및 저장
+      try {
+        const embeddingResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              text: bestAnswer,
+            }),
+          }
+        );
+
+        if (embeddingResponse.ok) {
+          const { embedding } = await embeddingResponse.json();
+          const { error: embeddingError } = await supabase
+            .from("prompt_results")
+            .update({ embedding })
+            .eq("id", promptResultId);
+
+          if (embeddingError) {
+            console.warn(
+              `⚠️ ${category} 카테고리 임베딩 저장 실패:`,
+              embeddingError
+            );
+          } else {
+            console.log(`✅ ${category} 카테고리 임베딩 저장 완료`);
+          }
+        } else {
+          console.warn(
+            `⚠️ ${category} 카테고리 임베딩 생성 실패:`,
+            embeddingResponse.status
+          );
+        }
+      } catch (error) {
+        console.warn(`⚠️ ${category} 카테고리 임베딩 생성 실패:`, error);
+      }
+
+      // generatedResults에 추가
+      generatedResults.push({
+        id: promptResultId,
+        category,
+        question: bestQuestion,
+        answer: bestAnswer,
+        quality: finalQualityMetrics.overallScore,
+        grade: finalQualityGrade,
+      });
+    } catch (error) {
+      console.error(
+        `❌ ${category} 카테고리 데이터베이스 저장 중 예외 발생:`,
+        error
+      );
+      console.log(`   - 에러 타입:`, typeof error);
+      console.log(
+        `   - 에러 메시지:`,
+        error instanceof Error ? error.message : String(error)
+      );
+      continue;
+    }
+  } // for 루프 닫기
 
   return {
-    message: "오늘의 프롬프트가 성공적으로 생성되었습니다.",
+    message: `${generatedResults.length}개의 프롬프트가 생성되었습니다.`,
     results: generatedResults,
   };
-}
+} // generateDailyPrompts 함수 닫기
 
 export async function GET() {
   try {

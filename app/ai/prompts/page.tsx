@@ -32,61 +32,7 @@ export default function AiPromptsPage() {
   const [selectedPromptResult, setSelectedPromptResult] =
     useState<PromptResult | null>(null);
 
-  // 품질 분석 관련 상태
-  const [pendingAnalysisCount, setPendingAnalysisCount] = useState<number>(0);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analysisProgress, setAnalysisProgress] = useState<string>("");
-
-  // 품질 분석이 필요한 프롬프트 개수 확인
-  const checkPendingAnalysisCount = async () => {
-    try {
-      const response = await fetch("/api/analyze-existing-prompts");
-      if (response.ok) {
-        const data = await response.json();
-        setPendingAnalysisCount(data.pendingAnalysisCount || 0);
-      }
-    } catch (error) {
-      console.error("Error checking pending analysis count:", error);
-    }
-  };
-
-  // 기존 프롬프트들 품질 분석 수행
-  const handleAnalyzeExistingPrompts = async () => {
-    if (
-      !confirm(
-        `${pendingAnalysisCount}개의 프롬프트에 대해 품질 분석을 수행하시겠습니까?`
-      )
-    ) {
-      return;
-    }
-
-    setIsAnalyzing(true);
-    setAnalysisProgress("품질 분석을 시작합니다...");
-
-    try {
-      const response = await fetch("/api/analyze-existing-prompts", {
-        method: "POST",
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        alert(`${data.message}\n분석 완료: ${data.analyzedCount}개`);
-
-        // 결과 다시 로드
-        await loadResults();
-        await checkPendingAnalysisCount();
-      } else {
-        const errorData = await response.json();
-        alert(`품질 분석 실패: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error("Error analyzing existing prompts:", error);
-      alert("품질 분석 중 오류가 발생했습니다.");
-    } finally {
-      setIsAnalyzing(false);
-      setAnalysisProgress("");
-    }
-  };
+  // 품질 분석 관련 상태 제거됨
 
   // 결과 로드 함수
   const loadResults = async () => {
@@ -129,7 +75,7 @@ export default function AiPromptsPage() {
         }
 
         // 품질 분석이 필요한 프롬프트 개수 확인
-        checkPendingAnalysisCount();
+        // checkPendingAnalysisCount(); // 이 함수는 제거되었으므로 주석 처리
       } catch (error) {
         console.error("Error loading results:", error);
       } finally {
@@ -207,7 +153,7 @@ export default function AiPromptsPage() {
           alert("품질 분석이 완료되었습니다!");
           // 결과 다시 로드
           await loadResults();
-          await checkPendingAnalysisCount();
+          // checkPendingAnalysisCount(); // 이 함수는 제거되었으므로 주석 처리
         } else {
           alert("품질 분석은 완료되었지만 저장에 실패했습니다.");
         }
@@ -273,41 +219,7 @@ export default function AiPromptsPage() {
           </div>
 
           {/* 품질 분석 상태 및 버튼 */}
-          {pendingAnalysisCount > 0 && (
-            <div className="mt-8 bg-gradient-to-r from-orange-50 to-red-50 rounded-2xl p-6 border border-orange-200 shadow-sm">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                  <span className="text-xl">📊</span>
-                </div>
-                <h3 className="text-xl font-bold text-orange-800">
-                  품질 분석 필요
-                </h3>
-              </div>
-              <p className="text-orange-700 mb-4">
-                {pendingAnalysisCount}개의 프롬프트에 대해 품질 분석이
-                필요합니다.
-              </p>
-              <button
-                onClick={handleAnalyzeExistingPrompts}
-                disabled={isAnalyzing}
-                className="px-6 py-3 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-300 text-white font-semibold rounded-xl transition-all duration-200 disabled:cursor-not-allowed"
-              >
-                {isAnalyzing ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    품질 분석 중...
-                  </div>
-                ) : (
-                  "품질 분석 시작하기"
-                )}
-              </button>
-              {analysisProgress && (
-                <p className="text-sm text-orange-600 mt-3">
-                  {analysisProgress}
-                </p>
-              )}
-            </div>
-          )}
+          {/* 품질 분석 관련 상태 및 버튼은 제거되었습니다. */}
 
           {/* 🚀 벡터 기반 맥락 인식 시스템 소개 */}
           <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm">
