@@ -9,6 +9,7 @@ export default function AiDailyPage() {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
   const [newsPerPage] = useState(12); // 한 번에 더 많은 뉴스 표시
+  const firstPageButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const {
     data: response,
@@ -68,6 +69,13 @@ export default function AiDailyPage() {
     setCurrentPage(page);
     window.scrollTo({ top: 0, behavior: "smooth" }); // 페이지 맨 위로 부드럽게 스크롤
   };
+
+  // 데이터가 준비되었고 첫 페이지라면 페이지 1 버튼에 포커스
+  useEffect(() => {
+    if (!isLoading && filteredNews.length > 0 && currentPage === 1) {
+      firstPageButtonRef.current?.focus({ preventScroll: true });
+    }
+  }, [isLoading, filteredNews.length, currentPage]);
 
   // 수동으로 뉴스 수집
   const handleCollectNews = async () => {
@@ -275,7 +283,10 @@ export default function AiDailyPage() {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
+                ref={page === 1 ? firstPageButtonRef : undefined}
                 onClick={() => handlePageChange(page)}
+                aria-current={currentPage === page ? "page" : undefined}
+                aria-label={`페이지 ${page}`}
                 className={`px-3 py-2 text-sm font-medium rounded-md ${
                   currentPage === page
                     ? "bg-green-600 text-white"
@@ -289,6 +300,7 @@ export default function AiDailyPage() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
+              aria-label="다음 페이지"
               className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               다음
