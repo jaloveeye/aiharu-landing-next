@@ -193,8 +193,10 @@ export default function RewardsPage() {
           {rewards.length === 0 ? (
             <div className="col-span-full bg-white rounded-xl shadow-sm p-12 text-center">
               <div className="text-6xl mb-4">🏆</div>
-              <h3 className="text-xl font-bold mb-2">아직 보상이 없어요</h3>
-              <p className="text-gray-600 mb-6">첫 번째 보상을 만들어보세요!</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                아직 보상이 없어요
+              </h3>
+              <p className="text-gray-700 mb-6">첫 번째 보상을 만들어보세요!</p>
               <Link
                 href="/iharu/rewards/create"
                 className="inline-block bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors"
@@ -270,11 +272,13 @@ export default function RewardsPage() {
 
         {/* 포인트 히스토리 */}
         <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-lg font-bold mb-4">포인트 히스토리</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">
+            포인트 히스토리
+          </h3>
           {pointHistory.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-4xl mb-2">📊</div>
-              <p className="text-gray-600">아직 포인트 기록이 없어요</p>
+              <p className="text-gray-700">아직 포인트 기록이 없어요</p>
             </div>
           ) : (
             <div className="space-y-3">

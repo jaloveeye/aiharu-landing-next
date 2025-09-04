@@ -270,8 +270,10 @@ export default function IharuPage() {
               className="bg-white rounded-xl shadow-sm p-6 text-center border border-gray-100"
             >
               <div className="text-2xl mb-2">{stat.icon}</div>
-              <div className="text-2xl font-bold mb-1">{stat.value}</div>
-              <div className="text-sm text-gray-600">{stat.title}</div>
+              <div className="text-3xl font-extrabold text-gray-900 mb-1">
+                {stat.value}
+              </div>
+              <div className="text-sm text-gray-700">{stat.title}</div>
             </div>
           ))}
         </div>
@@ -285,9 +287,7 @@ export default function IharuPage() {
               className={`block p-6 rounded-xl shadow-sm border-2 transition-all hover:shadow-md hover:scale-105 ${card.color}`}
             >
               <div className="text-4xl mb-4">{card.icon}</div>
-              <h3 className="text-xl font-bold mb-2">
-                {card.title}
-              </h3>
+              <h3 className="text-xl font-bold mb-2">{card.title}</h3>
               <p className="text-gray-700">{card.desc}</p>
             </Link>
           ))}
@@ -340,8 +340,8 @@ export default function IharuPage() {
         )}
 
         {/* 빠른 액션 */}
-        <div className="bg-white rounded-xl shadow-sm p-6">
-          <h3 className="text-xl font-bold mb-4">빠른 액션</h3>
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <h3 className="text-xl font-bold text-gray-800 mb-4">빠른 액션</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link
               href="/iharu/habits/create"

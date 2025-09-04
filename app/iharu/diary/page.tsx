@@ -178,8 +178,10 @@ export default function DiaryPage() {
           {diaryEntries.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-12 text-center">
               <div className="text-6xl mb-4">📖</div>
-              <h3 className="text-xl font-bold mb-2">아직 기록이 없어요</h3>
-              <p className="text-gray-600 mb-6">
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                아직 기록이 없어요
+              </h3>
+              <p className="text-gray-700 mb-6">
                 첫 번째 일일 기록을 작성해보세요!
               </p>
               <Link
@@ -327,7 +329,7 @@ export default function DiaryPage() {
         {/* 통계 요약 */}
         {diaryEntries.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
-            <h3 className="text-lg font-bold mb-4">기록 요약</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">기록 요약</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">

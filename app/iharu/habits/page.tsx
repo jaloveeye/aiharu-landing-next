@@ -176,7 +176,9 @@ export default function HabitsPage() {
 
         {/* 카테고리 필터 */}
         <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h3 className="text-lg font-bold mb-4">카테고리별 보기</h3>
+          <h3 className="text-lg font-bold text-gray-800 mb-4">
+            카테고리별 보기
+          </h3>
           <div className="flex flex-wrap gap-2">
             <button
               onClick={() => setSelectedCategory("all")}
@@ -209,8 +211,10 @@ export default function HabitsPage() {
           {filteredHabits.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-12 text-center">
               <div className="text-6xl mb-4">📝</div>
-              <h3 className="text-xl font-bold mb-2">아직 습관이 없어요</h3>
-              <p className="text-gray-600 mb-6">첫 번째 습관을 만들어보세요!</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                아직 습관이 없어요
+              </h3>
+              <p className="text-gray-700 mb-6">첫 번째 습관을 만들어보세요!</p>
               <Link
                 href="/iharu/habits/create"
                 className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"

@@ -13,7 +13,7 @@ interface Goal {
   progress: number;
   target_value: number;
   unit?: string;
-  status: 'active' | 'completed' | 'paused';
+  status: "active" | "completed" | "paused";
   created_at: string;
 }
 
@@ -56,27 +56,27 @@ export default function GoalsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active':
-        return 'text-blue-600 bg-blue-100';
-      case 'completed':
-        return 'text-green-600 bg-green-100';
-      case 'paused':
-        return 'text-yellow-600 bg-yellow-100';
+      case "active":
+        return "text-blue-600 bg-blue-100";
+      case "completed":
+        return "text-green-600 bg-green-100";
+      case "paused":
+        return "text-yellow-600 bg-yellow-100";
       default:
-        return 'text-gray-600 bg-gray-100';
+        return "text-gray-600 bg-gray-100";
     }
   };
 
   const getStatusLabel = (status: string) => {
     switch (status) {
-      case 'active':
-        return '진행중';
-      case 'completed':
-        return '완료';
-      case 'paused':
-        return '일시정지';
+      case "active":
+        return "진행중";
+      case "completed":
+        return "완료";
+      case "paused":
+        return "일시정지";
       default:
-        return '알 수 없음';
+        return "알 수 없음";
     }
   };
 
@@ -163,8 +163,10 @@ export default function GoalsPage() {
           {goals.length === 0 ? (
             <div className="bg-white rounded-xl shadow-sm p-12 text-center">
               <div className="text-6xl mb-4">🎯</div>
-              <h3 className="text-xl font-bold mb-2">아직 목표가 없어요</h3>
-              <p className="text-gray-600 mb-6">첫 번째 목표를 설정해보세요!</p>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">
+                아직 목표가 없어요
+              </h3>
+              <p className="text-gray-700 mb-6">첫 번째 목표를 설정해보세요!</p>
               <Link
                 href="/iharu/goals/create"
                 className="inline-block bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
@@ -186,11 +188,12 @@ export default function GoalsPage() {
                     )}
                     <div className="flex items-center gap-4 text-sm text-gray-500">
                       {goal.target_date && (
-                        <span>목표일: {new Date(goal.target_date).toLocaleDateString()}</span>
+                        <span>
+                          목표일:{" "}
+                          {new Date(goal.target_date).toLocaleDateString()}
+                        </span>
                       )}
-                      {goal.unit && (
-                        <span>단위: {goal.unit}</span>
-                      )}
+                      {goal.unit && <span>단위: {goal.unit}</span>}
                     </div>
                   </div>
                   <div className="ml-4">
@@ -209,14 +212,21 @@ export default function GoalsPage() {
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-gray-600">진행률</span>
                     <span className="font-medium">
-                      {goal.progress} / {goal.target_value} ({Math.round(getProgressPercentage(goal.progress, goal.target_value))}%)
+                      {goal.progress} / {goal.target_value} (
+                      {Math.round(
+                        getProgressPercentage(goal.progress, goal.target_value)
+                      )}
+                      %)
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-green-600 h-2 rounded-full transition-all duration-300"
                       style={{
-                        width: `${getProgressPercentage(goal.progress, goal.target_value)}%`,
+                        width: `${getProgressPercentage(
+                          goal.progress,
+                          goal.target_value
+                        )}%`,
                       }}
                     ></div>
                   </div>
@@ -245,29 +255,37 @@ export default function GoalsPage() {
         {/* 통계 요약 */}
         {goals.length > 0 && (
           <div className="bg-white rounded-xl shadow-sm p-6 mt-8">
-            <h3 className="text-lg font-bold mb-4">목표 요약</h3>
+            <h3 className="text-lg font-bold text-gray-800 mb-4">목표 요약</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">{goals.length}</div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {goals.length}
+                </div>
                 <div className="text-sm text-gray-600">전체 목표</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
-                  {goals.filter(g => g.status === 'completed').length}
+                  {goals.filter((g) => g.status === "completed").length}
                 </div>
                 <div className="text-sm text-gray-600">완료된 목표</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-orange-600">
-                  {goals.filter(g => g.status === 'active').length}
+                  {goals.filter((g) => g.status === "active").length}
                 </div>
                 <div className="text-sm text-gray-600">진행중인 목표</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-purple-600">
                   {Math.round(
-                    goals.reduce((sum, goal) => sum + getProgressPercentage(goal.progress, goal.target_value), 0) / goals.length
-                  )}%
+                    goals.reduce(
+                      (sum, goal) =>
+                        sum +
+                        getProgressPercentage(goal.progress, goal.target_value),
+                      0
+                    ) / goals.length
+                  )}
+                  %
                 </div>
                 <div className="text-sm text-gray-600">평균 진행률</div>
               </div>
