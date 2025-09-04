@@ -196,41 +196,36 @@ export default function AiDailyPage() {
             )} */}
           </div>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {currentNews.map((item, index) => (
-              <div
+          <div className="space-y-4">
+            {currentNews.map((item) => (
+              <article
                 key={item.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
               >
-                {/* 카테고리 태그 */}
-                <div className="px-6 pt-4">
-                  <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                    {item.category}
-                  </span>
-                </div>
-
-                {/* 뉴스 내용 */}
                 <div className="p-6">
-                  <h3 className="font-bold text-lg text-gray-900 mb-3 line-clamp-2">
-                    {item.title}
-                  </h3>
+                  <div className="flex items-start justify-between gap-4">
+                    <h3 className="font-bold text-xl text-gray-900">
+                      {item.title}
+                    </h3>
+                    <span className="shrink-0 inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                      {item.category}
+                    </span>
+                  </div>
 
-                  <p 
-                    className="text-gray-600 text-sm mb-4 line-clamp-3 cursor-help"
+                  <p
+                    className="mt-3 text-gray-700 text-sm whitespace-pre-line"
                     title={item.summary || item.description}
                   >
                     {item.summary || item.description}
                   </p>
 
-                  {/* 메타 정보 */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 mb-4">
-                    <span>{item.source}</span>
+                  <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+                    <span className="truncate">{item.source}</span>
                     <span>{formatDate(item.published_at)}</span>
                   </div>
 
-                  {/* 태그 */}
                   {item.tags && item.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-4">
+                    <div className="mt-3 flex flex-wrap gap-1">
                       {item.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
@@ -242,17 +237,18 @@ export default function AiDailyPage() {
                     </div>
                   )}
 
-                  {/* 링크 */}
-                  <a
-                    href={item.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-block bg-green-600 hover:bg-green-700 !text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
-                  >
-                    원문 보기 →
-                  </a>
+                  <div className="mt-4">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-block bg-green-600 hover:bg-green-700 !text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                    >
+                      원문 보기 →
+                    </a>
+                  </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}

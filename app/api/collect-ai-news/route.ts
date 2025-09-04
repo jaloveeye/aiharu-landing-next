@@ -92,7 +92,7 @@ async function fetchNewsFromAPI() {
   return news;
 }
 
-// 뉴스 내용 요약 생성
+// 뉴스 내용 요약 생성 (원문 없이도 이해 가능한 자체충분 요약: 한 줄 요약 + 불릿 핵심 포인트)
 async function generateNewsSummary(content: string): Promise<string> {
   try {
     const completion = await openai.chat.completions.create({
@@ -101,14 +101,14 @@ async function generateNewsSummary(content: string): Promise<string> {
         {
           role: "system",
           content:
-            "AI 뉴스 전문가로서 주어진 뉴스 내용을 2-3문장으로 간결하게 요약해주세요. 핵심 내용만 추출하여 한국어로 작성하세요.",
+            "너는 AI 뉴스 요약 전문가다. 사용자가 원문을 보지 않아도 이해하도록 한국어로 자체충분 요약을 작성한다. 형식: 1) 한 줄 요약 1문장 2) 핵심 포인트 2-3개 불릿(각 18자 이내). 과장 금지, 사실 중심, 불필요한 수식어 금지.",
         },
         {
           role: "user",
-          content: content,
+          content: content.slice(0, 3000),
         },
       ],
-      max_tokens: 150,
+      max_tokens: 220,
       temperature: 0.7,
     });
 
@@ -178,10 +178,24 @@ export async function POST(request: NextRequest) {
         }
 
         // 카테고리 분류
-        const category = await classifyNewsCategory(news.title, news.content);
+        const classificationSource =
+          news.content || news.description || news.title || "";
+        const category = await classifyNewsCategory(
+          news.title,
+          classificationSource
+        );
 
         // 요약 생성
-        const summary = await generateNewsSummary(news.content);
+        const summaryInput = [
+          news.title ? `제목: ${news.title}` : "",
+          news.description ? `설명: ${news.description}` : "",
+          news.content ? `본문: ${news.content}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n");
+        const summary = await generateNewsSummary(
+          summaryInput || news.title || ""
+        );
 
         // 뉴스 저장
         const success = await saveAINews({
@@ -225,20 +239,96 @@ export async function POST(request: NextRequest) {
 }
 
 // GET 요청으로 최근 뉴스 조회
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const { getRecentAINews } = await import("@/app/utils/aiNews");
-    // limit을 제거하여 모든 뉴스를 가져옴 (페이지네이션으로 처리)
-    const recentNews = await getRecentAINews();
+    // Vercel Cron 이거나 수동 트리거 쿼리인 경우 수집 실행
+    const isCron = request.headers.get("x-vercel-cron");
+    const url = new URL(request.url);
+    const shouldCollect = url.searchParams.get("collect") === "1";
 
+    if (isCron || shouldCollect) {
+      console.log("[collect-ai-news][GET] 수집 트리거 감지 → 뉴스 수집 실행");
+
+      // 뉴스 API에서 데이터 수집
+      const rawNews = await fetchNewsFromAPI();
+
+      if (rawNews.length === 0) {
+        return NextResponse.json({
+          message: "수집된 뉴스가 없습니다.",
+          count: 0,
+        });
+      }
+
+      let savedCount = 0;
+
+      for (const news of rawNews) {
+        try {
+          const duplicate = await isDuplicateNews(news.url);
+          if (duplicate) {
+            console.log("중복 뉴스 건너뛰기:", news.title);
+            continue;
+          }
+
+          const classificationSource =
+            news.content || news.description || news.title || "";
+          const category = await classifyNewsCategory(
+            news.title,
+            classificationSource
+          );
+
+          const summaryInput = [
+            news.title ? `제목: ${news.title}` : "",
+            news.description ? `설명: ${news.description}` : "",
+            news.content ? `본문: ${news.content}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n");
+          const summary = await generateNewsSummary(
+            summaryInput || news.title || ""
+          );
+
+          const success = await saveAINews({
+            title: news.title,
+            description: news.description,
+            content: news.content,
+            url: news.url,
+            source: news.source,
+            published_at: news.published_at,
+            category,
+            tags: news.tags,
+            summary,
+          });
+
+          if (success) {
+            savedCount++;
+            console.log("뉴스 저장 완료:", news.title);
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        } catch (error) {
+          console.error("뉴스 처리 중 오류:", error);
+        }
+      }
+
+      console.log(`[collect-ai-news][GET] 수집 완료: ${savedCount}개 저장됨`);
+      return NextResponse.json({
+        message: "AI 뉴스 수집이 완료되었습니다.",
+        count: savedCount,
+        total: rawNews.length,
+      });
+    }
+
+    // 기본: 최근 뉴스 조회
+    const { getRecentAINews } = await import("@/app/utils/aiNews");
+    const recentNews = await getRecentAINews();
     return NextResponse.json({
       message: "최근 AI 뉴스를 조회했습니다.",
       news: recentNews,
     });
   } catch (error) {
-    console.error("AI 뉴스 조회 중 오류:", error);
+    console.error("AI 뉴스 조회/수집 중 오류:", error);
     return NextResponse.json(
-      { error: "AI 뉴스 조회 중 오류가 발생했습니다." },
+      { error: "AI 뉴스 조회/수집 중 오류가 발생했습니다." },
       { status: 500 }
     );
   }
