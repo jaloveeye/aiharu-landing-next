@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Title, Body } from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
+import { useRouter } from "next/navigation";
 import { useLanguage } from "@/app/contexts/LanguageContext";
 import { createClient } from "@/app/utils/supabase/client";
 import { useEffect, useState } from "react";
@@ -13,6 +14,7 @@ export default function HomeContent() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     const getUser = async () => {
@@ -40,42 +42,37 @@ export default function HomeContent() {
     return () => subscription.unsubscribe();
   }, [supabase.auth]);
 
-  const handleStartClick = () => {
+  // iHaru 시작: 로그인 시 대시보드로, 아니면 로그인 페이지로
+  const handleStartIharu = () => {
     if (user) {
-      // 로그인된 사용자가 있으면 PostMessage로 인증 정보 전달
-      try {
-        console.log("Opening hanip.aiharu.net with user info...");
-
-        // 새 창 열기
-        const newWindow = window.open("https://hanip.aiharu.net", "_blank");
-
-        if (newWindow) {
-          // 창이 로드된 후 메시지 전송
-          setTimeout(() => {
-            newWindow.postMessage(
-              {
-                type: "AUTH_DATA",
-                user: {
-                  id: user.id,
-                  email: user.email,
-                  name:
-                    user.user_metadata?.full_name || user.user_metadata?.name,
-                  avatar: user.user_metadata?.avatar_url,
-                },
-              },
-              "https://hanip.aiharu.net"
-            );
-          }, 1000);
-        } else {
-          // 팝업이 차단된 경우 일반 링크로 이동
-          window.open("https://hanip.aiharu.net", "_blank");
-        }
-      } catch (error) {
-        console.error("PostMessage error:", error);
-        window.open("https://hanip.aiharu.net", "_blank");
-      }
+      router.push("/iharu");
     } else {
-      // 로그인되지 않은 경우 일반 링크로 이동
+      router.push("/login");
+    }
+  };
+
+  // AI 식단 분석 시작: hanip 새창 (기존 동작 유지)
+  const handleStartMeal = () => {
+    try {
+      const newWindow = window.open("https://hanip.aiharu.net", "_blank");
+      if (newWindow && user) {
+        setTimeout(() => {
+          newWindow.postMessage(
+            {
+              type: "AUTH_DATA",
+              user: {
+                id: user.id,
+                email: user.email,
+                name: user.user_metadata?.full_name || user.user_metadata?.name,
+                avatar: user.user_metadata?.avatar_url,
+              },
+            },
+            "https://hanip.aiharu.net"
+          );
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Meal start error:", error);
       window.open("https://hanip.aiharu.net", "_blank");
     }
   };
@@ -143,7 +140,7 @@ export default function HomeContent() {
             style={{ animationDelay: "0.8s" }}
           >
             <Button
-              onClick={handleStartClick}
+              onClick={handleStartIharu}
               size="lg"
               className="bg-primary-gradient"
               disabled={loading}
@@ -231,7 +228,7 @@ export default function HomeContent() {
                   {t("features.meal.description")}
                 </p>
                 <Button
-                  onClick={handleStartClick}
+                  onClick={handleStartMeal}
                   variant="accent"
                   size="md"
                   disabled={loading}

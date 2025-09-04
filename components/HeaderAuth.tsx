@@ -100,7 +100,7 @@ export default function HeaderAuth() {
                       <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
                       {language === "ko" ? "아이하루" : "Child Daily"}
                     </Link>
-                    <Link
+                    <a
                       href="https://hanip.aiharu.net"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -108,7 +108,7 @@ export default function HeaderAuth() {
                     >
                       <span className="text-blue-500">🍽️</span>
                       {language === "ko" ? "AI식단분석" : "AI Meal Analysis"}
-                    </Link>
+                    </a>
                     {/* 전체 서비스 소개 메뉴 - 주석처리됨 */}
                     {/* <div className="border-t border-gray-100 my-1"></div>
                     <Link
@@ -208,7 +208,7 @@ export default function HeaderAuth() {
                     <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
                     아이하루
                   </Link>
-                  <Link
+                  <a
                     href="https://hanip.aiharu.net"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -217,7 +217,7 @@ export default function HeaderAuth() {
                   >
                     <span className="text-blue-500">🍽️</span>
                     AI식단분석
-                  </Link>
+                  </a>
                   {/* 전체 서비스 소개 메뉴 - 주석처리됨 */}
                   {/* <Link
                     href="/about"
