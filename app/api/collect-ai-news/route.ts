@@ -13,6 +13,12 @@ async function fetchNewsFromAPI() {
 
   const news: any[] = [];
 
+  if (!newsApiKey && !gnewsApiKey) {
+    console.warn(
+      "[collect-ai-news] NEWS_API_KEY/GNEWS_API_KEY 모두 누락: 외부 뉴스 수집 불가"
+    );
+  }
+
   // NewsAPI에서 AI 뉴스 수집 (한국어 + 영어)
   if (newsApiKey) {
     try {
@@ -58,7 +64,7 @@ async function fetchNewsFromAPI() {
         );
       }
     } catch (error) {
-      console.error("Error fetching from NewsAPI:", error);
+      console.error("[collect-ai-news] Error fetching from NewsAPI:", error);
     }
   }
 
@@ -85,7 +91,7 @@ async function fetchNewsFromAPI() {
         );
       }
     } catch (error) {
-      console.error("Error fetching from GNews:", error);
+      console.error("[collect-ai-news] Error fetching from GNews:", error);
     }
   }
 
