@@ -64,6 +64,12 @@ export default function AiDailyPage() {
   const endIndex = startIndex + newsPerPage;
   const currentNews = filteredNews.slice(startIndex, endIndex);
 
+  // 페이지네이션 그룹 계산 (5개씩 표시)
+  const pagesPerGroup = 5;
+  const currentGroup = Math.ceil(currentPage / pagesPerGroup);
+  const startPage = (currentGroup - 1) * pagesPerGroup + 1;
+  const endPage = Math.min(startPage + pagesPerGroup - 1, totalPages);
+
   // 페이지 변경 핸들러
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -272,6 +278,7 @@ export default function AiDailyPage() {
         {/* 페이지네이션 */}
         {totalPages > 1 && (
           <div className="mt-8 flex justify-center items-center space-x-2">
+            {/* 이전 페이지 버튼 */}
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
@@ -280,7 +287,19 @@ export default function AiDailyPage() {
               이전
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            {/* 이전 그룹 버튼 */}
+            {currentGroup > 1 && (
+              <button
+                onClick={() => handlePageChange(startPage - 1)}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                aria-label="이전 그룹"
+              >
+                ...
+              </button>
+            )}
+
+            {/* 페이지 번호들 (현재 그룹의 5개) */}
+            {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
               <button
                 key={page}
                 ref={page === 1 ? firstPageButtonRef : undefined}
@@ -297,6 +316,18 @@ export default function AiDailyPage() {
               </button>
             ))}
 
+            {/* 다음 그룹 버튼 */}
+            {currentGroup < Math.ceil(totalPages / pagesPerGroup) && (
+              <button
+                onClick={() => handlePageChange(endPage + 1)}
+                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                aria-label="다음 그룹"
+              >
+                ...
+              </button>
+            )}
+
+            {/* 다음 페이지 버튼 */}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
