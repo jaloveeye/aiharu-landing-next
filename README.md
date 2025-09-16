@@ -84,11 +84,13 @@ const recs = extractRecommendations('부족한 영양소: [단백질, 칼슘]');
 ## 📰 AI 뉴스 수집
 
 ### GitHub Actions 자동화
+
 - **자동 실행**: 매일 오전 1시 (한국시간)에 AI 뉴스 수집
 - **수동 실행**: GitHub Actions 탭에서 수동으로 실행 가능
 - **로컬 테스트**: `npm run collect-news` 명령어로 로컬에서 테스트
 
 ### 설정 방법
+
 1. GitHub 저장소 Settings → Secrets and variables → Actions
 2. 다음 환경 변수들을 Secrets로 설정:
    - `OPENAI_API_KEY` (필수)

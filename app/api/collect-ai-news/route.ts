@@ -324,9 +324,20 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 기본: 최근 뉴스 조회
-    const { getRecentAINews } = await import("@/app/utils/aiNews");
-    const recentNews = await getRecentAINews();
+    // 기본: 최근 뉴스 조회 (더 많은 뉴스 조회)
+    const { getRecentAINews, getAllAINews } = await import("@/app/utils/aiNews");
+    
+    // 먼저 최근 30일 뉴스 조회
+    let recentNews = await getRecentAINews(50);
+    
+    // 만약 최근 뉴스가 없다면 모든 뉴스 조회 (디버깅용)
+    if (recentNews.length === 0) {
+      console.log("[collect-ai-news][GET] 최근 뉴스가 없어서 모든 뉴스 조회");
+      recentNews = await getAllAINews(50);
+    }
+    
+    console.log(`[collect-ai-news][GET] 반환할 뉴스 개수: ${recentNews.length}`);
+    
     return NextResponse.json({
       message: "최근 AI 뉴스를 조회했습니다.",
       news: recentNews,

@@ -35,16 +35,16 @@ export async function getTodayAINews(): Promise<AINews[]> {
   return data || [];
 }
 
-// 최근 AI 뉴스 가져오기 (최근 7일)
+// 최근 AI 뉴스 가져오기 (최근 30일로 확장)
 export async function getRecentAINews(limit?: number): Promise<AINews[]> {
   const supabase = await createServerClient();
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
   let query = supabase
     .from("ai_news")
     .select("*")
-    .gte("published_at", sevenDaysAgo.toISOString())
+    .gte("published_at", thirtyDaysAgo.toISOString())
     .order("published_at", { ascending: false });
 
   // limit이 지정된 경우에만 적용
@@ -59,6 +59,32 @@ export async function getRecentAINews(limit?: number): Promise<AINews[]> {
     return [];
   }
 
+  console.log(`[getRecentAINews] 조회된 뉴스 개수: ${data?.length || 0}`);
+  return data || [];
+}
+
+// 모든 AI 뉴스 가져오기 (디버깅용)
+export async function getAllAINews(limit?: number): Promise<AINews[]> {
+  const supabase = await createServerClient();
+
+  let query = supabase
+    .from("ai_news")
+    .select("*")
+    .order("published_at", { ascending: false });
+
+  // limit이 지정된 경우에만 적용
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("Error fetching all AI news:", error);
+    return [];
+  }
+
+  console.log(`[getAllAINews] 조회된 뉴스 개수: ${data?.length || 0}`);
   return data || [];
 }
 
