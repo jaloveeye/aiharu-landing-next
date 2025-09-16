@@ -10,6 +10,7 @@
     "generate:daily-mdx": "node scripts/generate-daily-mdx.js",
     "generate-daily": "node scripts/generate-daily-mdx.js",
     "generate-prompts": "curl -X POST http://localhost:3000/api/generate-prompts",
+    "collect-news": "node scripts/collect-ai-news.js",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

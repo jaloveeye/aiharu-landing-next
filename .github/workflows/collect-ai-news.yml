@@ -1,0 +1,41 @@
+name: AI 뉴스 수집
+
+on:
+  schedule:
+    # 매일 오전 4시 (UTC 기준)에 실행 (한국시간 오전 1시)
+    - cron: "0 4 * * *"
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  collect-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 코드
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 뉴스 수집 실행
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
+          GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          echo "AI 뉴스 수집 스크립트 실행..."
+          node scripts/collect-ai-news.js
+
+      - name: 결과 로그
+        if: always()
+        run: |
+          echo "뉴스 수집 작업이 완료되었습니다."
+          echo "실행 시간: $(date)"
