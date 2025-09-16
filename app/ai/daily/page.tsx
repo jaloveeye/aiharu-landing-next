@@ -8,7 +8,7 @@ export default function AiDailyPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [newsPerPage] = useState(20); // 페이지네이션 최적화를 위해 20개로 증가
+  const [newsPerPage] = useState(10); // 페이지당 뉴스 10개로 설정
   const firstPageButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const {
