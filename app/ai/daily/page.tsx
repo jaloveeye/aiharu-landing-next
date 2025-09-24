@@ -299,7 +299,10 @@ export default function AiDailyPage() {
             )}
 
             {/* 페이지 번호들 (현재 그룹의 5개) */}
-            {Array.from({ length: endPage - startPage + 1 }, (_, i) => startPage + i).map((page) => (
+            {Array.from(
+              { length: endPage - startPage + 1 },
+              (_, i) => startPage + i
+            ).map((page) => (
               <button
                 key={page}
                 ref={page === 1 ? firstPageButtonRef : undefined}

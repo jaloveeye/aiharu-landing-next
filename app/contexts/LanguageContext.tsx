@@ -26,7 +26,7 @@ const translations = {
     // 메인 페이지
     'hero.title': '아이하루',
     'hero.subtitle': 'AI와 아이의 하루를\n더 똑똑하고 따뜻하게',
-    'hero.description': '아이하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
+    'hero.description': 'AI하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
     'hero.cta': '지금 시작하기',
     'features.title': '아이하루의 특별한 기능들',
     'features.ai.title': 'AI하루',
@@ -40,7 +40,7 @@ const translations = {
     
     // 서비스 소개 페이지
     'about.title': '아이하루 서비스 소개',
-    'about.description': '아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물하는 서비스입니다.',
+    'about.description': 'AI하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물하는 서비스입니다.',
     'about.ai.title': 'AI하루',
     'about.ai.subtitle': '매일 하나씩, 쉽게 배우는 AI',
     'about.ai.description': 'AI하루는 복잡한 AI 기술을 매일 한 문장으로 쉽게 배울 수 있도록 도와줍니다. 프롬프트 작성법, AI 도구 활용법, 실생활 적용 팁까지!',
@@ -54,7 +54,7 @@ const translations = {
     
     'about.child.title': '아이하루',
     'about.child.subtitle': '부모와 아이가 함께 만드는 습관',
-    'about.child.description': '아이하루는 부모와 아이가 함께 목표를 세우고, 매일의 습관을 체크하며 성장하는 과정을 지원합니다.',
+    'about.child.description': 'AI하루는 부모와 아이가 함께 목표를 세우고, 매일의 습관을 체크하며 성장하는 과정을 지원합니다.',
     'about.child.features': '주요 기능',
     'about.child.feature1': '부모-아이 함께하는 목표 설정',
     'about.child.feature2': '매일 습관 체크 및 달성률 확인',
@@ -91,19 +91,19 @@ const translations = {
     'about.characteristic6.description': '모든 기능을 무료로 제공하여 누구나 쉽게 이용할 수 있습니다.',
     
     'about.cta.title': '지금 바로 시작해보세요!',
-    'about.cta.description': '아이하루와 함께 더 똑똑하고 따뜻한 하루를 만들어가요.',
+    'about.cta.description': 'AI하루와 함께 더 똑똑하고 따뜻한 하루를 만들어가요.',
     'about.cta.signup': '무료 회원가입',
     'about.cta.login': '로그인하기',
     
     // 제작자 소개 페이지
     'creator.title': '제작자 소개',
-    'creator.description': '아이하루를 만든 개발자 김형진의 이야기를 들어보세요.',
-    'creator.intro': '안녕하세요! 아이하루의 제작자 김형진입니다. 17년간의 소프트웨어 개발 경험을 바탕으로, AI 기술과 가족의 성장을 결합한 의미 있는 서비스를 만들고 싶어서 아이하루 프로젝트를 시작하게 되었습니다.',
+    'creator.description': 'AI하루를 만든 개발자 김형진의 이야기를 들어보세요.',
+    'creator.intro': '안녕하세요! AI하루의 제작자 김형진입니다. 17년간의 소프트웨어 개발 경험을 바탕으로, AI 기술과 가족의 성장을 결합한 의미 있는 서비스를 만들고 싶어서 AI하루 프로젝트를 시작하게 되었습니다.',
     'creator.title.text': '개발을 좋아하는 컴퓨터 과학자',
-    'creator.motivation.title': '아이하루를 만든 이유',
+    'creator.motivation.title': 'AI하루를 만든 이유',
     'creator.motivation.description': '컴퓨터 비전을 전공했던 저는 AI 기술의 발전을 지켜보며, 이를 일상생활에 어떻게 적용할 수 있을지 항상 고민해왔습니다. 특히 육아 휴직 중에 아이와 함께 성장하는 과정에서, AI 기술이 가족의 일상에 어떤 도움을 줄 수 있을지 생각하게 되었습니다.',
     'creator.contact.title': '함께 성장해요!',
-    'creator.contact.description': '여러분의 피드백과 제안은 아이하루를 더 나은 서비스로 만들어갑니다.',
+    'creator.contact.description': '여러분의 피드백과 제안은 AI하루를 더 나은 서비스로 만들어갑니다.',
     'creator.contact.cta': '언제든지 연락주세요!',
     
     // 공통
