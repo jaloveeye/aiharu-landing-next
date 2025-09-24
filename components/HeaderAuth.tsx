@@ -98,7 +98,7 @@ export default function HeaderAuth() {
                       className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50 hover:text-yellow-600 transition-colors"
                     >
                       <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
-                      {language === "ko" ? "아이하루" : "Child Daily"}
+                      {language === "ko" ? "AI하루" : "Child Daily"}
                     </Link>
                     <a
                       href="https://hanip.aiharu.net"
@@ -206,7 +206,7 @@ export default function HeaderAuth() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <span className="text-yellow-500">👨‍👩‍👧‍👦</span>
-                    아이하루
+                    AI하루
                   </Link>
                   <a
                     href="https://hanip.aiharu.net"

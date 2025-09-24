@@ -28,7 +28,7 @@ const translations = {
     'hero.subtitle': 'AI와 아이의 하루를\n더 똑똑하고 따뜻하게',
     'hero.description': 'AI하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
     'hero.cta': '지금 시작하기',
-    'features.title': '아이하루의 특별한 기능들',
+    'features.title': 'AI하루의 특별한 기능들',
     'features.ai.title': 'AI하루',
     'features.ai.description': '매일 하나씩, 쉽게 배우는 AI',
     'features.child.title': '아이하루',
@@ -36,10 +36,10 @@ const translations = {
     'features.meal.title': 'AI 식단 분석',
     'features.meal.description': 'AI가 분석하는 맞춤형 영양 정보',
     'cta.title': '더 똑똑하고 따뜻한 하루를 만들어가요',
-    'footer.made': 'Made with ❤️ by 아이하루',
+    'footer.made': 'Made with ❤️ by AI하루',
     
     // 서비스 소개 페이지
-    'about.title': '아이하루 서비스 소개',
+    'about.title': 'AI하루 서비스 소개',
     'about.description': 'AI하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물하는 서비스입니다.',
     'about.ai.title': 'AI하루',
     'about.ai.subtitle': '매일 하나씩, 쉽게 배우는 AI',
