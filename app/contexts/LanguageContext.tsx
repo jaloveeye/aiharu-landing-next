@@ -24,7 +24,7 @@ const translations = {
     'nav.history': '분석 내역',
     
     // 메인 페이지
-    'hero.title': '아이하루',
+    'hero.title': 'AI하루',
     'hero.subtitle': 'AI와 아이의 하루를\n더 똑똑하고 따뜻하게',
     'hero.description': 'AI하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
     'hero.cta': '지금 시작하기',
