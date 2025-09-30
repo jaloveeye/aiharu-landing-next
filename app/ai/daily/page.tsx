@@ -221,9 +221,22 @@ export default function AiDailyPage() {
                     <h3 className="font-bold text-xl text-gray-900">
                       {item.title}
                     </h3>
-                    <span className="shrink-0 inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
-                      {item.category}
-                    </span>
+                    <div className="shrink-0 flex flex-col gap-1">
+                      <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                        {item.category}
+                      </span>
+                      {item.quality_score && (
+                        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${
+                          item.quality_score >= 80 
+                            ? 'bg-blue-100 text-blue-800' 
+                            : item.quality_score >= 60 
+                            ? 'bg-yellow-100 text-yellow-800' 
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          품질: {item.quality_score}/100
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   <p

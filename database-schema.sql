@@ -41,6 +41,7 @@ CREATE TABLE ai_news (
   category VARCHAR(100) NOT NULL,
   tags TEXT[] DEFAULT '{}',
   summary TEXT,
+  quality_score INTEGER DEFAULT 50 CHECK (quality_score >= 0 AND quality_score <= 100),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -50,6 +51,8 @@ CREATE INDEX idx_ai_news_published_at ON ai_news(published_at DESC);
 CREATE INDEX idx_ai_news_category ON ai_news(category);
 CREATE INDEX idx_ai_news_source ON ai_news(source);
 CREATE INDEX idx_ai_news_url ON ai_news(url);
+CREATE INDEX idx_ai_news_quality_score ON ai_news(quality_score DESC);
+CREATE INDEX idx_ai_news_quality_published ON ai_news(quality_score DESC, published_at DESC);
 
 -- RLS (Row Level Security) 비활성화 - 모든 사용자가 읽기/쓰기 가능
 ALTER TABLE ai_news DISABLE ROW LEVEL SECURITY;

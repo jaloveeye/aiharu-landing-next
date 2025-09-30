@@ -11,6 +11,7 @@ export interface AINews {
   category: string;
   tags: string[];
   summary?: string;
+  quality_score?: number;
   created_at: string;
   updated_at: string;
 }
@@ -35,7 +36,7 @@ export async function getTodayAINews(): Promise<AINews[]> {
   return data || [];
 }
 
-// 최근 AI 뉴스 가져오기 (최근 30일, 모든 뉴스 조회)
+// 최근 AI 뉴스 가져오기 (최근 30일, 품질 점수 순으로 정렬)
 export async function getRecentAINews(): Promise<AINews[]> {
   const supabase = await createServerClient();
   const thirtyDaysAgo = new Date();
@@ -45,6 +46,7 @@ export async function getRecentAINews(): Promise<AINews[]> {
     .from("ai_news")
     .select("*")
     .gte("published_at", thirtyDaysAgo.toISOString())
+    .order("quality_score", { ascending: false })
     .order("published_at", { ascending: false });
 
   if (error) {
