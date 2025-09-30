@@ -86,12 +86,19 @@ export async function generateDailyPrompts() {
     };
   }
 
-  // 3개의 프롬프트 카테고리 선택 (육아 필수 + 육아창업 1개 + 비즈니스마케팅 1개)
-  const selectedCategories = [
+  // 다양한 카테고리에서 랜덤하게 선택 (육아 필수 + 나머지 2개 랜덤)
+  const allCategories = [
     "육아", // 필수
-    "육아창업", // 육아 관련 창업 아이디어
-    "비즈니스마케팅", // 비즈니스 전략과 마케팅
+    "육아창업",
+    "비즈니스마케팅",
+    "학습교육",
+    "일상라이프",
   ];
+
+  // 육아는 항상 포함하고, 나머지 2개는 랜덤 선택
+  const nonParentingCategories = allCategories.filter((cat) => cat !== "육아");
+  const shuffled = nonParentingCategories.sort(() => 0.5 - Math.random());
+  const selectedCategories = ["육아", ...shuffled.slice(0, 2)];
 
   console.log("선택된 카테고리들:", selectedCategories);
 
@@ -105,30 +112,36 @@ export async function generateDailyPrompts() {
   for (const category of selectedCategories) {
     console.log(`\n🚀 === ${category} 카테고리 프롬프트 생성 시작 ===`);
 
-    // 맥락 인식을 위한 최근 프롬프트 결과 가져오기
+    // 최근 프롬프트 결과 가져오기 (중복 방지만 확인)
     const recentContext = await getRecentContextForCategory(category, 3);
     const contextSummary = generateContextSummary(recentContext);
 
-    // 맥락 인식 로그 출력
-    console.log(`[맥락 인식] ${category} 카테고리:`);
+    // 다양성 우선 로그 출력
+    console.log(`[다양성 우선] ${category} 카테고리:`);
     console.log(`- 최근 결과 수: ${recentContext.length}`);
-    console.log(`- 맥락 요약: ${contextSummary || "없음"}`);
+    console.log(`- 기존 주제: ${contextSummary || "없음"}`);
 
     // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
     const systemPrompt = `당신은 ${category} 분야의 전문가입니다. 성인 고학력자 수준의 깊이 있고 실용적인 질문과 답변을 생성해주세요.
 
-${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
+${
+  contextSummary
+    ? `\n기존에 다룬 주제들 (중복 방지용):\n${contextSummary}\n\n중복하지 말고 완전히 다른 주제를 다뤄주세요.\n\n`
+    : ""
+}
 
 요구사항:
 - **질문**: 구체적이고 복합적인 상황과 문제를 제시하는 전문가 수준의 질문
 - **답변**: 실용적이고 실행 가능한 구체적인 해결 방법이나 조언
 - 전문성: 해당 분야의 최신 트렌드와 전문 지식을 반영
 - 실용성: 실제 상황에서 바로 적용할 수 있는 내용
-- **맥락 고려**: ${
+- **다양성 최우선**: ${
       recentContext.length > 0
-        ? "최근 다룬 주제와 자연스럽게 연결되거나 발전된 내용을 제시하되, 반복하지 말 것"
+        ? "기존 주제와는 완전히 다른 새로운 관점, 상황, 문제를 제시할 것. 연관성은 고려하지 말고 다양성만 우선시"
         : "새로운 관점과 주제를 제시할 것"
     }
+- **창의성**: 예상치 못한 각도나 혁신적인 접근 방식 제시
+- **독립성**: 다른 프롬프트와의 연관성을 고려하지 말고 독립적인 주제로 생성
 
 형식:
 **질문:** [전문가 수준의 구체적이고 복합적인 상황과 문제]
@@ -144,6 +157,21 @@ ${contextSummary ? `\n맥락 정보 (참고용):\n${contextSummary}\n\n` : ""}
       console.error(`카테고리 프롬프트를 찾을 수 없습니다: ${category}`);
       continue;
     }
+
+    // 주제 다양성을 위한 랜덤 요소 추가
+    const diversityPrompts = [
+      "완전히 새로운 관점에서 접근해주세요.",
+      "예상치 못한 각도로 문제를 제시해주세요.",
+      "혁신적이고 창의적인 해결책을 제시해주세요.",
+      "최신 트렌드와 기술을 활용한 접근을 해주세요.",
+      "실무진이 실제로 마주하는 현실적인 문제를 다뤄주세요.",
+    ];
+
+    const randomDiversityPrompt =
+      diversityPrompts[Math.floor(Math.random() * diversityPrompts.length)];
+    const enhancedPrompt = `${categoryPrompt.prompt}\n\n추가 요구사항: ${randomDiversityPrompt}`;
+
+    console.log(`🎲 다양성 강화: ${randomDiversityPrompt}`);
 
     let bestQuality = 0;
     let bestQuestion = "";
