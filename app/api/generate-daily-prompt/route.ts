@@ -112,13 +112,20 @@ export async function generateDailyPrompts() {
   for (const category of selectedCategories) {
     console.log(`\n🚀 === ${category} 카테고리 프롬프트 생성 시작 ===`);
 
-    // 최근 프롬프트 결과 가져오기 (중복 방지만 확인)
-    const recentContext = await getRecentContextForCategory(category, 3);
+    // 최근 프롬프트 결과 가져오기 (연속성 판단용)
+    const recentContext = await getRecentContextForCategory(category, 5);
     const contextSummary = generateContextSummary(recentContext);
 
-    // 다양성 우선 로그 출력
-    console.log(`[다양성 우선] ${category} 카테고리:`);
+    // 연속성 카운터 계산 (최근 3개가 연관된 주제인지 확인)
+    const CONTINUITY_LIMIT = 3;
+    const isContinuityMode = recentContext.length < CONTINUITY_LIMIT;
+    
+    // 연속성 모드 결정
+    const shouldUseContinuity = isContinuityMode && recentContext.length > 0;
+    
+    console.log(`[연속성 관리] ${category} 카테고리:`);
     console.log(`- 최근 결과 수: ${recentContext.length}`);
+    console.log(`- 연속성 모드: ${shouldUseContinuity ? '활성' : '비활성'}`);
     console.log(`- 기존 주제: ${contextSummary || "없음"}`);
 
     // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
@@ -126,7 +133,7 @@ export async function generateDailyPrompts() {
 
 ${
   contextSummary
-    ? `\n기존에 다룬 주제들 (중복 방지용):\n${contextSummary}\n\n중복하지 말고 완전히 다른 주제를 다뤄주세요.\n\n`
+    ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n`
     : ""
 }
 
@@ -135,13 +142,12 @@ ${
 - **답변**: 실용적이고 실행 가능한 구체적인 해결 방법이나 조언
 - 전문성: 해당 분야의 최신 트렌드와 전문 지식을 반영
 - 실용성: 실제 상황에서 바로 적용할 수 있는 내용
-- **다양성 최우선**: ${
-      recentContext.length > 0
-        ? "기존 주제와는 완전히 다른 새로운 관점, 상황, 문제를 제시할 것. 연관성은 고려하지 말고 다양성만 우선시"
-        : "새로운 관점과 주제를 제시할 것"
+- **주제 생성 방식**: ${
+      shouldUseContinuity
+        ? "기존 주제와 자연스럽게 연결되거나 발전된 내용을 제시하되, 반복하지 말 것. 연관성 있는 새로운 관점을 제시"
+        : "기존 주제와는 완전히 다른 새로운 관점, 상황, 문제를 제시할 것. 연관성을 고려하지 말고 독립적인 주제로 생성"
     }
 - **창의성**: 예상치 못한 각도나 혁신적인 접근 방식 제시
-- **독립성**: 다른 프롬프트와의 연관성을 고려하지 말고 독립적인 주제로 생성
 
 형식:
 **질문:** [전문가 수준의 구체적이고 복합적인 상황과 문제]
@@ -158,7 +164,14 @@ ${
       continue;
     }
 
-    // 주제 다양성을 위한 랜덤 요소 추가
+    // 연속성 모드에 따른 다양성 강화 요소 선택
+    const continuityPrompts = [
+      "기존 주제와 자연스럽게 연결되는 새로운 관점을 제시해주세요.",
+      "이전 주제를 발전시킨 더 깊이 있는 문제를 다뤄주세요.",
+      "연관된 주제의 다른 측면을 탐구해주세요.",
+      "기존 주제의 실무적 적용 사례를 제시해주세요.",
+    ];
+
     const diversityPrompts = [
       "완전히 새로운 관점에서 접근해주세요.",
       "예상치 못한 각도로 문제를 제시해주세요.",
@@ -167,11 +180,11 @@ ${
       "실무진이 실제로 마주하는 현실적인 문제를 다뤄주세요.",
     ];
 
-    const randomDiversityPrompt =
-      diversityPrompts[Math.floor(Math.random() * diversityPrompts.length)];
-    const enhancedPrompt = `${categoryPrompt.prompt}\n\n추가 요구사항: ${randomDiversityPrompt}`;
+    const selectedPrompts = shouldUseContinuity ? continuityPrompts : diversityPrompts;
+    const randomPrompt = selectedPrompts[Math.floor(Math.random() * selectedPrompts.length)];
+    const enhancedPrompt = `${categoryPrompt.prompt}\n\n추가 요구사항: ${randomPrompt}`;
 
-    console.log(`🎲 다양성 강화: ${randomDiversityPrompt}`);
+    console.log(`🎲 ${shouldUseContinuity ? '연속성' : '다양성'} 강화: ${randomPrompt}`);
 
     let bestQuality = 0;
     let bestQuestion = "";
