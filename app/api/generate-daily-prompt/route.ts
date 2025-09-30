@@ -119,23 +119,19 @@ export async function generateDailyPrompts() {
     // 연속성 카운터 계산 (최근 3개가 연관된 주제인지 확인)
     const CONTINUITY_LIMIT = 3;
     const isContinuityMode = recentContext.length < CONTINUITY_LIMIT;
-    
+
     // 연속성 모드 결정
     const shouldUseContinuity = isContinuityMode && recentContext.length > 0;
-    
+
     console.log(`[연속성 관리] ${category} 카테고리:`);
     console.log(`- 최근 결과 수: ${recentContext.length}`);
-    console.log(`- 연속성 모드: ${shouldUseContinuity ? '활성' : '비활성'}`);
+    console.log(`- 연속성 모드: ${shouldUseContinuity ? "활성" : "비활성"}`);
     console.log(`- 기존 주제: ${contextSummary || "없음"}`);
 
     // AI가 질문과 답변을 모두 생성하도록 시스템 프롬프트 설정
     const systemPrompt = `당신은 ${category} 분야의 전문가입니다. 성인 고학력자 수준의 깊이 있고 실용적인 질문과 답변을 생성해주세요.
 
-${
-  contextSummary
-    ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n`
-    : ""
-}
+${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
 
 요구사항:
 - **질문**: 구체적이고 복합적인 상황과 문제를 제시하는 전문가 수준의 질문
@@ -180,11 +176,16 @@ ${
       "실무진이 실제로 마주하는 현실적인 문제를 다뤄주세요.",
     ];
 
-    const selectedPrompts = shouldUseContinuity ? continuityPrompts : diversityPrompts;
-    const randomPrompt = selectedPrompts[Math.floor(Math.random() * selectedPrompts.length)];
+    const selectedPrompts = shouldUseContinuity
+      ? continuityPrompts
+      : diversityPrompts;
+    const randomPrompt =
+      selectedPrompts[Math.floor(Math.random() * selectedPrompts.length)];
     const enhancedPrompt = `${categoryPrompt.prompt}\n\n추가 요구사항: ${randomPrompt}`;
 
-    console.log(`🎲 ${shouldUseContinuity ? '연속성' : '다양성'} 강화: ${randomPrompt}`);
+    console.log(
+      `🎲 ${shouldUseContinuity ? "연속성" : "다양성"} 강화: ${randomPrompt}`
+    );
 
     let bestQuality = 0;
     let bestQuestion = "";
