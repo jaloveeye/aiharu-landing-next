@@ -51,6 +51,13 @@ export default function CreatorPage() {
                     발전과 가족의 소중한 시간을 조화롭게 결합하여 더 나은 세상을
                     만들어가고 싶습니다.
                   </p>
+                  <p className="text-lg font-medium text-gray-800 mt-6 p-4 bg-gray-50 rounded-lg border-l-4 border-green-500">
+                    코드와 사용자 경험을 잇는 개발자이자, 지금은 육아휴직으로
+                    아이와 함께 성장 중인 아빠입니다.
+                    <br />
+                    육아를 통해 배우며, 더 단단해진 시선으로 기술과 삶의 균형을
+                    탐구하며 다음 여정을 준비하고 있습니다.
+                  </p>
                 </div>
 
                 <div className="mt-8 flex flex-wrap gap-3">
@@ -118,7 +125,8 @@ export default function CreatorPage() {
                   </p>
                   <p>
                     <strong>특허:</strong> Service system for
-                    broadcasting-related information, 자율주행 레미콘 차량의 운행 관제 방법 및 그를 수행하는 서버
+                    broadcasting-related information, 자율주행 레미콘 차량의
+                    운행 관제 방법 및 그를 수행하는 서버
                   </p>
                   <p>
                     <strong>Good Software 인증 (TTA):</strong> "ViewCube"
@@ -150,8 +158,9 @@ export default function CreatorPage() {
                   </p>
                   <p>
                     <strong>특허:</strong> METHOD AND APPARATUS FOR COMPLETING
-                    IMAGE WITH STRUCTURE ESTIMATION, SYSTEM AND METHOD FOR SYNTHESIS OF
-                    FACE EXPRESSION USING NONLINEAR REGRESSION ANALYSIS
+                    IMAGE WITH STRUCTURE ESTIMATION, SYSTEM AND METHOD FOR
+                    SYNTHESIS OF FACE EXPRESSION USING NONLINEAR REGRESSION
+                    ANALYSIS
                   </p>
                 </div>
               </div>

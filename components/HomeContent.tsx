@@ -116,13 +116,13 @@ export default function HomeContent() {
             className="flex flex-col gap-4 text-center max-w-2xl animate-fade-in-up"
             style={{ animationDelay: "0.4s" }}
           >
-            <Body className="font-medium text-lg text-neutral-700">
+            <Body className="font-medium text-lg text-neutral-900">
               {t("features.ai.title")}는 매일 하나의{" "}
               <span className="text-primary font-semibold">AI</span>를 배웁니다.
             </Body>
-            <Body className="font-medium text-lg text-neutral-700">
+            <Body className="font-medium text-lg text-neutral-900">
               {t("features.child.title")}는 매일 하나의{" "}
-              <span className="text-secondary font-semibold">습관</span>을
+              <span className="text-orange-600 font-semibold">습관</span>을
               만듭니다.
             </Body>
           </div>
@@ -170,7 +170,7 @@ export default function HomeContent() {
                 <h3 className="text-2xl font-bold text-primary mb-4">
                   {t("features.ai.title")}
                 </h3>
-                <p className="text-neutral-600 mb-8 leading-relaxed">
+                <p className="text-neutral-900 mb-8 leading-relaxed">
                   {t("features.ai.description")}
                 </p>
                 <Button
@@ -194,10 +194,10 @@ export default function HomeContent() {
                 <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   👨‍👩‍👧‍👦
                 </div>
-                <h3 className="text-2xl font-bold text-secondary mb-4">
+                <h3 className="text-2xl font-bold text-neutral-900 mb-4">
                   {t("features.child.title")}
                 </h3>
-                <p className="text-neutral-600 mb-8 leading-relaxed">
+                <p className="text-neutral-900 mb-8 leading-relaxed">
                   {t("features.child.description")}
                 </p>
                 <Button
@@ -221,10 +221,10 @@ export default function HomeContent() {
                 <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
                   🍽️
                 </div>
-                <h3 className="text-2xl font-bold text-accent mb-4">
+                <h3 className="text-2xl font-bold text-neutral-900 mb-4">
                   {t("features.meal.title")}
                 </h3>
-                <p className="text-neutral-600 mb-8 leading-relaxed">
+                <p className="text-neutral-900 mb-8 leading-relaxed">
                   {t("features.meal.description")}
                 </p>
                 <Button
