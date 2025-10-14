@@ -274,6 +274,41 @@ export default function CreatorPage() {
           </div>
         </section>
 
+        {/* 포트폴리오 */}
+        <section className="mb-20">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl shadow-lg p-8 md:p-12 border-2 border-blue-200">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-4">
+              🎨 포트폴리오
+            </h2>
+            <p className="text-center text-gray-600 mb-8">
+              더 많은 프로젝트와 작업물을 확인해보세요
+            </p>
+            <div className="flex justify-center mb-8">
+              <a
+                href="https://jaloveeye.aiharu.net/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl shadow-lg hover:from-blue-700 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300"
+              >
+                <svg
+                  className="mr-3 w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                  />
+                </svg>
+                <span className="text-white">포트폴리오 웹사이트</span>
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* 연락처 및 링크 */}
         <section className="mb-20">
           <div className="bg-white rounded-2xl shadow-lg p-8 md:p-12">
