@@ -33,7 +33,7 @@ async function isDuplicateNewsAdvanced(news: any): Promise<boolean> {
     // 제목 유사도 기반 중복 확인
     const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
     

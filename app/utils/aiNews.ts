@@ -46,8 +46,8 @@ export async function getRecentAINews(): Promise<AINews[]> {
     .from("ai_news")
     .select("*")
     .gte("published_at", thirtyDaysAgo.toISOString())
-    .order("quality_score", { ascending: false })
-    .order("published_at", { ascending: false });
+    .order("published_at", { ascending: false })
+    .order("quality_score", { ascending: false });
 
   if (error) {
     console.error("Error fetching recent AI news:", error);
