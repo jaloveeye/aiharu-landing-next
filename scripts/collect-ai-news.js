@@ -21,6 +21,11 @@ if (missingVars.length > 0) {
   process.exit(1);
 }
 
+console.log("🚀 AI 뉴스 수집 스크립트 시작");
+console.log("📅 실행 시간:", new Date().toISOString());
+console.log("🌍 시간대:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+console.log("✅ 환경 변수 확인 완료");
+
 // OpenAI 클라이언트 설정
 const OpenAI = require("openai");
 const openai = new OpenAI({
@@ -516,8 +521,12 @@ async function main() {
     console.log(`   - 새로 저장: ${savedCount}개`);
     console.log(`   - 중복 제외: ${duplicateCount}개`);
     console.log(`⏰ 완료 시간: ${new Date().toLocaleString("ko-KR")}`);
+    console.log(`🌍 UTC 시간: ${new Date().toISOString()}`);
+    console.log("✅ 스크립트 정상 종료");
   } catch (error) {
     console.error("❌ 뉴스 수집 중 치명적 오류:", error.message);
+    console.error("📋 오류 스택:", error.stack);
+    console.error("⏰ 오류 발생 시간:", new Date().toISOString());
     process.exit(1);
   }
 }

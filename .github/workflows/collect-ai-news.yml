@@ -4,6 +4,8 @@ on:
   schedule:
     # 매일 오전 4시 (UTC 기준)에 실행 (한국시간 오전 1시)
     - cron: "0 4 * * *"
+    # 테스트용: 매시간 실행 (임시)
+    - cron: "0 * * * *"
   workflow_dispatch: # 수동 실행 가능
 
 jobs:
@@ -23,6 +25,15 @@ jobs:
       - name: 의존성 설치
         run: npm ci
 
+      - name: 환경 변수 확인
+        run: |
+          echo "환경 변수 확인 중..."
+          if [ -z "$OPENAI_API_KEY" ]; then echo "❌ OPENAI_API_KEY 누락"; else echo "✅ OPENAI_API_KEY 설정됨"; fi
+          if [ -z "$NEWS_API_KEY" ]; then echo "❌ NEWS_API_KEY 누락"; else echo "✅ NEWS_API_KEY 설정됨"; fi
+          if [ -z "$GNEWS_API_KEY" ]; then echo "❌ GNEWS_API_KEY 누락"; else echo "✅ GNEWS_API_KEY 설정됨"; fi
+          if [ -z "$SUPABASE_URL" ]; then echo "❌ SUPABASE_URL 누락"; else echo "✅ SUPABASE_URL 설정됨"; fi
+          if [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then echo "❌ SUPABASE_SERVICE_ROLE_KEY 누락"; else echo "✅ SUPABASE_SERVICE_ROLE_KEY 설정됨"; fi
+
       - name: 뉴스 수집 실행
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -31,11 +42,19 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          echo "AI 뉴스 수집 스크립트 실행..."
+          echo "🚀 AI 뉴스 수집 스크립트 실행 시작..."
+          echo "실행 시간: $(date)"
+          echo "현재 시간대: $(date +%Z)"
+          echo "UTC 시간: $(date -u)"
+          
+          # 스크립트 실행
           node scripts/collect-ai-news.js
+          
+          echo "✅ 뉴스 수집 스크립트 실행 완료"
 
       - name: 결과 로그
         if: always()
         run: |
-          echo "뉴스 수집 작업이 완료되었습니다."
-          echo "실행 시간: $(date)"
+          echo "📊 뉴스 수집 작업 완료 상태:"
+          echo "완료 시간: $(date)"
+          echo "워크플로우 상태: ${{ job.status }}"
