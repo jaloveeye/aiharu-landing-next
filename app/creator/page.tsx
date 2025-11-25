@@ -20,9 +20,33 @@ export default function CreatorPage() {
 
         <div className="text-center mb-16">
           <Title className="mb-6">{t("creator.title")}</Title>
-          <Body className="text-lg text-gray-700 max-w-2xl mx-auto">
+          <Body className="text-lg text-gray-700 max-w-2xl mx-auto mb-6">
             {t("creator.description")}
           </Body>
+          <div className="flex justify-center items-center gap-4">
+            <a
+              href="https://jaloveeye.aiharu.net/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-md hover:shadow-lg"
+              title="포트폴리오 웹사이트"
+            >
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                />
+              </svg>
+              <span className="text-sm font-semibold text-white">포트폴리오</span>
+            </a>
+          </div>
         </div>
 
         {/* 제작자 프로필 */}

@@ -24,9 +24,9 @@ const translations = {
     'nav.history': '분석 내역',
     
     // 메인 페이지
-    'hero.title': 'AI하루',
+    'hero.title': '아이하루',
     'hero.subtitle': 'AI와 아이의 하루를\n더 똑똑하고 따뜻하게',
-    'hero.description': 'AI하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
+    'hero.description': '아이하루는 AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을 선물합니다.',
     'hero.cta': '지금 시작하기',
     'features.title': 'AI하루의 특별한 기능들',
     'features.ai.title': 'AI하루',
@@ -36,11 +36,11 @@ const translations = {
     'features.meal.title': 'AI 식단 분석',
     'features.meal.description': 'AI가 분석하는 맞춤형 영양 정보',
     'cta.title': '더 똑똑하고 따뜻한 하루를 만들어가요',
-    'footer.made': 'Made with ❤️ by AI하루',
+    'footer.made': 'Made with ❤️ by 아이하루',
     
     // 서비스 소개 페이지
-    'about.title': 'AI하루 서비스 소개',
-    'about.description': 'AI하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물하는 서비스입니다.',
+    'about.title': '아이하루 서비스 소개',
+    'about.description': 'AI와 아이의 하루를 모두 담아,\n기술과 감성이 어우러진 특별한 일상을\n선물하는 서비스입니다.',
     'about.ai.title': 'AI하루',
     'about.ai.subtitle': '매일 하나씩, 쉽게 배우는 AI',
     'about.ai.description': 'AI하루는 복잡한 AI 기술을 매일 한 문장으로 쉽게 배울 수 있도록 도와줍니다. 프롬프트 작성법, AI 도구 활용법, 실생활 적용 팁까지!',

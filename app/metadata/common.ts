@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const commonMetadata: Metadata = {
   title: "아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게 | aiharu.net",
   description:
-    "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
+    "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.\n아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
   keywords:
     "아이하루, AI하루, 하루, 습관, AI, 인공지능, 성장, 피드백, 프롬프트, GPT, LLM, 부모, 자녀, 대시보드, 서비스 소개, 식단 분석, 영양 관리",
   authors: [{ name: "아이하루" }],
@@ -24,7 +24,7 @@ export const commonMetadata: Metadata = {
   openGraph: {
     title: "아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게 | aiharu.net",
     description:
-      "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다. 아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
+      "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.\n아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
     type: "website",
     url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.aiharu.net"}/`,
     siteName: "아이하루",
@@ -41,7 +41,8 @@ export const commonMetadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "아이하루 - AI와 아이의 하루를 더 똑똑하고 따뜻하게",
-    description: "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.",
+    description:
+      "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.\n아이하루(습관 관리), AI하루(지식 학습) 등 다양한 서비스로 매일의 성장을 지원합니다.",
     images: ["/og-main.png"],
   },
   icons: {

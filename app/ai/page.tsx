@@ -48,21 +48,8 @@ export default function AiPage() {
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center px-4 py-20">
         <Link
           href="/"
-          className="self-start mb-8 text-slate-600 hover:text-blue-600 transition-all duration-300 flex items-center gap-2 text-sm font-medium animate-fade-in-up hover:gap-3"
+          className="self-start mb-8 inline-flex items-center px-4 py-2 border border-blue-600 text-blue-700 font-semibold rounded-lg hover:bg-blue-50 transition-colors text-sm"
         >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
           홈으로 돌아가기
         </Link>
 
@@ -85,7 +72,7 @@ export default function AiPage() {
             className="animate-fade-in-up w-full"
             style={{ animationDelay: "0.2s" }}
           >
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl w-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl w-full">
               {/* AI 뉴스 */}
               <Link 
                 href="/ai/daily"
