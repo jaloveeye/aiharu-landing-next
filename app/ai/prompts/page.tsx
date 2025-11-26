@@ -195,18 +195,12 @@ export default function AiPromptsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-4 py-20">
-        <Link
-          href="/ai"
-          className="inline-flex items-center text-green-700 hover:text-green-800 mb-8 transition-colors"
-        >
-          ← AI하루로 돌아가기
-        </Link>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="max-w-6xl mx-auto px-4 py-12 md:py-16">
 
         <div className="text-center mb-16">
-          <Title className="mb-6">매일의 AI 프롬프트</Title>
-          <div className="text-lg text-gray-700 max-w-3xl mx-auto">
+          <Title className="mb-6" style={{ color: 'var(--color-on-background)' }}>매일의 AI 프롬프트</Title>
+          <div className="text-lg max-w-3xl mx-auto" style={{ color: 'var(--color-on-surface-variant)' }}>
             <p className="mb-2">
               매일 오전 9시에 자동으로 생성되는
               <br />
@@ -218,50 +212,53 @@ export default function AiPromptsPage() {
             </p>
           </div>
 
-          {/* 품질 분석 상태 및 버튼 */}
-          {/* 품질 분석 관련 상태 및 버튼은 제거되었습니다. */}
-
-          {/* 🚀 벡터 기반 맥락 인식 시스템 소개 */}
-          <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-200 shadow-sm">
+          {/* 벡터 기반 맥락 인식 시스템 소개 */}
+          <div className="mt-8 p-6 border" style={{ 
+            backgroundColor: 'var(--color-surface)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
             <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-xl">🧠</span>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
               </div>
-              <h3 className="text-xl font-bold text-blue-800">
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-on-background)' }}>
                 AI 지능의 진화
               </h3>
             </div>
             <div className="grid md:grid-cols-3 gap-4 text-sm">
               <div className="text-center">
-                <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-700 font-bold">1</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                  <span className="font-bold">1</span>
                 </div>
-                <p className="font-semibold text-blue-800 mb-1">맥락 기억</p>
-                <p className="text-blue-700">
+                <p className="font-semibold mb-1" style={{ color: 'var(--color-on-background)' }}>맥락 기억</p>
+                <p style={{ color: 'var(--color-on-surface-variant)' }}>
                   이전 대화를 기억하고 연속성 유지
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-700 font-bold">2</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                  <span className="font-bold">2</span>
                 </div>
-                <p className="font-semibold text-blue-800 mb-1">벡터 검색</p>
-                <p className="text-blue-700">
+                <p className="font-semibold mb-1" style={{ color: 'var(--color-on-background)' }}>벡터 검색</p>
+                <p style={{ color: 'var(--color-on-surface-variant)' }}>
                   OpenAI + pgvector로 정확한 유사도 매칭
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center mx-auto mb-2">
-                  <span className="text-blue-700 font-bold">3</span>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center mx-auto mb-2" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                  <span className="font-bold">3</span>
                 </div>
-                <p className="font-semibold text-blue-800 mb-1">체계적 학습</p>
-                <p className="text-blue-700">중복 없는 체계적인 지식 구조화</p>
+                <p className="font-semibold mb-1" style={{ color: 'var(--color-on-background)' }}>체계적 학습</p>
+                <p style={{ color: 'var(--color-on-surface-variant)' }}>중복 없는 체계적인 지식 구조화</p>
               </div>
             </div>
             <div className="mt-4 text-center">
-              <p className="text-blue-600 font-medium">
-                🎯 이제 AI는 단순한 질문 생성기가 아닌,{" "}
-                <strong>지능적인 학습 동반자</strong>입니다!
+              <p className="font-medium" style={{ color: 'var(--color-primary)' }}>
+                이제 AI는 단순한 질문 생성기가 아닌,{" "}
+                <strong style={{ color: 'var(--color-on-background)' }}>지능적인 학습 동반자</strong>입니다!
               </p>
             </div>
           </div>
@@ -269,8 +266,12 @@ export default function AiPromptsPage() {
 
         {/* 오늘의 프롬프트가 없을 때 안내 메시지 */}
         {!todayResult && !selectedCategory && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <div className="text-center text-gray-600">
+          <div className="border p-8 mb-8" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
+            <div className="text-center" style={{ color: 'var(--color-on-surface-variant)' }}>
               <p className="text-lg mb-2">
                 오늘의 프롬프트가 아직 생성되지 않았습니다.
               </p>
@@ -281,17 +282,27 @@ export default function AiPromptsPage() {
 
         {/* 카테고리별 프롬프트 결과들 */}
         {selectedCategory && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="border p-8 mb-8" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                📂 {selectedCategory} 카테고리 프롬프트 결과
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-on-background)' }}>
+                {selectedCategory} 카테고리 프롬프트 결과
               </h3>
               <button
                 onClick={() => {
                   setSelectedCategory(null);
                   setCategoryResults([]);
                 }}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors font-medium text-sm flex items-center gap-2"
+                className="px-4 py-2 font-medium text-sm flex items-center gap-2 transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  color: 'var(--color-on-surface)',
+                  borderRadius: 'var(--border-radius-medium)',
+                  border: '1px solid var(--color-outline)'
+                }}
               >
                 <span className="text-lg">×</span>
                 닫기
@@ -302,14 +313,19 @@ export default function AiPromptsPage() {
                 {categoryResults.map((result) => (
                   <div
                     key={result.id}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    className="border p-4 transition-shadow hover:shadow-lg cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--color-surface)',
+                      borderColor: 'var(--color-outline)',
+                      borderRadius: 'var(--border-radius-medium)'
+                    }}
                     onClick={() => handlePromptClick(result)}
                   >
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold text-gray-800">
+                      <h4 className="font-semibold" style={{ color: 'var(--color-on-background)' }}>
                         {result.prompt_title}
                       </h4>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                         {new Date(result.created_at).toLocaleDateString(
                           "ko-KR"
                         )}
@@ -317,37 +333,44 @@ export default function AiPromptsPage() {
                     </div>
                     <div className="flex items-center gap-2 mb-2">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                          result.prompt_category
-                        )}`}
+                        className="px-2 py-1 text-xs font-medium"
+                        style={{
+                          backgroundColor: 'var(--color-primary)',
+                          color: '#000000',
+                          borderRadius: 'var(--border-radius-medium)'
+                        }}
                       >
                         {result.prompt_category}
                       </span>
                       <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
-                          result.prompt_difficulty
-                        )}`}
+                        className="px-2 py-1 text-xs font-medium"
+                        style={{
+                          backgroundColor: 'var(--color-surface)',
+                          color: 'var(--color-on-surface)',
+                          borderRadius: 'var(--border-radius-medium)',
+                          border: '1px solid var(--color-outline)'
+                        }}
                       >
                         {result.prompt_difficulty}
                       </span>
                       {/* 품질 점수 표시 */}
                       {result.quality_metrics && (
                         <div className="flex items-center gap-2 mt-3">
-                          <div className="text-xs text-gray-500">품질:</div>
-                          <div className="text-sm font-semibold text-purple-600">
+                          <div className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>품질:</div>
+                          <div className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
                             {Math.round(result.quality_metrics.overall_score)}점
                           </div>
                           {result.quality_grade && (
                             <div
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                result.quality_grade.startsWith("A")
-                                  ? "bg-green-100 text-green-700"
-                                  : result.quality_grade.startsWith("B")
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : result.quality_grade.startsWith("C")
-                                  ? "bg-orange-100 text-orange-700"
-                                  : "bg-red-100 text-red-700"
-                              }`}
+                              className="text-xs px-2 py-1"
+                              style={{
+                                backgroundColor: result.quality_grade.startsWith("A")
+                                  ? 'var(--color-primary)'
+                                  : 'var(--color-surface)',
+                                color: result.quality_grade.startsWith("A") ? '#000000' : 'var(--color-on-surface)',
+                                borderRadius: 'var(--border-radius-medium)',
+                                border: result.quality_grade.startsWith("A") ? 'none' : '1px solid var(--color-outline)'
+                              }}
                             >
                               {result.quality_grade}
                             </div>
@@ -355,17 +378,17 @@ export default function AiPromptsPage() {
                         </div>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                    <p className="text-sm line-clamp-2 mb-3" style={{ color: 'var(--color-on-surface-variant)' }}>
                       {result.ai_result.substring(0, 150)}...
                     </p>
-                    <button className="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-1">
+                    <button className="text-sm font-medium px-3 py-1" style={{ color: '#000000' }}>
                       자세히 보기 →
                     </button>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center text-gray-600 py-8">
+              <div className="text-center py-8" style={{ color: 'var(--color-on-surface-variant)' }}>
                 <p>
                   아직 {selectedCategory} 카테고리의 프롬프트 결과가 없습니다.
                 </p>
@@ -379,16 +402,24 @@ export default function AiPromptsPage() {
 
         {/* 최근 프롬프트 결과들 */}
         {!selectedCategory && !loadingResults && recentResults.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+          <div className="border p-8 mb-8" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
             <div className="flex items-center gap-3 mb-6">
-              <h3 className="text-xl font-bold text-gray-800">
-                📚 최근 프롬프트 결과
+              <h3 className="text-xl font-bold" style={{ color: 'var(--color-on-background)' }}>
+                최근 프롬프트 결과
               </h3>
               <div className="flex items-center gap-2">
-                <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                  🧠 맥락 인식
+                <span className="px-2 py-1 text-xs font-medium" style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#000000',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  맥락 인식
                 </span>
-                <span className="text-sm text-blue-600">
+                <span className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                   AI가 이전 결과를 참고하여 연속성 있는 질문 생성
                 </span>
               </div>
@@ -397,29 +428,41 @@ export default function AiPromptsPage() {
               {recentResults.slice(0, 5).map((result) => (
                 <div
                   key={result.id}
-                  className="border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                  className="border p-4 transition-shadow hover:shadow-lg cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-outline)',
+                    borderRadius: 'var(--border-radius-medium)'
+                  }}
                   onClick={() => handlePromptClick(result)}
                 >
                   <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-gray-800">
+                    <h4 className="font-semibold" style={{ color: 'var(--color-on-background)' }}>
                       {result.prompt_title}
                     </h4>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                       {new Date(result.created_at).toLocaleDateString("ko-KR")}
                     </span>
                   </div>
                   <div className="flex items-center justify-between mb-2">
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                        result.prompt_category
-                      )}`}
+                      className="px-2 py-1 text-xs font-medium"
+                      style={{
+                        backgroundColor: 'var(--color-primary)',
+                        color: '#000000',
+                        borderRadius: 'var(--border-radius-medium)'
+                      }}
                     >
                       {result.prompt_category}
                     </span>
                     <span
-                      className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(
-                        result.prompt_difficulty
-                      )}`}
+                      className="px-2 py-1 text-xs font-medium"
+                      style={{
+                        backgroundColor: 'var(--color-surface)',
+                        color: 'var(--color-on-surface)',
+                        borderRadius: 'var(--border-radius-medium)',
+                        border: '1px solid var(--color-outline)'
+                      }}
                     >
                       {result.prompt_difficulty}
                     </span>
@@ -428,21 +471,21 @@ export default function AiPromptsPage() {
                   {/* 품질 점수 표시 */}
                   {result.quality_metrics && (
                     <div className="flex items-center gap-2 mb-3">
-                      <div className="text-xs text-gray-500">품질:</div>
-                      <div className="text-sm font-semibold text-purple-600">
+                      <div className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>품질:</div>
+                      <div className="text-sm font-semibold" style={{ color: 'var(--color-primary)' }}>
                         {Math.round(result.quality_metrics.overall_score)}점
                       </div>
                       {result.quality_grade && (
                         <div
-                          className={`text-xs px-2 py-1 rounded-full ${
-                            result.quality_grade.startsWith("A")
-                              ? "bg-green-100 text-green-700"
-                              : result.quality_grade.startsWith("B")
-                              ? "bg-yellow-100 text-yellow-700"
-                              : result.quality_grade.startsWith("C")
-                              ? "bg-orange-100 text-orange-700"
-                              : "bg-red-100 text-red-700"
-                          }`}
+                          className="text-xs px-2 py-1"
+                          style={{
+                            backgroundColor: result.quality_grade.startsWith("A")
+                              ? 'var(--color-primary)'
+                              : 'var(--color-surface)',
+                            color: result.quality_grade.startsWith("A") ? '#000000' : 'var(--color-on-surface)',
+                            borderRadius: 'var(--border-radius-medium)',
+                            border: result.quality_grade.startsWith("A") ? 'none' : '1px solid var(--color-outline)'
+                          }}
                         >
                           {result.quality_grade}
                         </div>
@@ -450,10 +493,10 @@ export default function AiPromptsPage() {
                     </div>
                   )}
 
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                  <p className="text-sm line-clamp-2 mb-3" style={{ color: 'var(--color-on-surface-variant)' }}>
                     {result.ai_result.substring(0, 150)}...
                   </p>
-                  <button className="text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-1">
+                  <button className="text-sm font-medium px-3 py-1" style={{ color: '#000000' }}>
                     자세히 보기 →
                   </button>
                 </div>
@@ -463,35 +506,41 @@ export default function AiPromptsPage() {
         )}
 
         {/* 프롬프트 카테고리 목록 */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">
-            📂 프롬프트 카테고리
+        <div className="border p-8" style={{ 
+          backgroundColor: 'var(--color-background)', 
+          borderColor: 'var(--color-outline)',
+          borderRadius: 'var(--border-radius-medium)'
+        }}>
+          <h3 className="text-xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
+            프롬프트 카테고리
           </h3>
 
-          {/* 🚀 기술 스택 표시 */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+          {/* 기술 스택 표시 */}
+          <div className="mb-6 p-4 border" style={{ 
+            backgroundColor: 'var(--color-surface)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
             <div className="flex items-center gap-2 mb-3">
-              <span className="text-lg">⚡</span>
-              <h4 className="font-semibold text-green-800">
+              <div className="w-6 h-6 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--color-primary)' }}>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h4 className="font-semibold" style={{ color: 'var(--color-on-background)' }}>
                 Powered by Advanced AI Technology
               </h4>
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
-                OpenAI GPT-3.5-turbo
-              </span>
-              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
-                OpenAI Embedding API
-              </span>
-              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
-                Supabase pgvector
-              </span>
-              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
-                Cosine Similarity
-              </span>
-              <span className="px-2 py-1 bg-green-200 text-green-800 rounded-full">
-                Context Awareness
-              </span>
+              {['OpenAI GPT-3.5-turbo', 'OpenAI Embedding API', 'Supabase pgvector', 'Cosine Similarity', 'Context Awareness'].map((tech) => (
+                <span key={tech} className="px-2 py-1" style={{
+                  backgroundColor: 'var(--color-primary)',
+                  color: '#000000',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  {tech}
+                </span>
+              ))}
             </div>
           </div>
 
@@ -500,17 +549,25 @@ export default function AiPromptsPage() {
               (category) => (
                 <div
                   key={category}
-                  className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                  className="p-4 border transition-shadow hover:shadow-lg cursor-pointer"
+                  style={{
+                    backgroundColor: 'var(--color-surface)',
+                    borderColor: 'var(--color-outline)',
+                    borderRadius: 'var(--border-radius-medium)'
+                  }}
                   onClick={() => handleCategoryClick(category)}
                 >
                   <div
-                    className={`inline-block px-3 py-1 rounded-full text-sm font-medium mb-2 ${getCategoryColor(
-                      category
-                    )}`}
+                    className="inline-block px-3 py-1 text-sm font-medium mb-2"
+                    style={{
+                      backgroundColor: 'var(--color-primary)',
+                      color: '#000000',
+                      borderRadius: 'var(--border-radius-medium)'
+                    }}
                   >
                     {category}
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                     {categoryCounts[category] || 0}개의 프롬프트
                   </p>
                 </div>
@@ -519,16 +576,22 @@ export default function AiPromptsPage() {
           </div>
         </div>
 
-        {/* 🧠 맥락 인식 시스템 작동 원리 설명 */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mt-8">
+        {/* 맥락 인식 시스템 작동 원리 설명 */}
+        <div className="border p-8 mt-8" style={{ 
+          backgroundColor: 'var(--color-background)', 
+          borderColor: 'var(--color-outline)',
+          borderRadius: 'var(--border-radius-medium)'
+        }}>
           <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white text-xl">🧠</span>
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ backgroundColor: 'var(--color-primary)' }}>
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
             </div>
-            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+            <h3 className="text-2xl font-bold mb-2" style={{ color: 'var(--color-on-background)' }}>
               맥락 인식 시스템 작동 원리
             </h3>
-            <p className="text-gray-600">
+            <p style={{ color: 'var(--color-on-surface-variant)' }}>
               AI가 어떻게 이전 대화를 기억하고 연속성 있는 질문을 생성하는지
               알아보세요
             </p>
@@ -537,109 +600,74 @@ export default function AiPromptsPage() {
           <div className="grid md:grid-cols-2 gap-8">
             {/* 왼쪽: 작동 과정 */}
             <div>
-              <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-blue-600">🔄</span>
+              <h4 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-on-background)' }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
                 작동 과정
               </h4>
               <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
-                    1
+                {[
+                  { num: 1, title: '프롬프트 생성', desc: 'AI가 새로운 질문과 답변을 생성' },
+                  { num: 2, title: '벡터 변환', desc: 'OpenAI Embedding API로 1536차원 벡터 생성' },
+                  { num: 3, title: '벡터 저장', desc: 'Supabase pgvector에 벡터 데이터 저장' },
+                  { num: 4, title: '맥락 검색', desc: '코사인 유사도로 관련 프롬프트 검색' },
+                  { num: 5, title: '연속성 생성', desc: '이전 맥락을 참고한 새로운 질문 생성' }
+                ].map((item) => (
+                  <div key={item.num} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                      {item.num}
+                    </div>
+                    <div>
+                      <p className="font-medium" style={{ color: 'var(--color-on-background)' }}>{item.title}</p>
+                      <p className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>{item.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-800">프롬프트 생성</p>
-                    <p className="text-sm text-gray-600">
-                      AI가 새로운 질문과 답변을 생성
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
-                    2
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">벡터 변환</p>
-                    <p className="text-sm text-gray-600">
-                      OpenAI Embedding API로 1536차원 벡터 생성
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
-                    3
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">벡터 저장</p>
-                    <p className="text-sm text-gray-600">
-                      Supabase pgvector에 벡터 데이터 저장
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
-                    4
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">맥락 검색</p>
-                    <p className="text-sm text-gray-600">
-                      코사인 유사도로 관련 프롬프트 검색
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">
-                    5
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-800">연속성 생성</p>
-                    <p className="text-sm text-gray-600">
-                      이전 맥락을 참고한 새로운 질문 생성
-                    </p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
 
             {/* 오른쪽: 실제 예시 */}
             <div>
-              <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span className="text-green-600">💡</span>
+              <h4 className="text-lg font-semibold mb-4 flex items-center gap-2" style={{ color: 'var(--color-on-background)' }}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                </svg>
                 실제 예시
               </h4>
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-4 border border-green-200">
+              <div className="p-4 border" style={{ 
+                backgroundColor: 'var(--color-surface)', 
+                borderColor: 'var(--color-outline)',
+                borderRadius: 'var(--border-radius-medium)'
+              }}>
                 <div className="space-y-3">
-                  <div className="bg-white rounded-lg p-3 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">1일차</p>
-                    <p className="text-sm font-medium text-gray-800">
-                      "아이 감정 통제 문제"
-                    </p>
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="text-green-600 text-lg">↓</span>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">
-                      2일차 (맥락 인식)
-                    </p>
-                    <p className="text-sm font-medium text-gray-800">
-                      "감정 통제 후 사회성 발달 방법"
-                    </p>
-                  </div>
-                  <div className="flex justify-center">
-                    <span className="text-green-600 text-lg">↓</span>
-                  </div>
-                  <div className="bg-white rounded-lg p-3 shadow-sm">
-                    <p className="text-xs text-gray-500 mb-1">
-                      3일차 (맥락 인식)
-                    </p>
-                    <p className="text-sm font-medium text-gray-800">
-                      "사회성 발달을 위한 놀이 방법"
-                    </p>
-                  </div>
+                  {[
+                    { day: '1일차', text: '"아이 감정 통제 문제"' },
+                    { day: '2일차 (맥락 인식)', text: '"감정 통제 후 사회성 발달 방법"' },
+                    { day: '3일차 (맥락 인식)', text: '"사회성 발달을 위한 놀이 방법"' }
+                  ].map((item, idx) => (
+                    <div key={idx}>
+                      <div className="p-3 border" style={{ 
+                        backgroundColor: 'var(--color-background)', 
+                        borderColor: 'var(--color-outline)',
+                        borderRadius: 'var(--border-radius-medium)'
+                      }}>
+                        <p className="text-xs mb-1" style={{ color: 'var(--color-on-surface-variant)' }}>{item.day}</p>
+                        <p className="text-sm font-medium" style={{ color: 'var(--color-on-background)' }}>{item.text}</p>
+                      </div>
+                      {idx < 2 && (
+                        <div className="flex justify-center my-2">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--color-primary)' }}>
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
                 <div className="mt-3 text-center">
-                  <p className="text-xs text-green-700 font-medium">
-                    🎯 체계적이고 연속성 있는 학습 경험 제공
+                  <p className="text-xs font-medium" style={{ color: 'var(--color-primary)' }}>
+                    체계적이고 연속성 있는 학습 경험 제공
                   </p>
                 </div>
               </div>

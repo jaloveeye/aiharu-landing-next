@@ -109,21 +109,15 @@ export default function AiDailyPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 px-4 py-8">
+    <div className="min-h-screen px-4 py-8" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <Link
-              href="/"
-              className="text-green-700 hover:underline flex items-center gap-1 text-sm mb-2"
-            >
-              ← 홈으로 돌아가기
-            </Link>
-            <h1 className="text-3xl sm:text-4xl font-bold text-green-800 mb-2">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-2" style={{ color: 'var(--color-on-background)' }}>
               오늘의 AI 뉴스
             </h1>
-            <p className="text-gray-600">
+            <p style={{ color: 'var(--color-on-surface-variant)' }}>
               최신 AI 관련 뉴스를 한눈에 확인하세요
             </p>
           </div>
@@ -138,7 +132,11 @@ export default function AiDailyPage() {
         </div>
 
         {/* 필터 및 검색 */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-8">
+        <div className="p-6 border mb-8" style={{ 
+          backgroundColor: 'var(--color-background)', 
+          borderColor: 'var(--color-outline)',
+          borderRadius: 'var(--border-radius-medium)'
+        }}>
           <div className="flex flex-col sm:flex-row gap-4">
             {/* 카테고리 필터 */}
             <div className="flex flex-wrap gap-2">
@@ -149,11 +147,13 @@ export default function AiDailyPage() {
                     setSelectedCategory(category.id);
                     setCurrentPage(1); // 카테고리 변경 시 첫 페이지로 이동
                   }}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                    selectedCategory === category.id
-                      ? "bg-green-600 text-white"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  }`}
+                  className="px-4 py-2 text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: selectedCategory === category.id ? 'var(--color-primary)' : 'var(--color-surface)',
+                    color: selectedCategory === category.id ? '#000000' : 'var(--color-on-surface)',
+                    borderRadius: 'var(--border-radius-medium)',
+                    border: selectedCategory === category.id ? 'none' : '1px solid var(--color-outline)'
+                  }}
                 >
                   {category.name}
                 </button>
@@ -170,7 +170,14 @@ export default function AiDailyPage() {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1); // 검색 시 첫 페이지로 이동
                 }}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-4 py-2 border focus:outline-none focus:ring-2"
+                style={{
+                  backgroundColor: 'var(--color-surface)',
+                  borderColor: 'var(--color-outline)',
+                  color: 'var(--color-on-surface)',
+                  borderRadius: 'var(--border-radius-medium)',
+                  '--tw-ring-color': 'var(--color-primary)'
+                } as React.CSSProperties}
               />
             </div>
           </div>
@@ -179,22 +186,27 @@ export default function AiDailyPage() {
         {/* 뉴스 목록 */}
         {isLoading ? (
           <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">뉴스를 불러오는 중...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: 'var(--color-primary)' }}></div>
+            <p className="mt-4" style={{ color: 'var(--color-on-surface-variant)' }}>뉴스를 불러오는 중...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12">
-            <p className="text-red-500">뉴스를 불러오는데 실패했습니다.</p>
+            <p style={{ color: 'var(--color-error)' }}>뉴스를 불러오는데 실패했습니다.</p>
             <button
               onClick={() => mutate()}
-              className="mt-4 bg-green-600 text-white px-4 py-2 rounded-lg"
+              className="mt-4 px-4 py-2 font-semibold transition-colors"
+              style={{
+                backgroundColor: 'var(--color-primary)',
+                color: '#000000',
+                borderRadius: 'var(--border-radius-medium)'
+              }}
             >
               다시 시도
             </button>
           </div>
         ) : filteredNews.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-600 mb-4">
+            <p className="mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
               {searchTerm || selectedCategory !== "all"
                 ? "검색 결과가 없습니다."
                 : "수집된 뉴스가 없습니다."}
@@ -214,25 +226,32 @@ export default function AiDailyPage() {
             {currentNews.map((item) => (
               <article
                 key={item.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                className="border transition-shadow hover:shadow-lg"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}
               >
                 <div className="p-6">
                   <div className="flex items-start justify-between gap-4">
-                    <h3 className="font-bold text-xl text-gray-900">
+                    <h3 className="font-bold text-xl" style={{ color: 'var(--color-on-background)' }}>
                       {item.title}
                     </h3>
                     <div className="shrink-0 flex flex-col gap-1">
-                      <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+                      <span className="inline-block text-xs px-2 py-1 font-medium" style={{
+                        backgroundColor: 'var(--color-primary)',
+                        color: '#000000',
+                        borderRadius: 'var(--border-radius-medium)'
+                      }}>
                         {item.category}
                       </span>
                       {item.quality_score && (
-                        <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${
-                          item.quality_score >= 80 
-                            ? 'bg-blue-100 text-blue-800' 
-                            : item.quality_score >= 60 
-                            ? 'bg-yellow-100 text-yellow-800' 
-                            : 'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className="inline-block text-xs px-2 py-1 font-medium" style={{
+                          backgroundColor: item.quality_score >= 80 ? 'var(--color-primary)' : 'var(--color-surface)',
+                          color: item.quality_score >= 80 ? '#000000' : 'var(--color-on-surface)',
+                          borderRadius: 'var(--border-radius-medium)'
+                        }}>
                           품질: {item.quality_score}/100
                         </span>
                       )}
@@ -240,13 +259,14 @@ export default function AiDailyPage() {
                   </div>
 
                   <p
-                    className="mt-3 text-gray-700 text-sm whitespace-pre-line"
+                    className="mt-3 text-sm whitespace-pre-line"
+                    style={{ color: 'var(--color-on-surface-variant)' }}
                     title={item.summary || item.description}
                   >
                     {item.summary || item.description}
                   </p>
 
-                  <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+                  <div className="mt-4 flex items-center justify-between text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>
                     <span className="truncate">{item.source}</span>
                     <span>{formatDate(item.published_at)}</span>
                   </div>
@@ -256,7 +276,12 @@ export default function AiDailyPage() {
                       {item.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded"
+                          className="text-xs px-2 py-1"
+                          style={{
+                            backgroundColor: 'var(--color-surface)',
+                            color: 'var(--color-on-surface)',
+                            borderRadius: 'var(--border-radius-small)'
+                          }}
                         >
                           #{tag}
                         </span>
@@ -269,7 +294,12 @@ export default function AiDailyPage() {
                       href={item.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-block bg-green-600 hover:bg-green-700 !text-white text-sm px-4 py-2 rounded-lg font-medium transition-colors"
+                      className="inline-block text-sm px-4 py-2 font-medium transition-colors"
+                      style={{
+                        backgroundColor: 'var(--color-primary)',
+                        color: '#000000',
+                        borderRadius: 'var(--border-radius-medium)'
+                      }}
                     >
                       원문 보기 →
                     </a>
@@ -282,7 +312,7 @@ export default function AiDailyPage() {
 
         {/* 결과 카운트 */}
         {filteredNews.length > 0 && (
-          <div className="mt-8 text-center text-gray-600">
+          <div className="mt-8 text-center" style={{ color: 'var(--color-on-surface-variant)' }}>
             총 {filteredNews.length}개의 뉴스 중 {startIndex + 1}-
             {Math.min(endIndex, filteredNews.length)}번째 뉴스를 표시 중
           </div>
@@ -295,7 +325,13 @@ export default function AiDailyPage() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: 'var(--color-background)',
+                color: 'var(--color-on-surface)',
+                border: '1px solid var(--color-outline)',
+                borderRadius: 'var(--border-radius-medium)'
+              }}
             >
               이전
             </button>
@@ -304,7 +340,13 @@ export default function AiDailyPage() {
             {currentGroup > 1 && (
               <button
                 onClick={() => handlePageChange(startPage - 1)}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-3 py-2 text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  color: 'var(--color-on-surface)',
+                  border: '1px solid var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}
                 aria-label="이전 그룹"
               >
                 ...
@@ -322,11 +364,13 @@ export default function AiDailyPage() {
                 onClick={() => handlePageChange(page)}
                 aria-current={currentPage === page ? "page" : undefined}
                 aria-label={`페이지 ${page}`}
-                className={`px-3 py-2 text-sm font-medium rounded-md ${
-                  currentPage === page
-                    ? "bg-green-600 text-white"
-                    : "text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
-                }`}
+                className="px-3 py-2 text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: currentPage === page ? 'var(--color-primary)' : 'var(--color-background)',
+                  color: currentPage === page ? '#000000' : 'var(--color-on-surface)',
+                  border: currentPage === page ? 'none' : '1px solid var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}
               >
                 {page}
               </button>
@@ -336,7 +380,13 @@ export default function AiDailyPage() {
             {currentGroup < Math.ceil(totalPages / pagesPerGroup) && (
               <button
                 onClick={() => handlePageChange(endPage + 1)}
-                className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-3 py-2 text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: 'var(--color-background)',
+                  color: 'var(--color-on-surface)',
+                  border: '1px solid var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}
                 aria-label="다음 그룹"
               >
                 ...
@@ -348,7 +398,13 @@ export default function AiDailyPage() {
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
               aria-label="다음 페이지"
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-3 py-2 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                backgroundColor: 'var(--color-background)',
+                color: 'var(--color-on-surface)',
+                border: '1px solid var(--color-outline)',
+                borderRadius: 'var(--border-radius-medium)'
+              }}
             >
               다음
             </button>
