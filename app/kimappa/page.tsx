@@ -3,6 +3,9 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Title, Body } from "@/components/ui/Typography";
+import ApiKeyIssuance from "@/components/ApiKeyIssuance";
+import ApiTest from "@/components/ApiTest";
+import ApiManual from "@/components/ApiManual";
 
 export default function KimappaPage() {
   return (
@@ -607,39 +610,147 @@ export default function KimappaPage() {
           </div>
         </section>
 
+        {/* API 섹션 */}
+        <section className="mb-16">
+          <div className="border p-8 md:p-12" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
+            <div className="text-center mb-10">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                  </svg>
+                </div>
+                <h2 className="text-2xl md:text-3xl font-bold" style={{ color: 'var(--color-on-background)' }}>
+                  김아빠 API
+                </h2>
+              </div>
+              <p className="text-lg" style={{ color: 'var(--color-on-surface-variant)' }}>
+                AI 기반 모험 및 퀴즈 생성 API로 김아빠의 기능을 직접 활용해보세요
+              </p>
+            </div>
+
+            <div className="max-w-6xl mx-auto space-y-12">
+              {/* API 소개 */}
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
+                  API 소개
+                </h3>
+                <div className="p-6 border" style={{ 
+                  backgroundColor: 'var(--color-surface)', 
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  <p className="mb-4 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                    김아빠는 모험과 퀴즈 생성을 AI로 자동화합니다. API를 발급받으면 
+                    애플리케이션에서 직접 모험 게임과 수수께끼를 생성할 수 있습니다.
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4 mt-4">
+                    <div className="p-4 border" style={{ 
+                      backgroundColor: 'var(--color-background)', 
+                      borderColor: 'var(--color-outline)',
+                      borderRadius: 'var(--border-radius-medium)'
+                    }}>
+                      <p className="font-semibold mb-2" style={{ color: 'var(--color-on-background)' }}>
+                        모험 생성
+                      </p>
+                      <p className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
+                        테마, 아이 나이, 기간에 맞춘 완전한 모험 게임을 자동으로 생성합니다.
+                      </p>
+                    </div>
+                    <div className="p-4 border" style={{ 
+                      backgroundColor: 'var(--color-background)', 
+                      borderColor: 'var(--color-outline)',
+                      borderRadius: 'var(--border-radius-medium)'
+                    }}>
+                      <p className="font-semibold mb-2" style={{ color: 'var(--color-on-background)' }}>
+                        퀴즈 생성
+                      </p>
+                      <p className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
+                        수수께끼, 암호, 퍼즐, 수학 문제를 아이 나이에 맞게 생성합니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* API 키 발급 */}
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
+                  API 키 발급
+                </h3>
+                <ApiKeyIssuance />
+              </div>
+
+              {/* API 테스트 */}
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
+                  API 테스트
+                </h3>
+                <ApiTest />
+              </div>
+
+              {/* API 매뉴얼 */}
+              <div>
+                <h3 className="text-xl md:text-2xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
+                  API 매뉴얼
+                </h3>
+                <ApiManual />
+              </div>
+
+            </div>
+          </div>
+        </section>
+
         {/* 지원 및 문의 */}
         <section className="mb-16">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 md:p-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-10">
+          <div className="border p-8 md:p-12" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-10" style={{ color: 'var(--color-on-background)' }}>
               지원 및 문의
             </h2>
             <div className="max-w-4xl mx-auto">
               <div className="grid md:grid-cols-2 gap-6">
-                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                <div className="p-6 border" style={{ 
+                  backgroundColor: 'var(--color-surface)', 
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
                     문의하기
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
                     앱 사용 중 문제가 발생하거나 문의사항이 있으시면 언제든지 연락해주세요.
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                     이메일:{" "}
                     <a
                       href="mailto:jaloveeye@gmail.com"
-                      className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 underline"
+                      className="underline"
+                      style={{ color: 'var(--color-secondary)' }}
                     >
                       jaloveeye@gmail.com
                     </a>
                   </p>
                 </div>
-                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                <div className="p-6 border" style={{ 
+                  backgroundColor: 'var(--color-surface)', 
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
                     피드백
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
                     김아빠를 더 나은 서비스로 만들기 위한 여러분의 소중한 의견을 기다립니다.
                   </p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
                     피드백을 보내주시면 검토 후 반영하겠습니다.
                   </p>
                 </div>
@@ -650,17 +761,25 @@ export default function KimappaPage() {
 
         {/* 법적 정보 */}
         <section className="mb-16">
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8 md:p-12">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-gray-100 mb-10">
+          <div className="border p-8 md:p-12" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
+            <h2 className="text-2xl md:text-3xl font-bold text-center mb-10" style={{ color: 'var(--color-on-background)' }}>
               법적 정보
             </h2>
             <div className="max-w-4xl mx-auto">
               <div className="space-y-4">
-                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                <div className="p-6 border" style={{ 
+                  backgroundColor: 'var(--color-surface)', 
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
                     개인정보 보호 정책
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
                     김아빠는 사용자의 개인정보를 보호하기 위해 최선을 다합니다. 
                     수집된 정보는 서비스 제공 목적으로만 사용되며, 제3자에게 제공되지 않습니다.
                   </p>
@@ -668,37 +787,48 @@ export default function KimappaPage() {
                     href="https://connect-policy.aiharu.net/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold inline-flex items-center gap-1"
+                    className="font-semibold inline-flex items-center gap-1"
+                    style={{ color: 'var(--color-secondary)' }}
                   >
                     전체 개인정보 보호 정책 보기 →
                   </a>
                 </div>
-                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                <div className="p-6 border" style={{ 
+                  backgroundColor: 'var(--color-surface)', 
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
                     서비스 이용 약관
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
                     김아빠 서비스를 이용하기 전에 서비스 이용 약관을 확인해주세요.
                   </p>
                   <a
                     href="https://connect-policy.aiharu.net/terms"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold inline-flex items-center gap-1"
+                    className="font-semibold inline-flex items-center gap-1"
+                    style={{ color: 'var(--color-secondary)' }}
                   >
                     전체 서비스 이용 약관 보기 →
                   </a>
                 </div>
-                <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                <div className="p-6 border" style={{ 
+                  backgroundColor: 'var(--color-surface)', 
+                  borderColor: 'var(--color-outline)',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}>
+                  <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
                     데이터 삭제 요청
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-4">
+                  <p className="mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
                     계정 및 개인정보 삭제를 원하시면 언제든지 요청하실 수 있습니다.
                   </p>
                   <Link
                     href="/kimappa/data-deletion"
-                    className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 font-semibold inline-flex items-center gap-1"
+                    className="font-semibold inline-flex items-center gap-1"
+                    style={{ color: 'var(--color-secondary)' }}
                   >
                     데이터 삭제 요청하기 →
                   </Link>
