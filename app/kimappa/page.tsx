@@ -31,11 +31,27 @@ export default function KimappaPage() {
             <p className="text-2xl md:text-3xl font-bold mb-4">
               가족과 함께하는 특별한 모험을 시작하세요!
             </p>
-            <p className="text-lg leading-relaxed">
+            <p className="text-lg leading-relaxed mb-6">
               부모와 자녀가 협력하며 모험을 완료하고, 매일 새로운 놀이로
               소통하세요. AI가 만들어주는 맞춤형 모험과 함께 특별한 추억을
               만들어보세요.
             </p>
+            <a
+              href="https://apps.apple.com/kr/app/%EA%B9%80%EC%95%84%EB%B9%A0/id6755213272"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-6 py-3 font-semibold transition-all hover:opacity-90"
+              style={{ 
+                backgroundColor: '#000000', 
+                color: '#FFFFFF',
+                borderRadius: 'var(--border-radius-medium)'
+              }}
+            >
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
+              </svg>
+              App Store에서 다운로드
+            </a>
           </div>
         </div>
 
@@ -606,6 +622,26 @@ export default function KimappaPage() {
                   간편한 로그인 및 게스트 체험
                 </p>
               </div>
+            </div>
+            
+            {/* App Store 다운로드 버튼 */}
+            <div className="mt-10 text-center">
+              <a
+                href="https://apps.apple.com/kr/app/%EA%B9%80%EC%95%84%EB%B9%A0/id6755213272"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-8 py-4 font-semibold transition-all hover:opacity-90"
+                style={{ 
+                  backgroundColor: '#000000', 
+                  color: '#FFFFFF',
+                  borderRadius: 'var(--border-radius-medium)'
+                }}
+              >
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
+                </svg>
+                App Store에서 다운로드
+              </a>
             </div>
           </div>
         </section>
