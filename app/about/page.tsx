@@ -274,7 +274,7 @@ export default function AboutPage() {
                     </ul>
                   </div>
                 </div>
-                <div className="mt-8">
+                <div className="mt-8 flex flex-wrap gap-4">
                   <Link
                     href="/kimappa"
                     className="inline-flex items-center px-6 py-3 font-semibold transition-colors"
@@ -286,6 +286,22 @@ export default function AboutPage() {
                   >
                     김아빠 서비스 둘러보기
                   </Link>
+                  <a
+                    href="https://apps.apple.com/kr/app/%EA%B9%80%EC%95%84%EB%B9%A0/id6755213272"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 font-semibold transition-colors"
+                    style={{
+                      backgroundColor: "#000000",
+                      color: "#FFFFFF",
+                      borderRadius: "var(--border-radius-medium)",
+                    }}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
+                    </svg>
+                    App Store에서 다운로드
+                  </a>
                 </div>
               </div>
             </div>
@@ -426,10 +442,8 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="mt-8 flex flex-wrap gap-4">
-                  <a
-                    href="https://apps.apple.com/kr/app/listo/id6756487226"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/listo"
                     className="inline-flex items-center px-6 py-3 font-semibold transition-colors"
                     style={{
                       backgroundColor: "var(--color-primary)",
@@ -437,6 +451,22 @@ export default function AboutPage() {
                       borderRadius: "var(--border-radius-medium)",
                     }}
                   >
+                    Listo 서비스 둘러보기
+                  </Link>
+                  <a
+                    href="https://apps.apple.com/kr/app/listo/id6756487226"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 font-semibold transition-colors"
+                    style={{
+                      backgroundColor: "#000000",
+                      color: "#FFFFFF",
+                      borderRadius: "var(--border-radius-medium)",
+                    }}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
+                    </svg>
                     App Store에서 다운로드
                   </a>
                   <a
@@ -514,9 +544,9 @@ export default function AboutPage() {
                     <strong style={{ color: "var(--color-on-surface)" }}>
                       Cap Finder
                     </strong>
-                    는 커스텀 키보드 키캡을 쉽게 찾을 수 있는 앱입니다. 색상 코드,
-                    키캡 이름, 디자이너 이름으로 검색하고, 555개 이상의 키캡 정보를
-                    제공합니다.
+                    는 커스텀 키보드 키캡을 쉽게 찾을 수 있는 앱입니다. 색상
+                    코드, 키캡 이름, 디자이너 이름으로 검색하고, 555개 이상의
+                    키캡 정보를 제공합니다.
                   </p>
                   <div className="grid md:grid-cols-2 gap-4">
                     <div
@@ -617,10 +647,8 @@ export default function AboutPage() {
                   </div>
                 </div>
                 <div className="mt-8 flex flex-wrap gap-4">
-                  <a
-                    href="https://apps.apple.com/kr/app/cap-finder/id6755984152"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <Link
+                    href="/cap-finder"
                     className="inline-flex items-center px-6 py-3 font-semibold transition-colors"
                     style={{
                       backgroundColor: "var(--color-primary)",
@@ -628,6 +656,22 @@ export default function AboutPage() {
                       borderRadius: "var(--border-radius-medium)",
                     }}
                   >
+                    Cap Finder 서비스 둘러보기
+                  </Link>
+                  <a
+                    href="https://apps.apple.com/kr/app/cap-finder/id6755984152"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-6 py-3 font-semibold transition-colors"
+                    style={{
+                      backgroundColor: "#000000",
+                      color: "#FFFFFF",
+                      borderRadius: "var(--border-radius-medium)",
+                    }}
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
+                    </svg>
                     App Store에서 다운로드
                   </a>
                   <a
