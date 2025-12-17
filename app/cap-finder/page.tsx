@@ -24,12 +24,15 @@ export default function CapFinderPage() {
             borderRadius: 'var(--border-radius-medium)',
             borderColor: 'var(--color-outline)'
           }}>
-            <p className="text-2xl md:text-3xl font-bold mb-4">
-              커스텀 키보드 키캡 검색 앱
+            <p className="text-3xl md:text-4xl font-bold mb-4">
+              원하는 색상의 GMK 키캡을 찾아보세요
+            </p>
+            <p className="text-xl md:text-2xl font-semibold mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
+              색상 코드, 이미지, 이름으로 쉽고 빠르게 검색
             </p>
             <p className="text-lg leading-relaxed mb-6">
               CapFinder는 커스텀 키보드 키캡을 쉽게 찾을 수 있는 앱입니다. 
-              색상 코드, 키캡 이름, 디자이너 이름으로 검색하고, 555개 이상의 키캡 정보를 제공합니다.
+              555개 이상의 키캡 정보를 제공하며, 다양한 방법으로 원하는 키캡을 찾을 수 있습니다.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <a
@@ -101,22 +104,23 @@ export default function CapFinderPage() {
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-10" style={{ color: 'var(--color-on-background)' }}>
               주요 기능
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
               <div className="p-6 border" style={{ 
                 backgroundColor: 'var(--color-surface)', 
                 borderColor: 'var(--color-outline)',
                 borderRadius: 'var(--border-radius-medium)'
               }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  색상 코드로 검색
+                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
+                  GMK 색상 코드로 검색
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  색상 피커로 원하는 색상을 선택하면 가장 유사한 GMK 색상 코드로 자동 필터링됩니다. 이미지에서 추출한 색상을 선택하면 즉시 검색 결과에 반영됩니다.
+                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  35개의 GMK 표준 색상 코드를 지원합니다. 원하는 색상을 선택하면 해당 색상을 포함한 키캡만 표시됩니다. 
+                  시각적 색상 피커로 직관적인 선택이 가능합니다.
                 </p>
               </div>
               <div className="p-6 border" style={{ 
@@ -124,84 +128,53 @@ export default function CapFinderPage() {
                 borderColor: 'var(--color-outline)',
                 borderRadius: 'var(--border-radius-medium)'
               }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  이름으로 검색
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  키캡 이름이나 디자이너 이름으로 검색할 수 있습니다. 한글/영문 모두 지원하여 원하는 키캡을 빠르게 찾을 수 있습니다.
-                </p>
-              </div>
-              <div className="p-6 border" style={{ 
-                backgroundColor: 'var(--color-surface)', 
-                borderColor: 'var(--color-outline)',
-                borderRadius: 'var(--border-radius-medium)'
-              }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  정렬 기능
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  출시일 또는 이름순으로 정렬할 수 있습니다. 최신순, 이름순, 도착 시간순, 생성일순으로 정렬하여 원하는 방식으로 키캡을 관리할 수 있습니다.
-                </p>
-              </div>
-              <div className="p-6 border" style={{ 
-                backgroundColor: 'var(--color-surface)', 
-                borderColor: 'var(--color-outline)',
-                borderRadius: 'var(--border-radius-medium)'
-              }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  상세 정보 제공
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  555개 이상의 키캡 정보를 제공합니다. 각 키캡의 상세 정보와 레이아웃 이미지를 확인할 수 있습니다.
-                </p>
-              </div>
-              <div className="p-6 border" style={{ 
-                backgroundColor: 'var(--color-surface)', 
-                borderColor: 'var(--color-outline)',
-                borderRadius: 'var(--border-radius-medium)'
-              }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  다국어 지원
-                </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  한글/영문을 지원합니다. 한국어와 영어 모두에서 키캡을 검색하고 정보를 확인할 수 있습니다.
-                </p>
-              </div>
-              <div className="p-6 border" style={{ 
-                backgroundColor: 'var(--color-surface)', 
-                borderColor: 'var(--color-outline)',
-                borderRadius: 'var(--border-radius-medium)'
-              }}>
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  레이아웃 이미지
+                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
+                  이미지에서 색상 추출
                 </h3>
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  각 키캡의 레이아웃 이미지를 제공합니다. 키캡이 키보드에 어떻게 배치되는지 시각적으로 확인할 수 있습니다.
+                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  이미지를 업로드하면 자동으로 주요 색상을 추출하고, GMK 색상 코드로 자동 매칭합니다. 
+                  매칭된 색상으로 키캡을 검색할 수 있어 원하는 색상의 키캡을 쉽게 찾을 수 있습니다.
+                </p>
+              </div>
+              <div className="p-6 border" style={{ 
+                backgroundColor: 'var(--color-surface)', 
+                borderColor: 'var(--color-outline)',
+                borderRadius: 'var(--border-radius-medium)'
+              }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
+                  이름으로 검색
+                </h3>
+                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  키캡 이름이나 디자이너 이름으로 빠르게 검색할 수 있습니다. 
+                  실시간으로 결과가 업데이트되며, 한글/영문 모두 지원합니다.
+                </p>
+              </div>
+              <div className="p-6 border" style={{ 
+                backgroundColor: 'var(--color-surface)', 
+                borderColor: 'var(--color-outline)',
+                borderRadius: 'var(--border-radius-medium)'
+              }}>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: '#000000' }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
+                  정렬 및 필터링
+                </h3>
+                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  출시일, 이름, 색상 유사도 등 다양한 기준으로 정렬할 수 있습니다. 
+                  최신순, 과거순, 가나다순으로 정렬하여 원하는 키캡을 찾을 수 있습니다.
                 </p>
               </div>
             </div>
@@ -218,19 +191,24 @@ export default function CapFinderPage() {
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-10" style={{ color: 'var(--color-on-background)' }}>
               검색 방법
             </h2>
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-8">
               <div className="p-6 border-l-4" style={{ 
                 backgroundColor: 'var(--color-surface)', 
                 borderLeftColor: 'var(--color-primary)',
                 borderRadius: 'var(--border-radius-medium)',
                 borderColor: 'var(--color-outline)'
               }}>
-                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  색상 피커로 검색
-                </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  색상 피커로 원하는 색상을 선택하면 가장 유사한 GMK 색상 코드로 자동 필터링됩니다. 
-                  이미지에서 추출한 색상을 선택하면 즉시 검색 결과에 반영됩니다.
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                    1
+                  </div>
+                  <h3 className="text-xl font-bold" style={{ color: 'var(--color-on-background)' }}>
+                    색상 선택 또는 이미지 업로드
+                  </h3>
+                </div>
+                <p className="leading-relaxed ml-11" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  색상 피커로 원하는 색상을 선택하거나, 이미지를 업로드하여 색상을 추출합니다. 
+                  GMK 표준 색상 코드 35개 중에서 가장 유사한 색상이 자동으로 매칭됩니다.
                 </p>
               </div>
               <div className="p-6 border-l-4" style={{ 
@@ -239,11 +217,17 @@ export default function CapFinderPage() {
                 borderRadius: 'var(--border-radius-medium)',
                 borderColor: 'var(--color-outline)'
               }}>
-                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  이름으로 검색
-                </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  키캡 이름이나 디자이너 이름으로 검색할 수 있습니다. 한글/영문 모두 지원하여 원하는 키캡을 빠르게 찾을 수 있습니다.
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                    2
+                  </div>
+                  <h3 className="text-xl font-bold" style={{ color: 'var(--color-on-background)' }}>
+                    자동 색상 매칭 및 검색
+                  </h3>
+                </div>
+                <p className="leading-relaxed ml-11" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  선택한 색상이 포함된 키캡이 자동으로 필터링됩니다. 
+                  이미지에서 추출한 색상의 경우, 색상 유사도 기준으로 정렬되어 가장 유사한 키캡부터 표시됩니다.
                 </p>
               </div>
               <div className="p-6 border-l-4" style={{ 
@@ -252,11 +236,17 @@ export default function CapFinderPage() {
                 borderRadius: 'var(--border-radius-medium)',
                 borderColor: 'var(--color-outline)'
               }}>
-                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  정렬 기능
-                </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  출시일 또는 이름순으로 정렬할 수 있습니다. 최신순, 이름순, 도착 시간순, 생성일순으로 정렬하여 원하는 방식으로 키캡을 관리할 수 있습니다.
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center font-bold" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                    3
+                  </div>
+                  <h3 className="text-xl font-bold" style={{ color: 'var(--color-on-background)' }}>
+                    결과 확인 및 상세 정보 보기
+                  </h3>
+                </div>
+                <p className="leading-relaxed ml-11" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  검색 결과에서 원하는 키캡을 선택하면 상세 정보를 확인할 수 있습니다. 
+                  키캡 이름, 디자이너, 출시일, 색상 코드, 레이아웃 이미지 등 모든 정보를 한눈에 볼 수 있습니다.
                 </p>
               </div>
             </div>
@@ -271,10 +261,10 @@ export default function CapFinderPage() {
             borderRadius: 'var(--border-radius-medium)'
           }}>
             <h2 className="text-2xl md:text-3xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
-              키보드 커뮤니티를 위한 필수 앱
+              원하는 색상의 GMK 키캡을 3초 안에 찾아보세요
             </h2>
             <p className="text-lg mb-8" style={{ color: 'var(--color-on-surface-variant)' }}>
-              Cap Finder와 함께 원하는 키캡을 쉽게 찾아보세요!
+              Cap Finder와 함께 키보드 커뮤니티를 위한 필수 앱을 경험해보세요!
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <a

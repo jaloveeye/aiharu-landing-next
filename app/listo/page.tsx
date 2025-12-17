@@ -24,12 +24,15 @@ export default function ListoPage() {
             borderRadius: 'var(--border-radius-medium)',
             borderColor: 'var(--color-outline)'
           }}>
-            <p className="text-2xl md:text-3xl font-bold mb-4">
-              세상에서 가장 똑똑한 출발 시간 계산기
+            <p className="text-3xl md:text-4xl font-bold mb-4">
+              그래서, 몇 시에 나가야 돼?
+            </p>
+            <p className="text-xl md:text-2xl font-semibold mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
+              Listo가 계산해드립니다
             </p>
             <p className="text-lg leading-relaxed mb-6">
-              도착 시간, 이동 시간, 준비 시간만 알려주시면 제가 제시간에 알려드리겠습니다. 
-              Listo와 함께 시간을 효율적으로 관리하고, 중요한 일정을 놓치지 마세요!
+              도착 시간, 이동 시간, 준비 시간만 알려주세요.
+              복잡한 계산은 Listo가 알아서 해드립니다.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
               <a
@@ -62,6 +65,31 @@ export default function ListoPage() {
           </div>
         </div>
 
+        {/* 문제 정의 섹션 */}
+        <section className="mb-16">
+          <div className="border p-8 md:p-12" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
+            <div className="max-w-4xl mx-auto">
+              <h2 className="text-2xl md:text-3xl font-bold text-center mb-8" style={{ color: 'var(--color-on-background)' }}>
+                매번 머릿속으로 계산하시나요?
+              </h2>
+              <div className="space-y-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                <p className="text-lg text-center">
+                  "등교 시간은 8시, 이동 시간은 20분, 준비 시간은 10분...<br />
+                  그럼 7시 30분에 나가야 하네?"
+                </p>
+                <p className="text-center">
+                  이런 계산을 매일 반복하시나요?<br />
+                  <strong style={{ color: 'var(--color-on-background)' }}>Listo는 이 모든 것을 자동으로 해드립니다.</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 서비스 소개 */}
         <section className="mb-16">
           <div className="border p-8 md:p-12" style={{ 
@@ -76,17 +104,12 @@ export default function ListoPage() {
               <div className="space-y-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                 <p className="text-lg">
                   <strong style={{ color: 'var(--color-on-background)' }}>Listo</strong>는 특정 목적지에 정해진 시간까지 도착해야 할 때, 
-                  현재 위치, 이동 시간, 준비 시간 등 다양한 변수를 고려하여 최적의 출발 시간을 계산하는 스마트 앱입니다.
+                  이동 시간, 준비 시간을 고려하여 최적의 출발 시간을 자동으로 계산하는 스마트 앱입니다.
                 </p>
                 <p>
                   매일 아침 등교 시간, 주말 학원 시간, 특정 날짜의 약속 시간 등 반복되는 스케줄을 
                   <strong style={{ color: 'var(--color-on-background)' }}> 준비 카드</strong>로 저장하고 관리할 수 있습니다. 
-                  준비 시간과 이동 시간을 고려하여 정확한 시간에 알림을 받을 수 있습니다.
-                </p>
-                <p>
-                  <strong style={{ color: 'var(--color-on-background)' }}>Listo는 서버를 운영하지 않으며</strong>, 
-                  모든 데이터는 사용자의 기기 내부에만 저장됩니다. 서버로 전송되거나 외부로 수집되는 데이터는 없어 
-                  개인정보 보호가 완벽하게 보장됩니다.
+                  한 번 설정하면 계속 사용할 수 있어 매번 계산할 필요가 없습니다.
                 </p>
               </div>
             </div>
@@ -220,20 +243,25 @@ export default function ListoPage() {
             <h2 className="text-2xl md:text-3xl font-bold text-center mb-10" style={{ color: 'var(--color-on-background)' }}>
               사용 예시
             </h2>
-            <div className="max-w-4xl mx-auto space-y-6">
+            <div className="max-w-4xl mx-auto space-y-8">
               <div className="p-6 border-l-4" style={{ 
                 backgroundColor: 'var(--color-surface)', 
                 borderLeftColor: 'var(--color-primary)',
                 borderRadius: 'var(--border-radius-medium)',
                 borderColor: 'var(--color-outline)'
               }}>
-                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  등교 준비
+                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--color-on-background)' }}>
+                  예시 1: 등교 준비
                 </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  매일 아침 8시 등교 시간에 맞춰 준비 시간과 출발 시간 알림을 받습니다. 
-                  가방 챙기기, 과제 확인 등 체크리스트를 통해 놓치는 일이 없습니다.
-                </p>
+                <div className="space-y-2 mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>도착 시간:</strong> 08:00</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>이동 시간:</strong> 20분</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>준비 시간:</strong> 10분</p>
+                </div>
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                  <p className="font-bold text-lg">→ 출발 시간: 07:30</p>
+                  <p className="text-sm mt-2">Listo가 자동으로 계산하여 알림을 보내드립니다.</p>
+                </div>
               </div>
               <div className="p-6 border-l-4" style={{ 
                 backgroundColor: 'var(--color-surface)', 
@@ -241,12 +269,18 @@ export default function ListoPage() {
                 borderRadius: 'var(--border-radius-medium)',
                 borderColor: 'var(--color-outline)'
               }}>
-                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  학원 준비
+                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--color-on-background)' }}>
+                  예시 2: 방과 후 준비
                 </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  주말 학원 시간에 맞춰 준비 알림을 받습니다. 평일에는 알림이 울리지 않도록 설정할 수 있습니다.
-                </p>
+                <div className="space-y-2 mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>도착 시간:</strong> 15:00</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>이동 시간:</strong> 20분</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>준비 시간:</strong> 5분</p>
+                </div>
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                  <p className="font-bold text-lg">→ 출발 시간: 14:35</p>
+                  <p className="text-sm mt-2">준비 카드로 저장하면 매일 자동으로 알림을 받을 수 있습니다.</p>
+                </div>
               </div>
               <div className="p-6 border-l-4" style={{ 
                 backgroundColor: 'var(--color-surface)', 
@@ -254,11 +288,42 @@ export default function ListoPage() {
                 borderRadius: 'var(--border-radius-medium)',
                 borderColor: 'var(--color-outline)'
               }}>
-                <h3 className="text-xl font-bold mb-3" style={{ color: 'var(--color-on-background)' }}>
-                  약속 준비
+                <h3 className="text-xl font-bold mb-4" style={{ color: 'var(--color-on-background)' }}>
+                  예시 3: 주말 학원 준비
                 </h3>
-                <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  특정 날짜의 약속 시간에 맞춰 준비 알림을 받습니다. 날짜 범위를 설정하여 특정 기간에만 알림을 받을 수 있습니다.
+                <div className="space-y-2 mb-4" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>도착 시간:</strong> 11:30</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>이동 시간:</strong> 15분</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>준비 시간:</strong> 10분</p>
+                  <p><strong style={{ color: 'var(--color-on-background)' }}>활성 요일:</strong> 매주 토요일, 일요일</p>
+                </div>
+                <div className="p-4 rounded-lg" style={{ backgroundColor: 'var(--color-primary)', color: '#000000' }}>
+                  <p className="font-bold text-lg">→ 출발 시간: 11:05</p>
+                  <p className="text-sm mt-2">주말에만 알림을 받도록 설정할 수 있습니다.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 개인정보 보호 섹션 */}
+        <section className="mb-16">
+          <div className="border p-8 md:p-12" style={{ 
+            backgroundColor: 'var(--color-background)', 
+            borderColor: 'var(--color-outline)',
+            borderRadius: 'var(--border-radius-medium)'
+          }}>
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="text-2xl md:text-3xl font-bold mb-6" style={{ color: 'var(--color-on-background)' }}>
+                완벽한 개인정보 보호
+              </h2>
+              <div className="space-y-4 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                <p className="text-lg">
+                  <strong style={{ color: 'var(--color-on-background)' }}>Listo는 서버를 운영하지 않습니다.</strong>
+                </p>
+                <p>
+                  모든 데이터는 사용자의 기기 내부에만 저장됩니다. 서버로 전송되거나 외부로 수집되는 데이터는 없어 
+                  개인정보 보호가 완벽하게 보장됩니다.
                 </p>
               </div>
             </div>
