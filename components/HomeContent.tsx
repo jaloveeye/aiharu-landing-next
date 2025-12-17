@@ -76,7 +76,7 @@ export default function HomeContent() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* AI하루 */}
             <Link
               href="/ai"
@@ -189,6 +189,57 @@ export default function HomeContent() {
                 </a>
                 <a
                   href="https://play.google.com/store/apps/details?id=net.aiharu.listo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold border-2 transition-colors"
+                  style={{ borderColor: 'var(--color-outline)', color: 'var(--color-on-surface)', backgroundColor: 'transparent', borderRadius: 'var(--border-radius-medium)' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Google Play
+                </a>
+              </div>
+            </div>
+
+            {/* Cap Finder */}
+            <div
+              className="group p-8 rounded-medium border transition-all duration-200 hover:shadow-lg"
+              style={{ 
+                backgroundColor: 'var(--color-background)',
+                borderColor: 'var(--color-outline)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-primary)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-outline)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                <svg className="w-7 h-7" style={{ color: '#000000' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-on-surface)' }}>
+                Cap Finder
+              </h3>
+              <p className="mb-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                커스텀 키보드 키캡을 색상 코드, 이름, 디자이너로 검색할 수 있는 앱입니다. 555개 이상의 키캡 정보를 제공합니다.
+              </p>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://apps.apple.com/kr/app/cap-finder/id6755984152"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold transition-colors"
+                  style={{ backgroundColor: 'var(--color-primary)', color: '#000000', borderRadius: 'var(--border-radius-medium)' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  App Store
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=com.gmk.gmk_keycap_finder"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold border-2 transition-colors"
