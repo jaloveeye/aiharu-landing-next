@@ -155,6 +155,93 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* Listo */}
+        <section className="mb-16">
+          <div className="rounded-medium border p-8 md:p-12" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-outline)' }}>
+            <div className="flex flex-col lg:flex-row items-start gap-10">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                    <svg className="w-6 h-6" style={{ color: '#000000' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h2 className="text-3xl font-bold" style={{ color: 'var(--color-on-surface)' }}>
+                    Listo
+                  </h2>
+                </div>
+                <h3 className="text-xl font-semibold mb-4" style={{ color: 'var(--color-on-surface)' }}>
+                  세상에서 가장 똑똑한 출발 시간 계산기
+                </h3>
+                <div className="space-y-4" style={{ color: 'var(--color-on-surface-variant)' }}>
+                  <p className="leading-relaxed">
+                    <strong style={{ color: 'var(--color-on-surface)' }}>Listo</strong>는 특정 목적지에 정해진 시간까지 도착해야 할 때, 
+                    현재 위치, 이동 시간, 준비 시간 등 다양한 변수를 고려하여 최적의 출발 시간을 계산하는 스마트 앱입니다.
+                  </p>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="p-5 rounded-medium border" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-outline)' }}>
+                      <h4 className="font-semibold mb-3" style={{ color: 'var(--color-on-surface)' }}>
+                        주요 기능
+                      </h4>
+                      <ul className="space-y-2 text-sm" style={{ color: 'var(--color-on-surface-variant)' }}>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1" style={{ color: '#000000' }}>•</span>
+                          <span>준비 카드 관리로 반복 스케줄 자동 알림</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1" style={{ color: '#000000' }}>•</span>
+                          <span>스마트 알림으로 정확한 출발 시간 안내</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1" style={{ color: '#000000' }}>•</span>
+                          <span>활성 요일 및 날짜 범위 설정</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1" style={{ color: '#000000' }}>•</span>
+                          <span>체크리스트로 준비 항목 관리</span>
+                        </li>
+                        <li className="flex items-start gap-2">
+                          <span className="mt-1" style={{ color: '#000000' }}>•</span>
+                          <span>학사일정 관리 및 캘린더 연동</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div className="p-5 rounded-medium border" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-outline)' }}>
+                      <h4 className="font-semibold mb-3" style={{ color: 'var(--color-on-surface)' }}>
+                        개인정보 보호
+                      </h4>
+                      <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                        Listo는 서버를 운영하지 않으며, 모든 데이터는 사용자의 기기 내부에만 저장됩니다. 
+                        서버로 전송되거나 외부로 수집되는 데이터는 없습니다.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-8 flex flex-wrap gap-4">
+                  <a
+                    href="https://apps.apple.com/kr/app/listo/id6756487226"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-6 py-3 font-semibold transition-colors"
+                    style={{ backgroundColor: 'var(--color-primary)', color: '#000000', borderRadius: 'var(--border-radius-medium)' }}
+                  >
+                    App Store에서 다운로드
+                  </a>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=net.aiharu.listo"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-6 py-3 border-2 font-semibold transition-colors"
+                    style={{ borderColor: 'var(--color-outline)', color: 'var(--color-on-surface)', backgroundColor: 'transparent', borderRadius: 'var(--border-radius-medium)' }}
+                  >
+                    Google Play에서 다운로드
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* 기타 서비스 요약 */}
         <section className="mb-16">
           <div className="rounded-medium border p-8 md:p-12" style={{ backgroundColor: 'var(--color-background)', borderColor: 'var(--color-outline)' }}>

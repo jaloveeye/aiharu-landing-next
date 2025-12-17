@@ -76,7 +76,7 @@ export default function HomeContent() {
             </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* AI하루 */}
             <Link
               href="/ai"
@@ -148,6 +148,57 @@ export default function HomeContent() {
                 </svg>
               </div>
             </Link>
+
+            {/* Listo */}
+            <div
+              className="group p-8 rounded-medium border transition-all duration-200 hover:shadow-lg"
+              style={{ 
+                backgroundColor: 'var(--color-background)',
+                borderColor: 'var(--color-outline)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-primary)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--color-outline)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              <div className="w-14 h-14 rounded-xl flex items-center justify-center mb-6" style={{ backgroundColor: '#FFFFFF', border: '1px solid var(--color-outline)' }}>
+                <svg className="w-7 h-7" style={{ color: '#000000' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-3" style={{ color: 'var(--color-on-surface)' }}>
+                Listo
+              </h3>
+              <p className="mb-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
+                도착 시간, 이동 시간, 준비 시간을 고려하여 최적의 출발 시간을 계산해주는 스마트 앱입니다.
+              </p>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="https://apps.apple.com/kr/app/listo/id6756487226"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold transition-colors"
+                  style={{ backgroundColor: 'var(--color-primary)', color: '#000000', borderRadius: 'var(--border-radius-medium)' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  App Store
+                </a>
+                <a
+                  href="https://play.google.com/store/apps/details?id=net.aiharu.listo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold border-2 transition-colors"
+                  style={{ borderColor: 'var(--color-outline)', color: 'var(--color-on-surface)', backgroundColor: 'transparent', borderRadius: 'var(--border-radius-medium)' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Google Play
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
