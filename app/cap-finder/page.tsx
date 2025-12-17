@@ -36,32 +36,26 @@ export default function CapFinderPage() {
                 href="https://apps.apple.com/kr/app/cap-finder/id6755984152"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 font-semibold transition-all hover:opacity-90"
+                className="inline-flex items-center px-6 py-3 font-semibold transition-all hover:opacity-90"
                 style={{ 
                   backgroundColor: '#000000', 
                   color: '#FFFFFF',
                   borderRadius: 'var(--border-radius-medium)'
                 }}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
-                </svg>
                 App Store에서 다운로드
               </a>
               <a
                 href="https://play.google.com/store/apps/details?id=com.gmk.gmk_keycap_finder"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 font-semibold transition-all hover:opacity-90"
+                className="inline-flex items-center px-6 py-3 font-semibold transition-all hover:opacity-90"
                 style={{ 
                   backgroundColor: '#000000', 
                   color: '#FFFFFF',
                   borderRadius: 'var(--border-radius-medium)'
                 }}
               >
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L6.05,21.34L14.54,12.85L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
-                </svg>
                 Google Play에서 다운로드
               </a>
             </div>
@@ -287,32 +281,26 @@ export default function CapFinderPage() {
                 href="https://apps.apple.com/kr/app/cap-finder/id6755984152"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-4 font-semibold transition-all hover:opacity-90"
+                className="inline-flex items-center px-8 py-4 font-semibold transition-all hover:opacity-90"
                 style={{ 
                   backgroundColor: '#000000', 
                   color: '#FFFFFF',
                   borderRadius: 'var(--border-radius-medium)'
                 }}
               >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.96-3.24-.96-1.15 0-1.93.46-2.93.96-1.01.5-2.12.95-3.65.4-1.53-.55-2.64-2.26-3.64-3.26C.93 15.84 0 13.75 0 11.24c0-2.24.89-4.27 2.45-5.77C4 4 5.95 3.11 7.78 3.11c1.15 0 1.93.46 2.93.96 1.01.5 1.01.67 1.53.67.52 0 .89-.17 1.77-.67 1.32-.65 2.79-.96 4.26-.96 2.05 0 3.93.89 5.28 2.45-4.76 2.78-4.08 8.97.77 11.52zm.23-14.04c-1.15-1.4-2.78-2.23-4.45-2.23-1.5 0-2.9.57-3.94 1.45-1.71 1.15-2.78 3.11-2.78 5.23 0 .89.17 1.77.46 2.64 1.15-3.26 3.64-5.23 6.26-6.26 1.09-.42 2.12-.67 3.15-.67.52 0 1.04.08 1.56.25-.42-1.4-1.15-2.64-2.06-3.64z"/>
-                </svg>
                 App Store에서 다운로드
               </a>
               <a
                 href="https://play.google.com/store/apps/details?id=com.gmk.gmk_keycap_finder"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-8 py-4 font-semibold transition-all hover:opacity-90"
+                className="inline-flex items-center px-8 py-4 font-semibold transition-all hover:opacity-90"
                 style={{ 
                   backgroundColor: '#000000', 
                   color: '#FFFFFF',
                   borderRadius: 'var(--border-radius-medium)'
                 }}
               >
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.5,12.92 20.16,13.19L6.05,21.34L14.54,12.85L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
-                </svg>
                 Google Play에서 다운로드
               </a>
             </div>
