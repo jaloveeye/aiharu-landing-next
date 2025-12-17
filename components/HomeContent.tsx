@@ -114,7 +114,8 @@ export default function HomeContent() {
             </Link>
 
             {/* 김아빠 */}
-            <div
+            <Link
+              href="/kimappa"
               className="group p-8 rounded-medium border transition-all duration-200 hover:shadow-lg"
               style={{ 
                 backgroundColor: 'var(--color-background)',
@@ -140,20 +141,17 @@ export default function HomeContent() {
               <p className="mb-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                 아빠와 아이가 비밀 미션을 통해 자연스럽게 대화하고 추억을 쌓도록 돕는 5분 놀이 모험 서비스입니다.
               </p>
-              <a
-                href="https://apps.apple.com/kr/app/%EA%B9%80%EC%95%84%EB%B9%A0/id6755213272"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold transition-colors"
-                style={{ backgroundColor: '#000000', color: '#FFFFFF', borderRadius: 'var(--border-radius-medium)' }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                App Store에서 다운로드
-              </a>
-            </div>
+              <div className="flex items-center font-medium text-sm group-hover:gap-2 gap-1 transition-all" style={{ color: 'var(--color-primary)' }}>
+                자세히 보기
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </Link>
 
             {/* Listo */}
-            <div
+            <Link
+              href="/listo"
               className="group p-8 rounded-medium border transition-all duration-200 hover:shadow-lg"
               style={{ 
                 backgroundColor: 'var(--color-background)',
@@ -179,20 +177,17 @@ export default function HomeContent() {
               <p className="mb-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                 도착 시간, 이동 시간, 준비 시간을 고려하여 최적의 출발 시간을 계산해주는 스마트 앱입니다.
               </p>
-              <Link
-                href="/listo"
-                className="inline-flex items-center font-medium text-sm group-hover:gap-2 gap-1 transition-all"
-                style={{ color: 'var(--color-primary)' }}
-              >
-                서비스 살펴보기
+              <div className="flex items-center font-medium text-sm group-hover:gap-2 gap-1 transition-all" style={{ color: 'var(--color-primary)' }}>
+                자세히 보기
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </Link>
-            </div>
+              </div>
+            </Link>
 
             {/* Cap Finder */}
-            <div
+            <Link
+              href="/cap-finder"
               className="group p-8 rounded-medium border transition-all duration-200 hover:shadow-lg"
               style={{ 
                 backgroundColor: 'var(--color-background)',
@@ -218,17 +213,13 @@ export default function HomeContent() {
               <p className="mb-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                 커스텀 키보드 키캡을 색상 코드, 이름, 디자이너로 검색할 수 있는 앱입니다. 555개 이상의 키캡 정보를 제공합니다.
               </p>
-              <Link
-                href="/cap-finder"
-                className="inline-flex items-center font-medium text-sm group-hover:gap-2 gap-1 transition-all"
-                style={{ color: 'var(--color-primary)' }}
-              >
-                서비스 살펴보기
+              <div className="flex items-center font-medium text-sm group-hover:gap-2 gap-1 transition-all" style={{ color: 'var(--color-primary)' }}>
+                자세히 보기
                 <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
-              </Link>
-            </div>
+              </div>
+            </Link>
           </div>
         </div>
       </section>
