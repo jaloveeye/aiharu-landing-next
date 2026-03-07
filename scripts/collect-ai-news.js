@@ -7,6 +7,13 @@
 
 const https = require("https");
 const http = require("http");
+const {
+  buildNewsApiUrl,
+  buildGNewsUrl,
+  evaluateAINewsRelevance,
+  limitAndSortNews,
+  MIN_QUALITY_SCORE,
+} = require("../lib/ai-news-filter");
 
 // 환경 변수 확인
 const requiredEnvVars = [
@@ -39,38 +46,6 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-// AI 관련성 검증 함수
-async function isAIRelatedNews(title, description, content) {
-  try {
-    const text = `${title} ${description || ''} ${content || ''}`.toLowerCase();
-    
-    // AI 관련 키워드 (긍정적)
-    const aiKeywords = [
-      '인공지능', 'ai', '머신러닝', '딥러닝', 'chatgpt', 'gpt', 'claude', 'gemini',
-      '자동화', '로봇', '봇', '알고리즘', '데이터', '빅데이터', '분석', '예측',
-      '스마트', '디지털', '기술', '혁신', '프롬프트', 'llm', '대화형', '생성형'
-    ];
-    
-    // 제외할 키워드 (부정적)
-    const excludeKeywords = [
-      '주식', '증권', '투자', '금융', '경제', '부동산', '정치', '선거', '정부',
-      '법원', '재판', '사건', '사고', '범죄', '경찰', '검찰', '체육', '스포츠',
-      '연예', '가수', '배우', '드라마', '영화', '음악', '패션', '뷰티', '화장품'
-    ];
-    
-    // 제외 키워드가 포함되어 있으면 false
-    if (excludeKeywords.some(keyword => text.includes(keyword))) {
-      return false;
-    }
-    
-    // AI 키워드가 포함되어 있으면 true
-    return aiKeywords.some(keyword => text.includes(keyword));
-  } catch (error) {
-    console.error("❌ AI 관련성 검증 오류:", error.message);
-    return true; // 오류 시 기본적으로 포함
-  }
-}
-
 // 뉴스 API에서 AI 관련 뉴스 수집
 async function fetchNewsFromAPI() {
   const newsApiKey = process.env.NEWS_API_KEY;
@@ -88,22 +63,20 @@ async function fetchNewsFromAPI() {
   if (newsApiKey) {
     try {
       console.log("📰 NewsAPI에서 한국어 뉴스 수집 중...");
-      const koResponse = await fetch(
-        `https://newsapi.org/v2/everything?q=인공지능 OR AI OR 머신러닝 OR 딥러닝 OR (AI AND 육아) OR (인공지능 AND 육아) OR (AI AND 교육) OR (인공지능 AND 교육)&language=ko&sortBy=publishedAt&pageSize=15&apiKey=${newsApiKey}`
-      );
+      const koResponse = await fetch(buildNewsApiUrl(newsApiKey));
       const koData = await koResponse.json();
 
       if (koData.articles) {
         // AI 관련성 검증 후 필터링
         const filteredArticles = [];
         for (const article of koData.articles) {
-          const isRelated = await isAIRelatedNews(
+          const relevance = evaluateAINewsRelevance(
             article.title || '',
             article.description || '',
             article.content || ''
           );
           
-          if (isRelated) {
+          if (relevance.isRelevant) {
             filteredArticles.push({
               title: article.title,
               description: article.description,
@@ -115,7 +88,7 @@ async function fetchNewsFromAPI() {
               tags: ["AI", "Technology", "한국어"],
             });
           } else {
-            console.log(`⏭️  AI 관련성 없음으로 제외: ${article.title}`);
+            console.log(`⏭️  AI 관련성 부족으로 제외 (${relevance.reason}, score=${relevance.score}): ${article.title}`);
           }
         }
         
@@ -131,22 +104,20 @@ async function fetchNewsFromAPI() {
   if (gnewsApiKey) {
     try {
       console.log("📰 GNews에서 뉴스 수집 중...");
-      const response = await fetch(
-        `https://gnews.io/api/v4/search?q=인공지능 OR AI OR (AI AND 육아) OR (AI AND 교육)&lang=ko&country=kr&max=10&apikey=${gnewsApiKey}`
-      );
+      const response = await fetch(buildGNewsUrl(gnewsApiKey));
       const data = await response.json();
 
       if (data.articles) {
         // AI 관련성 검증 후 필터링
         const filteredArticles = [];
         for (const article of data.articles) {
-          const isRelated = await isAIRelatedNews(
+          const relevance = evaluateAINewsRelevance(
             article.title || '',
             article.description || '',
             article.content || ''
           );
           
-          if (isRelated) {
+          if (relevance.isRelevant) {
             filteredArticles.push({
               title: article.title,
               description: article.description,
@@ -158,7 +129,7 @@ async function fetchNewsFromAPI() {
               tags: ["AI", "Technology", "한국어"],
             });
           } else {
-            console.log(`⏭️  AI 관련성 없음으로 제외: ${article.title}`);
+            console.log(`⏭️  AI 관련성 부족으로 제외 (${relevance.reason}, score=${relevance.score}): ${article.title}`);
           }
         }
         
@@ -170,12 +141,11 @@ async function fetchNewsFromAPI() {
     }
   }
 
-  // 일일 최대 10개로 제한
-  const maxDailyNews = 10;
-  const limitedNews = news.slice(0, maxDailyNews);
+  // 최신순 정렬 후 일일 최대 건수 제한
+  const limitedNews = limitAndSortNews(news);
   
-  if (news.length > maxDailyNews) {
-    console.log(`📊 일일 최대 ${maxDailyNews}개 제한: ${news.length}개 → ${limitedNews.length}개`);
+  if (news.length > limitedNews.length) {
+    console.log(`📊 일일 최대 ${limitedNews.length}개 제한: ${news.length}개 → ${limitedNews.length}개`);
   }
   
   return limitedNews;
@@ -454,8 +424,8 @@ async function main() {
         const qualityScore = await calculateNewsQualityScore(news);
         console.log(`📊 뉴스 품질 점수: ${qualityScore}/100`);
 
-        // 품질 점수가 너무 낮으면 제외 (50점 미만)
-        if (qualityScore < 50) {
+        // 품질 점수가 너무 낮으면 제외
+        if (qualityScore < MIN_QUALITY_SCORE) {
           console.log(`⚠️  품질 점수 부족으로 제외: ${qualityScore}/100`);
           continue;
         }

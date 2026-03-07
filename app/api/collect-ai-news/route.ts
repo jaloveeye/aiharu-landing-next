@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { saveAINews, isDuplicateNews } from "@/app/utils/aiNews";
+import aiNewsFilter from "@/lib/ai-news-filter";
+
+const {
+  buildNewsApiUrl,
+  buildGNewsUrl,
+  evaluateAINewsRelevance,
+  limitAndSortNews,
+  MIN_QUALITY_SCORE,
+} = aiNewsFilter;
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -66,38 +75,6 @@ async function isDuplicateNewsAdvanced(news: any): Promise<boolean> {
   }
 }
 
-// AI 관련성 검증 함수
-async function isAIRelatedNews(title: string, description: string, content: string): Promise<boolean> {
-  try {
-    const text = `${title} ${description || ''} ${content || ''}`.toLowerCase();
-    
-    // AI 관련 키워드 (긍정적)
-    const aiKeywords = [
-      '인공지능', 'ai', '머신러닝', '딥러닝', 'chatgpt', 'gpt', 'claude', 'gemini',
-      '자동화', '로봇', '봇', '알고리즘', '데이터', '빅데이터', '분석', '예측',
-      '스마트', '디지털', '기술', '혁신', '프롬프트', 'llm', '대화형', '생성형'
-    ];
-    
-    // 제외할 키워드 (부정적)
-    const excludeKeywords = [
-      '주식', '증권', '투자', '금융', '경제', '부동산', '정치', '선거', '정부',
-      '법원', '재판', '사건', '사고', '범죄', '경찰', '검찰', '체육', '스포츠',
-      '연예', '가수', '배우', '드라마', '영화', '음악', '패션', '뷰티', '화장품'
-    ];
-    
-    // 제외 키워드가 포함되어 있으면 false
-    if (excludeKeywords.some(keyword => text.includes(keyword))) {
-      return false;
-    }
-    
-    // AI 키워드가 포함되어 있으면 true
-    return aiKeywords.some(keyword => text.includes(keyword));
-  } catch (error) {
-    console.error("AI 관련성 검증 오류:", error);
-    return true; // 오류 시 기본적으로 포함
-  }
-}
-
 // 뉴스 API에서 AI 관련 뉴스 수집
 async function fetchNewsFromAPI() {
   const newsApiKey = process.env.NEWS_API_KEY;
@@ -114,23 +91,20 @@ async function fetchNewsFromAPI() {
   // NewsAPI에서 AI 뉴스 수집 (한국어만)
   if (newsApiKey) {
     try {
-      // 한국어 뉴스 수집 (AI + 육아 관련 키워드 포함)
-      const koResponse = await fetch(
-        `https://newsapi.org/v2/everything?q=인공지능 OR AI OR 머신러닝 OR 딥러닝 OR (AI AND 육아) OR (인공지능 AND 육아) OR (AI AND 교육) OR (인공지능 AND 교육)&language=ko&sortBy=publishedAt&pageSize=15&apiKey=${newsApiKey}`
-      );
+      const koResponse = await fetch(buildNewsApiUrl(newsApiKey));
       const koData = await koResponse.json();
 
       if (koData.articles) {
         // AI 관련성 검증 후 필터링
         const filteredArticles = [];
         for (const article of koData.articles) {
-          const isRelated = await isAIRelatedNews(
+          const relevance = evaluateAINewsRelevance(
             article.title || '',
             article.description || '',
             article.content || ''
           );
           
-          if (isRelated) {
+          if (relevance.isRelevant) {
             filteredArticles.push({
               title: article.title,
               description: article.description,
@@ -142,7 +116,9 @@ async function fetchNewsFromAPI() {
               tags: ["AI", "Technology", "한국어"],
             });
           } else {
-            console.log(`[collect-ai-news] AI 관련성 없음으로 제외: ${article.title}`);
+            console.log(
+              `[collect-ai-news] AI 관련성 부족으로 제외 (${relevance.reason}, score=${relevance.score}): ${article.title}`
+            );
           }
         }
         
@@ -157,22 +133,20 @@ async function fetchNewsFromAPI() {
   // GNews에서 AI 뉴스 수집 (한국어만)
   if (gnewsApiKey) {
     try {
-      const response = await fetch(
-        `https://gnews.io/api/v4/search?q=인공지능 OR AI OR (AI AND 육아) OR (AI AND 교육)&lang=ko&country=kr&max=10&apikey=${gnewsApiKey}`
-      );
+      const response = await fetch(buildGNewsUrl(gnewsApiKey));
       const data = await response.json();
 
       if (data.articles) {
         // AI 관련성 검증 후 필터링
         const filteredArticles = [];
         for (const article of data.articles) {
-          const isRelated = await isAIRelatedNews(
+          const relevance = evaluateAINewsRelevance(
             article.title || '',
             article.description || '',
             article.content || ''
           );
           
-          if (isRelated) {
+          if (relevance.isRelevant) {
             filteredArticles.push({
               title: article.title,
               description: article.description,
@@ -184,7 +158,9 @@ async function fetchNewsFromAPI() {
               tags: ["AI", "Technology", "한국어"],
             });
           } else {
-            console.log(`[collect-ai-news] AI 관련성 없음으로 제외: ${article.title}`);
+            console.log(
+              `[collect-ai-news] AI 관련성 부족으로 제외 (${relevance.reason}, score=${relevance.score}): ${article.title}`
+            );
           }
         }
         
@@ -196,12 +172,11 @@ async function fetchNewsFromAPI() {
     }
   }
 
-  // 일일 최대 10개로 제한
-  const maxDailyNews = 10;
-  const limitedNews = news.slice(0, maxDailyNews);
+  // 최신순 정렬 후 일일 최대 건수 제한
+  const limitedNews = limitAndSortNews(news);
   
-  if (news.length > maxDailyNews) {
-    console.log(`[collect-ai-news] 일일 최대 ${maxDailyNews}개 제한: ${news.length}개 → ${limitedNews.length}개`);
+  if (news.length > limitedNews.length) {
+    console.log(`[collect-ai-news] 일일 최대 ${limitedNews.length}개 제한: ${news.length}개 → ${limitedNews.length}개`);
   }
   
   return limitedNews;
@@ -354,6 +329,96 @@ async function classifyNewsCategory(
   }
 }
 
+async function processCollectedNews(rawNews: any[]): Promise<number> {
+  let savedCount = 0;
+
+  // 병렬 처리로 뉴스 처리 (최대 3개씩 동시 처리)
+  const BATCH_SIZE = 3;
+  const batches = [];
+  for (let i = 0; i < rawNews.length; i += BATCH_SIZE) {
+    batches.push(rawNews.slice(i, i + BATCH_SIZE));
+  }
+
+  for (const batch of batches) {
+    const batchPromises = batch.map(async (news) => {
+      try {
+        const duplicate = await isDuplicateNewsAdvanced(news);
+        if (duplicate) {
+          console.log("중복 뉴스 건너뛰기:", news.title);
+          return null;
+        }
+
+        const qualityScore = await calculateNewsQualityScore(news);
+        console.log(`[collect-ai-news] 뉴스 품질 점수: ${qualityScore}/100 - ${news.title}`);
+
+        if (qualityScore < MIN_QUALITY_SCORE) {
+          console.log(`[collect-ai-news] 품질 점수 부족으로 제외: ${qualityScore}/100 - ${news.title}`);
+          return null;
+        }
+
+        const classificationSource =
+          news.content || news.description || news.title || "";
+        const category = await classifyNewsCategory(
+          news.title,
+          classificationSource
+        );
+
+        const extractedKeywords = await extractKeywords(
+          news.title,
+          classificationSource
+        );
+        const finalTags = [...(news.tags || []), ...extractedKeywords].slice(0, 5);
+
+        const summaryInput = [
+          news.title ? `제목: ${news.title}` : "",
+          news.description ? `설명: ${news.description}` : "",
+          news.content ? `본문: ${news.content}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n");
+        const summary = await generateNewsSummary(
+          summaryInput || news.title || ""
+        );
+
+        const success = await saveAINews({
+          title: news.title,
+          description: news.description,
+          content: news.content,
+          url: news.url,
+          source: news.source,
+          published_at: news.published_at,
+          category,
+          tags: finalTags,
+          summary,
+          quality_score: qualityScore,
+        });
+
+        if (success) {
+          console.log(`[collect-ai-news] 뉴스 저장 완료 (품질: ${qualityScore}/100): ${news.title}`);
+          return true;
+        }
+
+        return false;
+      } catch (error) {
+        console.error("뉴스 처리 중 오류:", error);
+        return false;
+      }
+    });
+
+    const batchResults = await Promise.all(batchPromises);
+    const successfulCount = batchResults.filter(Boolean).length;
+    savedCount += successfulCount;
+
+    console.log(`[collect-ai-news] 배치 처리 완료: ${successfulCount}/${batch.length}개 저장`);
+
+    if (batches.indexOf(batch) < batches.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+  }
+
+  return savedCount;
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log("AI 뉴스 수집 시작...");
@@ -368,99 +433,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    let savedCount = 0;
-
-    // 병렬 처리로 뉴스 처리 (최대 3개씩 동시 처리)
-    const BATCH_SIZE = 3;
-    const batches = [];
-    for (let i = 0; i < rawNews.length; i += BATCH_SIZE) {
-      batches.push(rawNews.slice(i, i + BATCH_SIZE));
-    }
-
-    for (const batch of batches) {
-      const batchPromises = batch.map(async (news) => {
-        try {
-          // 중복 확인 (고급 감지)
-          const isDuplicate = await isDuplicateNewsAdvanced(news);
-          if (isDuplicate) {
-            console.log("중복 뉴스 건너뛰기:", news.title);
-            return null;
-          }
-
-          // 뉴스 품질 점수 계산
-          const qualityScore = await calculateNewsQualityScore(news);
-          console.log(`[collect-ai-news] 뉴스 품질 점수: ${qualityScore}/100 - ${news.title}`);
-
-          // 품질 점수가 너무 낮으면 제외 (50점 미만)
-          if (qualityScore < 50) {
-            console.log(`[collect-ai-news] 품질 점수 부족으로 제외: ${qualityScore}/100 - ${news.title}`);
-            return null;
-          }
-
-          // 카테고리 분류
-          const classificationSource =
-            news.content || news.description || news.title || "";
-          const category = await classifyNewsCategory(
-            news.title,
-            classificationSource
-          );
-
-          // 자동 키워드 추출
-          const extractedKeywords = await extractKeywords(
-            news.title,
-            classificationSource
-          );
-          const finalTags = [...(news.tags || []), ...extractedKeywords].slice(0, 5); // 최대 5개
-
-          // 요약 생성
-          const summaryInput = [
-            news.title ? `제목: ${news.title}` : "",
-            news.description ? `설명: ${news.description}` : "",
-            news.content ? `본문: ${news.content}` : "",
-          ]
-            .filter(Boolean)
-            .join("\n");
-          const summary = await generateNewsSummary(
-            summaryInput || news.title || ""
-          );
-
-          // 뉴스 저장 (품질 점수 포함)
-          const success = await saveAINews({
-            title: news.title,
-            description: news.description,
-            content: news.content,
-            url: news.url,
-            source: news.source,
-            published_at: news.published_at,
-            category: category,
-            tags: finalTags,
-            summary: summary,
-            quality_score: qualityScore, // 품질 점수 추가
-          });
-
-          if (success) {
-            console.log(`[collect-ai-news] 뉴스 저장 완료 (품질: ${qualityScore}/100): ${news.title}`);
-            return true;
-          }
-          return false;
-        } catch (error) {
-          console.error("뉴스 처리 중 오류:", error);
-          return false;
-        }
-      });
-
-      // 배치 처리 완료 대기
-      const batchResults = await Promise.all(batchPromises);
-      const successfulCount = batchResults.filter(Boolean).length;
-      savedCount += successfulCount;
-
-      console.log(`[collect-ai-news] 배치 처리 완료: ${successfulCount}/${batch.length}개 저장`);
-
-      // 배치 간 간격 조절 (API 레이트 리미팅)
-      if (batches.indexOf(batch) < batches.length - 1) {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-      }
-    }
+    const savedCount = await processCollectedNews(rawNews);
 
     console.log(`AI 뉴스 수집 완료: ${savedCount}개 저장됨`);
 
@@ -499,56 +472,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      let savedCount = 0;
-
-      for (const news of rawNews) {
-        try {
-          const duplicate = await isDuplicateNews(news.url);
-          if (duplicate) {
-            console.log("중복 뉴스 건너뛰기:", news.title);
-            continue;
-          }
-
-          const classificationSource =
-            news.content || news.description || news.title || "";
-          const category = await classifyNewsCategory(
-            news.title,
-            classificationSource
-          );
-
-          const summaryInput = [
-            news.title ? `제목: ${news.title}` : "",
-            news.description ? `설명: ${news.description}` : "",
-            news.content ? `본문: ${news.content}` : "",
-          ]
-            .filter(Boolean)
-            .join("\n");
-          const summary = await generateNewsSummary(
-            summaryInput || news.title || ""
-          );
-
-          const success = await saveAINews({
-            title: news.title,
-            description: news.description,
-            content: news.content,
-            url: news.url,
-            source: news.source,
-            published_at: news.published_at,
-            category,
-            tags: news.tags,
-            summary,
-          });
-
-          if (success) {
-            savedCount++;
-            console.log("뉴스 저장 완료:", news.title);
-          }
-
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        } catch (error) {
-          console.error("뉴스 처리 중 오류:", error);
-        }
-      }
+      const savedCount = await processCollectedNews(rawNews);
 
       console.log(`[collect-ai-news][GET] 수집 완료: ${savedCount}개 저장됨`);
       return NextResponse.json({
