@@ -50,6 +50,10 @@ const AI_KEYWORDS = [
   "로봇",
 ];
 
+const isDryRun = ["1", "true", "TRUE", "True"].includes(
+  String(process.env.DRY_RUN || "").trim()
+);
+
 // 환경 변수 확인
 const requiredEnvVars = [
   "OPENAI_API_KEY",
@@ -421,6 +425,11 @@ async function isDuplicateNews(url) {
 
 // 뉴스 저장
 async function saveAINews(news) {
+  if (isDryRun) {
+    console.log(`🔎 DRY RUN: save skipped for "${news.title}"`);
+    return true;
+  }
+
   try {
     const { error } = await supabase.from("ai_news").insert([news]);
 
