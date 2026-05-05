@@ -57,7 +57,7 @@ jobs:
           GNEWS_API_KEY: ${{ secrets.GNEWS_API_KEY }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          DRY_RUN: ${{ inputs.run_dry_run }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.run_dry_run == true || false }}
         run: |
           set -euo pipefail
           echo "🚀 AI 뉴스 수집 스크립트 실행 시작..."
