@@ -1,4 +1,6 @@
 import "@testing-library/jest-dom";
+import React from "react";
+import { vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import Button from "./Button";
 
@@ -11,17 +13,17 @@ describe("Button", () => {
   it("applies primary variant by default", () => {
     render(<Button>Primary</Button>);
     const btn = screen.getByText("Primary");
-    expect(btn).toHaveClass("bg-green-500");
+    expect(btn).toHaveClass("btn-primary");
   });
 
   it("applies secondary variant", () => {
     render(<Button variant="secondary">Secondary</Button>);
     const btn = screen.getByText("Secondary");
-    expect(btn).toHaveClass("bg-yellow-400");
+    expect(btn).toHaveClass("btn-secondary");
   });
 
   it("calls onClick when clicked", () => {
-    const handleClick = jest.fn();
+    const handleClick = vi.fn();
     render(<Button onClick={handleClick}>Click</Button>);
     fireEvent.click(screen.getByText("Click"));
     expect(handleClick).toHaveBeenCalled();
