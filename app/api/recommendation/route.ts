@@ -1,10 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from "next/headers";
+import { apiError } from "@/app/utils/apiError";
+
+type RecommendationBody = {
+  analysis_id: string | null;
+  date: string;
+  content: string;
+  ingredients?: string | string[] | null;
+  status?: string;
+};
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-  const { analysis_id, date, content, status, ingredients } = await req.json();
+  const {
+    analysis_id,
+    date,
+    content,
+    status,
+    ingredients,
+  } = (await req.json()) as RecommendationBody;
 
   // 인증된 사용자 정보 가져오기
   const {
@@ -13,10 +27,12 @@ export async function POST(req: NextRequest) {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return apiError({
+      error: "Unauthorized",
+      userMessage: "로그인이 필요합니다.",
+      status: 401,
+    });
   }
-
-  console.log("user", user);
 
   const { data, error } = await supabase
     .from("recommendations")
@@ -35,7 +51,10 @@ export async function POST(req: NextRequest) {
     .select();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError({
+      error,
+      userMessage: "추천 데이터 저장에 실패했습니다.",
+    });
   }
   return NextResponse.json({ data }, { status: 201 });
 }
@@ -53,7 +72,10 @@ export async function GET(req: NextRequest) {
     ({ data, error } = await supabase.rpc("recommendation_stats"));
   }
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return apiError({
+      error,
+      userMessage: "추천 통계 조회에 실패했습니다.",
+    });
   }
   return NextResponse.json({ data });
 }

@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       result: chat2.choices[0].message.content || "",
     });
-  } catch (error: any) {
+  } catch (error) {
     return apiError({
       error,
       userMessage:

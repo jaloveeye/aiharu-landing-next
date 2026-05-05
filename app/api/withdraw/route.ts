@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from "next/headers";
+import { apiError } from "@/app/utils/apiError";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,22 +8,23 @@ export async function POST(request: NextRequest) {
 
     // 필수 필드 검증
     if (!email) {
-      return NextResponse.json(
-        { error: "이메일 주소는 필수입니다." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Missing email",
+        userMessage: "이메일 주소는 필수입니다.",
+        status: 400,
+      });
     }
 
     // 이메일 형식 검증
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "올바른 이메일 형식이 아닙니다." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Invalid email format",
+        userMessage: "올바른 이메일 형식이 아닙니다.",
+        status: 400,
+      });
     }
 
-    const cookieStore = cookies();
     const supabase = await createClient();
 
     // 회원 존재 여부 확인
@@ -34,10 +35,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: "해당 이메일로 가입된 회원을 찾을 수 없습니다." },
-        { status: 404 }
-      );
+      return apiError({
+        error: "User not found",
+        userMessage: "해당 이메일로 가입된 회원을 찾을 수 없습니다.",
+        status: 404,
+      });
     }
 
     // 탈퇴 요청 기록
@@ -52,11 +54,10 @@ export async function POST(request: NextRequest) {
       });
 
     if (withdrawError) {
-      console.error("탈퇴 요청 기록 실패:", withdrawError);
-      return NextResponse.json(
-        { error: "탈퇴 요청 처리 중 오류가 발생했습니다." },
-        { status: 500 }
-      );
+      return apiError({
+        error: withdrawError,
+        userMessage: "탈퇴 요청 처리 중 오류가 발생했습니다.",
+      });
     }
 
     // 회원 상태를 탈퇴 대기로 변경
@@ -81,14 +82,13 @@ export async function POST(request: NextRequest) {
       message: "회원 탈퇴 요청이 성공적으로 접수되었습니다.",
       withdrawDate: new Date(
         Date.now() + 30 * 24 * 60 * 60 * 1000
-      ).toISOString(), // 30일 후
+      ).toISOString(),
     });
   } catch (error) {
-    console.error("회원 탈퇴 요청 처리 오류:", error);
-    return NextResponse.json(
-      { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    });
   }
 }
 
@@ -99,13 +99,13 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get("email");
 
     if (!email) {
-      return NextResponse.json(
-        { error: "이메일 파라미터가 필요합니다." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Missing email query",
+        userMessage: "이메일 파라미터가 필요합니다.",
+        status: 400,
+      });
     }
 
-    const cookieStore = cookies();
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -117,27 +117,27 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("탈퇴 요청 조회 실패:", error);
-      return NextResponse.json(
-        { error: "탈퇴 요청 조회 중 오류가 발생했습니다." },
-        { status: 500 }
-      );
+      return apiError({
+        error,
+        userMessage: "탈퇴 요청 조회 중 오류가 발생했습니다.",
+      });
     }
 
     if (!data || data.length === 0) {
-      return NextResponse.json(
-        { error: "해당 이메일의 탈퇴 요청을 찾을 수 없습니다." },
-        { status: 404 }
-      );
+      return apiError({
+        error: "No request found",
+        userMessage: "해당 이메일의 탈퇴 요청을 찾을 수 없습니다.",
+        status: 404,
+      });
     }
 
     return NextResponse.json({
       withdrawRequest: data[0],
     });
   } catch (error) {
-    console.error("탈퇴 요청 조회 오류:", error);
-    return NextResponse.json(
-      { error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+    });
   }
 }

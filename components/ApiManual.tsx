@@ -129,7 +129,7 @@ export default function ApiManual() {
                 <div>
                   <p className="font-semibold mb-2" style={{ color: 'var(--color-on-background)' }}>필수 파라미터:</p>
                   <ul className="list-disc list-inside space-y-1 ml-4" style={{ color: 'var(--color-on-surface-variant)' }}>
-                    <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>theme</code>: 모험 테마 (예: "우주 탐험", "해적 모험")</li>
+                    <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>theme</code>: 모험 테마 (예: &quot;우주 탐험&quot;, &quot;해적 모험&quot;)</li>
                     <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>childAge</code>: 아이 나이 (3-15세 권장)</li>
                     <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>duration</code>: 모험 기간 (일수, 2-7일 권장)</li>
                   </ul>
@@ -197,7 +197,7 @@ export default function ApiManual() {
                 <div>
                   <p className="font-semibold mb-2" style={{ color: 'var(--color-on-background)' }}>필수 파라미터:</p>
                   <ul className="list-disc list-inside space-y-1 ml-4" style={{ color: 'var(--color-on-surface-variant)' }}>
-                    <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>theme</code>: 테마 (예: "우주 탐험", "해적 모험")</li>
+                    <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>theme</code>: 테마 (예: &quot;우주 탐험&quot;, &quot;해적 모험&quot;)</li>
                     <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>childAge</code>: 아이 나이 (3-15세 권장)</li>
                     <li><code className="px-1 py-0.5 rounded" style={{ backgroundColor: 'var(--color-background)' }}>type</code>: 문제 유형 (riddle, cipher, puzzle, math)</li>
                   </ul>
@@ -336,4 +336,3 @@ def generate_adventure():
     </div>
   );
 }
-

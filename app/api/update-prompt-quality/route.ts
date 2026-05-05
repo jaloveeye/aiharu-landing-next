@@ -1,12 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
+import { apiError } from "@/app/utils/apiError";
+
+type UpdatePromptQualityBody = {
+  promptId?: string;
+  qualityMetrics?: unknown;
+  qualityGrade?: string;
+  qualitySuggestions?: string;
+};
 
 export async function POST(request: NextRequest) {
   try {
-    const { promptId, qualityMetrics, qualityGrade, qualitySuggestions } = await request.json();
+    const body = (await request.json()) as UpdatePromptQualityBody;
+    const { promptId, qualityMetrics, qualityGrade, qualitySuggestions } = body;
 
     if (!promptId || !qualityMetrics) {
-      return NextResponse.json({ error: '필수 파라미터가 누락되었습니다.' }, { status: 400 });
+      return apiError({
+        error: "Missing required fields: promptId and qualityMetrics",
+        userMessage: "필수 파라미터가 누락되었습니다.",
+        status: 400,
+      });
     }
 
     const supabase = await createClient();
@@ -22,8 +35,10 @@ export async function POST(request: NextRequest) {
       .eq('id', promptId);
 
     if (error) {
-      console.error('Error updating prompt quality:', error);
-      return NextResponse.json({ error: '품질 정보 업데이트 실패' }, { status: 500 });
+      return apiError({
+        error,
+        userMessage: "품질 정보 업데이트에 실패했습니다.",
+      });
     }
 
     return NextResponse.json({
@@ -32,7 +47,9 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in update prompt quality:', error);
-    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
+    return apiError({
+      error,
+      userMessage: "품질 정보 처리 중 서버 오류가 발생했습니다.",
+    });
   }
 }

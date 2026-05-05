@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import Alert from "@/components/ui/Alert";
 
 export default function VisionTestPage() {
@@ -55,8 +56,10 @@ export default function VisionTestPage() {
       } else {
         setError(data.error || "분석에 실패했습니다.");
       }
-    } catch (e: any) {
-      setError(e.message || "분석에 실패했습니다.");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : "분석에 실패했습니다.";
+      setError(message);
     }
     setLoading(false);
   };
@@ -75,9 +78,12 @@ export default function VisionTestPage() {
           style={{ background: "#f9fafb" }}
         />
         {imagePreview && (
-          <img
+          <Image
             src={imagePreview}
             alt="업로드된 식단 사진 미리보기"
+            width={128}
+            height={128}
+            unoptimized
             className="w-32 h-32 object-cover rounded border mt-2 mx-auto"
           />
         )}

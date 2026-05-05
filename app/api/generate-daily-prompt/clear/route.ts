@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
+import { apiError } from "@/app/utils/apiError";
 
 export async function DELETE(request: NextRequest) {
   try {
@@ -14,11 +15,11 @@ export async function DELETE(request: NextRequest) {
       .lte('created_at', `${today}T23:59:59`);
 
     if (error) {
-      console.error('Error deleting today\'s prompt result:', error);
-      return NextResponse.json(
-        { error: '프롬프트 결과 삭제에 실패했습니다.' },
-        { status: 500 }
-      );
+      return apiError({
+        error,
+        userMessage: "프롬프트 결과 삭제에 실패했습니다.",
+        status: 500,
+      });
     }
 
     return NextResponse.json({
@@ -27,10 +28,10 @@ export async function DELETE(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Clear prompt result error:', error);
-    return NextResponse.json(
-      { error: '프롬프트 결과 삭제 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "프롬프트 결과 삭제 중 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }

@@ -2,6 +2,7 @@ import React from "react";
 import Button from "@/components/ui/Button";
 import Alert from "@/components/ui/Alert";
 import Spinner from "@/components/ui/Spinner";
+import Image from "next/image";
 import { useMealAnalysisForm } from "@/app/hooks/useMealAnalysisForm";
 import { useRouter } from "next/navigation";
 import NutritionChart from "@/components/ui/NutritionChart";
@@ -98,9 +99,12 @@ export default function MealAnalysisForm({
               <Alert variant="error">{form.imageError}</Alert>
             )}
             {form.imagePreview && (
-              <img
+              <Image
                 src={form.imagePreview}
                 alt="업로드된 식단 사진 미리보기"
+                width={128}
+                height={128}
+                unoptimized
                 className="w-32 h-32 object-cover rounded border mt-2 mx-auto"
               />
             )}

@@ -66,15 +66,15 @@ export default function KimappaPage() {
               <div className="space-y-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                 <p className="text-lg">
                   <strong style={{ color: 'var(--color-on-background)' }}>김아빠</strong>는 아빠와
-                  아이의 <strong style={{ color: 'var(--color-on-background)' }}>'어색한 5분'</strong>
+                  아이의 <strong style={{ color: 'var(--color-on-background)' }}>&apos;어색한 5분&apos;</strong>
                   을{" "}
-                  <strong style={{ color: 'var(--color-primary)' }}>'기다려지는 5분'</strong>
+                  <strong style={{ color: 'var(--color-primary)' }}>&apos;기다려지는 5분&apos;</strong>
                   으로 바꾸는 관계 개선 플랫폼입니다.
                 </p>
                 <p>
-                  김아빠는 아빠를 <strong style={{ color: 'var(--color-on-background)' }}>'비밀 요원'</strong>으로 만들어 아이와
+                  김아빠는 아빠를 <strong style={{ color: 'var(--color-on-background)' }}>&apos;비밀 요원&apos;</strong>으로 만들어 아이와
                   함께 세상을 구하는 모험을 떠나게 합니다. 우리는 과제를 주는
-                  서비스가 아닙니다. <strong style={{ color: 'var(--color-on-background)' }}>'함께한 시간'</strong>이라는 추억을
+                  서비스가 아닙니다. <strong style={{ color: 'var(--color-on-background)' }}>&apos;함께한 시간&apos;</strong>이라는 추억을
                   만들어주는 서비스입니다.
                 </p>
                 <p>
@@ -112,7 +112,7 @@ export default function KimappaPage() {
                   비밀 미션 부여
                 </h3>
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  아빠에게 '육아'라는 짐 대신 '비밀 미션'을 부여합니다. 역할
+                  아빠에게 &apos;육아&apos;라는 짐 대신 &apos;비밀 미션&apos;을 부여합니다. 역할
                   놀이를 통해 어색함을 자연스럽게 해소합니다.
                 </p>
               </div>
@@ -419,7 +419,7 @@ export default function KimappaPage() {
                 김아빠는 과제를 주는 서비스가 아닙니다
               </p>
               <p className="text-lg">
-                <strong>'함께한 시간'</strong>이라는 추억을 만들어주는
+                <strong>&apos;함께한 시간&apos;</strong>이라는 추억을 만들어주는
                 서비스입니다
               </p>
             </div>
@@ -448,7 +448,7 @@ export default function KimappaPage() {
                 </h3>
                 <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                   앱을 처음 실행하면 계정을 생성할 수 있습니다. 가족 구성원을 초대하려면 
-                  '가족 관리' 메뉴에서 QR 코드나 초대 코드를 생성하여 공유하세요.
+                  &apos;가족 관리&apos; 메뉴에서 QR 코드나 초대 코드를 생성하여 공유하세요.
                 </p>
               </div>
               <div className="p-6 border-l-4" style={{ 
@@ -461,7 +461,7 @@ export default function KimappaPage() {
                   2. 모험 만들기
                 </h3>
                 <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  '탐험대' 메뉴에서 AI로 모험을 만들거나 사전 제작된 템플릿을 선택할 수 있습니다. 
+                  &apos;탐험대&apos; 메뉴에서 AI로 모험을 만들거나 사전 제작된 템플릿을 선택할 수 있습니다. 
                   테마, 아이 나이, 기간을 선택하면 AI가 맞춤형 모험을 생성합니다.
                 </p>
               </div>
@@ -475,7 +475,7 @@ export default function KimappaPage() {
                   3. 일일 놀이 시작
                 </h3>
                 <p className="leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
-                  '놀이' 메뉴에서 매일 새로운 수수께끼 놀이를 확인할 수 있습니다. 
+                  &apos;놀이&apos; 메뉴에서 매일 새로운 수수께끼 놀이를 확인할 수 있습니다. 
                   아이가 수수께끼를 풀고 아빠에게 보여주면 함께 대화하며 모험을 이어갈 수 있습니다.
                 </p>
               </div>

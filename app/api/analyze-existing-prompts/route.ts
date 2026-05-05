@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { analyzePromptQuality, getQualityGrade, generateQualitySuggestions } from "@/app/utils/promptQualityAnalyzer";
+import { apiError } from "@/app/utils/apiError";
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,8 +15,11 @@ export async function POST(request: NextRequest) {
       .order('created_at', { ascending: false });
 
     if (fetchError) {
-      console.error('Error fetching existing prompts:', fetchError);
-      return NextResponse.json({ error: '프롬프트 조회 실패' }, { status: 500 });
+      return apiError({
+        error: fetchError,
+        userMessage: "프롬프트 조회 실패",
+        status: 500,
+      });
     }
 
     if (!existingPrompts || existingPrompts.length === 0) {
@@ -66,7 +70,7 @@ export async function POST(request: NextRequest) {
 
         if (updateError) {
           console.error(`Error updating prompt ${prompt.id}:`, updateError);
-          errors.push(`프롬프트 ${prompt.prompt_title} 업데이트 실패`);
+          errors.push(`프롬프트 ${prompt.prompt_title || "제목없음"} 업데이트 실패`);
         } else {
           analyzedCount++;
         }
@@ -76,7 +80,7 @@ export async function POST(request: NextRequest) {
 
       } catch (error) {
         console.error(`Error analyzing prompt ${prompt.id}:`, error);
-        errors.push(`프롬프트 ${prompt.prompt_title} 분석 실패`);
+        errors.push(`프롬프트 ${prompt.prompt_title || "제목없음"} 분석 실패`);
       }
     }
 
@@ -88,8 +92,11 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Error in analyze existing prompts:', error);
-    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }
 
@@ -104,8 +111,11 @@ export async function GET() {
       .is('quality_metrics', null);
 
     if (error) {
-      console.error('Error counting prompts:', error);
-      return NextResponse.json({ error: '프롬프트 개수 조회 실패' }, { status: 500 });
+      return apiError({
+        error,
+        userMessage: "프롬프트 개수 조회 실패",
+        status: 500,
+      });
     }
 
     return NextResponse.json({
@@ -113,7 +123,10 @@ export async function GET() {
     });
 
   } catch (error) {
-    console.error('Error in get pending analysis count:', error);
-    return NextResponse.json({ error: '서버 오류가 발생했습니다.' }, { status: 500 });
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }

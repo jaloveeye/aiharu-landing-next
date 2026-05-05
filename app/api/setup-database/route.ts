@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
+import { apiError } from "@/app/utils/apiError";
+import { requireEnv } from "@/app/utils/checkEnv";
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
+    requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+    requireEnv("SUPABASE_SERVICE_ROLE_KEY");
+
+    const supabaseClient = await createClient();
 
     // RLS 비활성화
-    const { error: rlsError } = await supabase.rpc("exec_sql", {
+    const { error: rlsError } = await supabaseClient.rpc("exec_sql", {
       sql: "ALTER TABLE prompt_results DISABLE ROW LEVEL SECURITY;",
     });
 
     if (rlsError) {
-      console.error("Error disabling RLS:", rlsError);
-      return NextResponse.json(
-        {
-          success: false,
-          error: "RLS 비활성화 실패",
-          details: rlsError,
-        },
-        { status: 500 }
-      );
+      return apiError({
+        error: rlsError,
+        userMessage: "RLS 비활성화 실패",
+        status: 500,
+      });
     }
 
     // 품질 분석 관련 컬럼 추가
-    console.log("품질 분석 관련 컬럼 추가 중...");
-    const { error: qualityError } = await supabase.rpc("exec_sql", {
+    const { error: qualityError } = await supabaseClient.rpc("exec_sql", {
       sql: `
         ALTER TABLE prompt_results 
         ADD COLUMN IF NOT EXISTS quality_metrics JSONB,
@@ -44,13 +44,10 @@ export async function POST(request: NextRequest) {
       message: "데이터베이스 설정 완료 - RLS 비활성화됨",
     });
   } catch (error) {
-    console.error("Error in setup-database API:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: error instanceof Error ? error.message : "서버 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }

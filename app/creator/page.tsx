@@ -97,7 +97,7 @@ export default function CreatorPage() {
                 <div className="w-48 h-48 rounded-full mx-auto mb-4 flex items-center justify-center" style={{ backgroundColor: 'var(--color-surface)' }}>
                   <span className="text-6xl">👨‍💻</span>
                 </div>
-                <p style={{ color: 'var(--color-on-surface-variant)' }}>"기술로 가족을 더 행복하게"</p>
+                <p style={{ color: 'var(--color-on-surface-variant)' }}>&quot;기술로 가족을 더 행복하게&quot;</p>
               </div>
             </div>
           </div>
@@ -149,8 +149,8 @@ export default function CreatorPage() {
                     운행 관제 방법 및 그를 수행하는 서버
                   </p>
                   <p>
-                    <strong>Good Software 인증 (TTA):</strong> "ViewCube"
-                    (2024), "M& STUDIO" (2009)
+                    <strong>Good Software 인증 (TTA):</strong> &quot;ViewCube&quot;
+                    (2024), &quot;M& STUDIO&quot; (2009)
                   </p>
                   <p>
                     <strong>오픈소스 기여:</strong> react-grid-layout,

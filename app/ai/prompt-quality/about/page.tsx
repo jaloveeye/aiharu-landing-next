@@ -107,16 +107,16 @@ export default function PromptQualityAboutPage() {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold" style={{ color: 'var(--color-primary)' }}>20점</span>
-                    <span>구체적 방법 제시 ("~하는 방법", "~의 과정" 등)</span>
+                      <span>구체적 방법 제시 (&quot;~하는 방법&quot;, &quot;~의 과정&quot; 등)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold" style={{ color: 'var(--color-primary)' }}>10점</span>
-                    <span>주의사항 포함 ("주의할 점", "주의해야 할" 등)</span>
+                      <span>주의사항 포함 (&quot;주의할 점&quot;, &quot;주의해야 할&quot; 등)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="font-bold" style={{ color: 'var(--color-primary)' }}>10점</span>
                     <span>
-                      대안/추가 고려사항 ("또는", "대신에", "추가로" 등)
+                      대안/추가 고려사항 (&quot;또는&quot;, &quot;대신에&quot;, &quot;추가로&quot; 등)
                     </span>
                   </li>
                 </ul>

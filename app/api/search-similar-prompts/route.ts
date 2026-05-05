@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../utils/supabase/server";
+import { apiError } from "@/app/utils/apiError";
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,11 +81,10 @@ export async function POST(request: NextRequest) {
       threshold,
     });
   } catch (error) {
-    console.error("유사도 검색 오류:", error);
-    return NextResponse.json(
-      { error: "검색에 실패했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "유사도 검색에 실패했습니다.",
+    });
   }
 }
 

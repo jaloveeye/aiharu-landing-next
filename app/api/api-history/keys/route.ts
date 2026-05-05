@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { createAdminClient } from "@/app/utils/supabase/admin";
 import { encrypt, decrypt } from "@/app/utils/encryption";
+import { apiError } from "@/app/utils/apiError";
+
+type ApiKeyHistoryInsert = {
+  encrypted_email: string;
+  encrypted_name: string;
+  encrypted_api_key: string;
+  created_at: string;
+  encrypted_description?: string | null;
+  user_id?: string | null;
+  anonymous_id?: string | null;
+};
 
 // API 키 발급 히스토리 저장 (인증된 사용자 및 익명 사용자 모두 저장)
 export async function POST(request: NextRequest) {
@@ -17,18 +28,20 @@ export async function POST(request: NextRequest) {
     const { email, name, description, apiKey, anonymousId } = body;
 
     if (!email || !name || !apiKey) {
-      return NextResponse.json(
-        { success: false, error: "필수 필드가 누락되었습니다." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Missing required fields",
+        userMessage: "필수 필드가 누락되었습니다.",
+        status: 400,
+      });
     }
 
     // 인증되지 않은 사용자는 anonymousId 필요
     if (!user && !anonymousId) {
-      return NextResponse.json(
-        { success: false, error: "익명 사용자 ID가 필요합니다." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Anonymous ID is required",
+        userMessage: "익명 사용자 ID가 필요합니다.",
+        status: 400,
+      });
     }
 
     // 모든 민감한 정보 암호화 (DECRYPTION_GUIDE.md 참조)
@@ -37,7 +50,7 @@ export async function POST(request: NextRequest) {
     const encryptedDescription = description ? encrypt(description) : null;
     const encryptedApiKey = encrypt(apiKey);
 
-    const insertData: any = {
+    const insertData: ApiKeyHistoryInsert = {
       encrypted_email: encryptedEmail, // 암호화된 이메일 저장
       encrypted_name: encryptedName, // 암호화된 이름 저장
       encrypted_api_key: encryptedApiKey,
@@ -100,25 +113,19 @@ export async function POST(request: NextRequest) {
         anonymous_id: insertData.anonymous_id,
       });
       console.error("전체 에러 객체:", JSON.stringify(error, null, 2));
-      return NextResponse.json(
-        {
-          success: false,
-          error: "히스토리 저장에 실패했습니다.",
-          details: error.message || String(error),
-          code: error.code,
-          hint: error.hint,
-        },
-        { status: 500 }
-      );
+      return apiError({
+        error,
+        userMessage: "히스토리 저장에 실패했습니다.",
+        status: 500,
+      });
     }
 
     return NextResponse.json({ success: true, data });
   } catch (error) {
-    console.error("API 키 히스토리 저장 오류:", error);
-    return NextResponse.json(
-      { success: false, error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+    });
   }
 }
 
@@ -142,20 +149,21 @@ export async function GET(request: NextRequest) {
     } else if (anonymousId) {
       query = query.eq("anonymous_id", anonymousId);
     } else {
-      return NextResponse.json(
-        { success: false, error: "인증이 필요하거나 익명 사용자 ID가 필요합니다." },
-        { status: 401 }
-      );
+      return apiError({
+        error: "Unauthorized",
+        userMessage: "인증이 필요하거나 익명 사용자 ID가 필요합니다.",
+        status: 401,
+      });
     }
 
     const { data, error } = await query;
 
     if (error) {
       console.error("Supabase 조회 오류:", error);
-      return NextResponse.json(
-        { success: false, error: "히스토리 조회에 실패했습니다." },
-        { status: 500 }
-      );
+      return apiError({
+        error,
+        userMessage: "히스토리 조회에 실패했습니다.",
+      });
     }
 
     // 암호화된 데이터 복호화 (DECRYPTION_GUIDE.md 참조)
@@ -195,11 +203,10 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: decryptedData });
   } catch (error) {
-    console.error("API 키 히스토리 조회 오류:", error);
-    return NextResponse.json(
-      { success: false, error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+    });
   }
 }
 
@@ -210,10 +217,11 @@ export async function DELETE(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
-      return NextResponse.json(
-        { success: false, error: "인증이 필요합니다." },
-        { status: 401 }
-      );
+      return apiError({
+        error: "Unauthorized",
+        userMessage: "인증이 필요합니다.",
+        status: 401,
+      });
     }
 
     const { searchParams } = new URL(request.url);
@@ -228,10 +236,10 @@ export async function DELETE(request: NextRequest) {
         .eq("user_id", user.id);
 
       if (error) {
-        return NextResponse.json(
-          { success: false, error: "삭제에 실패했습니다." },
-          { status: 500 }
-        );
+        return apiError({
+          error,
+          userMessage: "삭제에 실패했습니다.",
+        });
       }
     } else {
       // 전체 삭제
@@ -241,20 +249,18 @@ export async function DELETE(request: NextRequest) {
         .eq("user_id", user.id);
 
       if (error) {
-        return NextResponse.json(
-          { success: false, error: "전체 삭제에 실패했습니다." },
-          { status: 500 }
-        );
+        return apiError({
+          error,
+          userMessage: "전체 삭제에 실패했습니다.",
+        });
       }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("API 키 히스토리 삭제 오류:", error);
-    return NextResponse.json(
-      { success: false, error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+    });
   }
 }
-

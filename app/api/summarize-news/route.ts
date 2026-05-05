@@ -1,8 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import { NextRequest, NextResponse } from "next/server";
+import OpenAI from "openai";
+import { apiError } from "@/app/utils/apiError";
+import { requireEnv } from "@/app/utils/checkEnv";
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: requireEnv("OPENAI_API_KEY"),
 });
 
 export async function POST(request: NextRequest) {
@@ -13,13 +15,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: '뉴스 내용이 필요합니다.' },
         { status: 400 }
-      );
-    }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API 키가 설정되지 않았습니다.' },
-        { status: 500 }
       );
     }
 
@@ -56,10 +51,9 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('News summarization error:', error);
-    return NextResponse.json(
-      { error: '뉴스 요약 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "뉴스 요약 중 오류가 발생했습니다.",
+    });
   }
 }

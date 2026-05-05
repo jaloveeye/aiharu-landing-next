@@ -1,39 +1,63 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from "next/headers";
+import { apiError } from "@/app/utils/apiError";
+
+type DataDeletionRequest = {
+  email?: unknown;
+  dataTypes?: unknown;
+};
+
+function isValidEmail(value: unknown): value is string {
+  return typeof value === "string" && /^(?:[^\s@]+@[^\s@]+\.[^\s@]+)$/.test(value);
+}
+
+function toStringArray(value: unknown): string[] | null {
+  if (!Array.isArray(value)) return null;
+
+  const normalized = value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function parseRequestBody(body: unknown): { email: string; dataTypes: string[] } {
+  if (!body || typeof body !== "object") {
+    throw new Error("요청 형식이 올바르지 않습니다.");
+  }
+
+  const parsed = body as DataDeletionRequest;
+  const email = isValidEmail(parsed.email) ? parsed.email : null;
+  const dataTypes = toStringArray(parsed.dataTypes);
+
+  if (!email) {
+    throw new Error("email은 필수이며, 올바른 이메일 형식이어야 합니다.");
+  }
+
+  if (!dataTypes) {
+    throw new Error("삭제할 데이터를 하나 이상 문자열로 전달해 주세요.");
+  }
+
+  return { email, dataTypes };
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, dataTypes } = await request.json();
-
-    // 필수 필드 검증
-    if (!email) {
-      return NextResponse.json(
-        { error: "이메일 주소는 필수입니다." },
-        { status: 400 }
-      );
+    let email: string;
+    let dataTypes: string[];
+    try {
+      ({ email, dataTypes } = parseRequestBody(await request.json()));
+    } catch (error) {
+      return apiError({
+        error,
+        userMessage: error instanceof Error ? error.message : "요청 형식이 올바르지 않습니다.",
+        status: 400,
+      });
     }
 
-    if (!dataTypes || !Array.isArray(dataTypes) || dataTypes.length === 0) {
-      return NextResponse.json(
-        { error: "삭제할 데이터를 하나 이상 선택해 주세요." },
-        { status: 400 }
-      );
-    }
-
-    // 이메일 형식 검증
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: "올바른 이메일 형식이 아닙니다." },
-        { status: 400 }
-      );
-    }
-
-    const cookieStore = cookies();
     const supabase = await createClient();
 
-    // 회원 존재 여부 확인
     const { data: user, error: userError } = await supabase
       .from("users")
       .select("id, email")
@@ -41,13 +65,13 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (userError || !user) {
-      return NextResponse.json(
-        { error: "해당 이메일로 가입된 회원을 찾을 수 없습니다." },
-        { status: 404 }
-      );
+      return apiError({
+        error: userError ?? "USER_NOT_FOUND",
+        userMessage: "해당 이메일로 가입된 회원을 찾을 수 없습니다.",
+        status: 404,
+      });
     }
 
-    // 데이터 삭제 요청 기록
     const { error: deletionError } = await supabase
       .from("data_deletion_requests")
       .insert({
@@ -62,11 +86,10 @@ export async function POST(request: NextRequest) {
       });
 
     if (deletionError) {
-      console.error("데이터 삭제 요청 기록 실패:", deletionError);
-      return NextResponse.json(
-        { error: "데이터 삭제 요청 처리 중 오류가 발생했습니다." },
-        { status: 500 }
-      );
+      return apiError({
+        error: deletionError,
+        userMessage: "데이터 삭제 요청 처리 중 오류가 발생했습니다.",
+      });
     }
 
     // 관리자에게 알림 이메일 발송 (선택사항)
@@ -81,11 +104,10 @@ export async function POST(request: NextRequest) {
       requestedDataTypes: dataTypes,
     });
   } catch (error) {
-    console.error("데이터 삭제 요청 처리 오류:", error);
-    return NextResponse.json(
-      { error: "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    });
   }
 }
 
@@ -96,13 +118,21 @@ export async function GET(request: NextRequest) {
     const email = searchParams.get("email");
 
     if (!email) {
-      return NextResponse.json(
-        { error: "이메일 파라미터가 필요합니다." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Missing email query",
+        userMessage: "이메일 파라미터가 필요합니다.",
+        status: 400,
+      });
     }
 
-    const cookieStore = cookies();
+    if (!/^(?:[^\s@]+@[^\s@]+\.[^\s@]+)$/.test(email)) {
+      return apiError({
+        error: "Invalid email format",
+        userMessage: "올바른 이메일 형식이 아닙니다.",
+        status: 400,
+      });
+    }
+
     const supabase = await createClient();
 
     const { data, error } = await supabase
@@ -113,28 +143,27 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (error) {
-      console.error("데이터 삭제 요청 조회 실패:", error);
-      return NextResponse.json(
-        { error: "데이터 삭제 요청 조회 중 오류가 발생했습니다." },
-        { status: 500 }
-      );
+      return apiError({
+        error,
+        userMessage: "데이터 삭제 요청 조회 중 오류가 발생했습니다.",
+      });
     }
 
     if (!data || data.length === 0) {
-      return NextResponse.json(
-        { error: "해당 이메일의 데이터 삭제 요청을 찾을 수 없습니다." },
-        { status: 404 }
-      );
+      return apiError({
+        error: "No data deletion request",
+        userMessage: "해당 이메일의 데이터 삭제 요청을 찾을 수 없습니다.",
+        status: 404,
+      });
     }
 
     return NextResponse.json({
       deletionRequest: data[0],
     });
   } catch (error) {
-    console.error("데이터 삭제 요청 조회 오류:", error);
-    return NextResponse.json(
-      { error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+    });
   }
 }

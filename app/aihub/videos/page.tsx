@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import Card from "@/components/ui/Card";
-import { Title, Body } from "@/components/ui/Typography";
+import { Title } from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
 import Link from "next/link";
 import { useApiData } from "@/app/hooks/useApiData";
@@ -39,10 +39,13 @@ export default function AihubVideosPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl mt-6">
           {data.map((video) => (
             <Card key={video.videoId} className="flex flex-col gap-2 p-4">
-              <img
+              <Image
                 src={video.thumbnail}
                 alt={video.title}
+                width={640}
+                height={360}
                 className="rounded-lg w-full h-48 object-cover mb-2"
+                unoptimized
               />
               <div className="font-bold text-lg text-green-700 mb-1">
                 {video.title}

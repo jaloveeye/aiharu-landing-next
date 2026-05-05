@@ -5,8 +5,6 @@
  * GitHub Actions에서 실행되는 독립적인 뉴스 수집 스크립트
  */
 
-const https = require("https");
-const http = require("http");
 const {
   buildNewsApiUrl,
   buildGNewsUrl,
@@ -14,6 +12,43 @@ const {
   limitAndSortNews,
   MIN_QUALITY_SCORE,
 } = require("../lib/ai-news-filter");
+
+const OPENAI_MODEL = "gpt-3.5-turbo";
+const NEWS_PROVIDER_CATEGORY = "AI Technology";
+const NEWS_PROCESS_DELAY_MS = 1000;
+const SIMILARITY_THRESHOLD = 0.7;
+const DEFAULT_SUMMARY = "뉴스 요약을 가져오지 못했습니다.";
+
+const TRUSTED_SOURCES = [
+  "연합뉴스",
+  "뉴시스",
+  "매일경제",
+  "한국경제",
+  "조선일보",
+  "중앙일보",
+  "동아일보",
+  "한겨레",
+  "경향신문",
+  "ZDNet Korea",
+  "IT조선",
+  "전자신문",
+  "디지털데일리",
+  "테크크런치",
+  "아이티데일리",
+];
+
+const AI_KEYWORDS = [
+  "인공지능",
+  "ai",
+  "머신러닝",
+  "딥러닝",
+  "chatgpt",
+  "gpt",
+  "claude",
+  "gemini",
+  "자동화",
+  "로봇",
+];
 
 // 환경 변수 확인
 const requiredEnvVars = [
@@ -46,116 +81,132 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+function getErrorMessage(error) {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return JSON.stringify(error);
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function normalizeArticleSource(article) {
+  return article?.source && typeof article.source === "object"
+    ? article.source.name || "Unknown"
+    : "Unknown";
+}
+
+function toNewsItem(article, category) {
+  return {
+    title: article.title || "",
+    description: article.description || "",
+    content: article.content || "",
+    url: article.url || "",
+    source: normalizeArticleSource(article),
+    published_at: article.publishedAt,
+    category,
+    tags: ["AI", "Technology", "한국어"],
+  };
+}
+
+function collectRelevantNews(articles, providerName) {
+  const filtered = [];
+
+  for (const article of articles || []) {
+    const relevance = evaluateAINewsRelevance(
+      article.title || "",
+      article.description || "",
+      article.content || ""
+    );
+
+    if (relevance.isRelevant) {
+      filtered.push(toNewsItem(article, NEWS_PROVIDER_CATEGORY));
+    } else {
+      console.log(
+        `⏭️  AI 관련성 부족으로 제외 (${providerName}: ${relevance.reason}, score=${relevance.score}): ${article.title}`
+      );
+    }
+  }
+
+  return { filtered, total: Array.isArray(articles) ? articles.length : 0 };
+}
+
+async function fetchNewsFromProvider({ providerName, apiKey, buildUrl }) {
+  if (!apiKey) {
+    return [];
+  }
+
+  try {
+    const response = await fetch(buildUrl(apiKey));
+    if (!response.ok) {
+      const message = await response.text();
+      throw new Error(`${providerName} 응답 오류 (${response.status}): ${message}`);
+    }
+
+    const data = await response.json();
+    const { filtered, total } = collectRelevantNews(
+      data?.articles || [],
+      providerName
+    );
+    console.log(
+      `✅ ${providerName}: ${total}개 중 ${filtered.length}개 AI 관련 뉴스 수집`
+    );
+    return filtered;
+  } catch (error) {
+    console.error(
+      `❌ ${providerName} 뉴스 수집 오류:`,
+      getErrorMessage(error)
+    );
+    return [];
+  }
+}
+
 // 뉴스 API에서 AI 관련 뉴스 수집
 async function fetchNewsFromAPI() {
-  const newsApiKey = process.env.NEWS_API_KEY;
-  const gnewsApiKey = process.env.GNEWS_API_KEY;
-  const news = [];
+  const providers = [
+    { providerName: "NewsAPI", apiKey: process.env.NEWS_API_KEY, buildUrl: buildNewsApiUrl },
+    { providerName: "GNews", apiKey: process.env.GNEWS_API_KEY, buildUrl: buildGNewsUrl },
+  ];
 
-  if (!newsApiKey && !gnewsApiKey) {
-    console.warn(
-      "⚠️  NEWS_API_KEY/GNEWS_API_KEY 모두 누락: 외부 뉴스 수집 불가"
-    );
-    return news;
+  const allNews = [];
+
+  if (!providers.some(({ apiKey }) => apiKey)) {
+    console.warn("⚠️  NEWS_API_KEY/GNEWS_API_KEY 모두 누락: 외부 뉴스 수집 불가");
+    return allNews;
   }
 
-  // NewsAPI에서 AI 뉴스 수집 (한국어만)
-  if (newsApiKey) {
-    try {
-      console.log("📰 NewsAPI에서 한국어 뉴스 수집 중...");
-      const koResponse = await fetch(buildNewsApiUrl(newsApiKey));
-      const koData = await koResponse.json();
-
-      if (koData.articles) {
-        // AI 관련성 검증 후 필터링
-        const filteredArticles = [];
-        for (const article of koData.articles) {
-          const relevance = evaluateAINewsRelevance(
-            article.title || '',
-            article.description || '',
-            article.content || ''
-          );
-          
-          if (relevance.isRelevant) {
-            filteredArticles.push({
-              title: article.title,
-              description: article.description,
-              content: article.content,
-              url: article.url,
-              source: article.source.name,
-              published_at: article.publishedAt,
-              category: "AI Technology",
-              tags: ["AI", "Technology", "한국어"],
-            });
-          } else {
-            console.log(`⏭️  AI 관련성 부족으로 제외 (${relevance.reason}, score=${relevance.score}): ${article.title}`);
-          }
-        }
-        
-        news.push(...filteredArticles);
-        console.log(`✅ NewsAPI: ${koData.articles.length}개 중 ${filteredArticles.length}개 AI 관련 뉴스 수집`);
-      }
-    } catch (error) {
-      console.error("❌ NewsAPI 뉴스 수집 오류:", error.message);
-    }
-  }
-
-  // GNews에서 AI 뉴스 수집 (한국어만)
-  if (gnewsApiKey) {
-    try {
-      console.log("📰 GNews에서 뉴스 수집 중...");
-      const response = await fetch(buildGNewsUrl(gnewsApiKey));
-      const data = await response.json();
-
-      if (data.articles) {
-        // AI 관련성 검증 후 필터링
-        const filteredArticles = [];
-        for (const article of data.articles) {
-          const relevance = evaluateAINewsRelevance(
-            article.title || '',
-            article.description || '',
-            article.content || ''
-          );
-          
-          if (relevance.isRelevant) {
-            filteredArticles.push({
-              title: article.title,
-              description: article.description,
-              content: article.content,
-              url: article.url,
-              source: article.source.name,
-              published_at: article.publishedAt,
-              category: "AI Technology",
-              tags: ["AI", "Technology", "한국어"],
-            });
-          } else {
-            console.log(`⏭️  AI 관련성 부족으로 제외 (${relevance.reason}, score=${relevance.score}): ${article.title}`);
-          }
-        }
-        
-        news.push(...filteredArticles);
-        console.log(`✅ GNews: ${data.articles.length}개 중 ${filteredArticles.length}개 AI 관련 뉴스 수집`);
-      }
-    } catch (error) {
-      console.error("❌ GNews 뉴스 수집 오류:", error.message);
-    }
+  for (const provider of providers) {
+    allNews.push(...(await fetchNewsFromProvider(provider)));
   }
 
   // 최신순 정렬 후 일일 최대 건수 제한
-  const limitedNews = limitAndSortNews(news);
+  const limitedNews = limitAndSortNews(allNews);
   
-  if (news.length > limitedNews.length) {
-    console.log(`📊 일일 최대 ${limitedNews.length}개 제한: ${news.length}개 → ${limitedNews.length}개`);
+  if (allNews.length > limitedNews.length) {
+    console.log(
+      `📊 일일 최대 ${limitedNews.length}개 제한: ${allNews.length}개 → ${limitedNews.length}개`
+    );
   }
   
   return limitedNews;
 }
 
+async function runChatCompletion({ messages, maxTokens, temperature }) {
+  const completion = await openai.chat.completions.create({
+    model: OPENAI_MODEL,
+    messages,
+    max_tokens: maxTokens,
+    temperature,
+  });
+
+  return completion.choices[0]?.message?.content || "";
+}
+
 // 뉴스 내용 요약 생성
 async function generateNewsSummary(content) {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const summary = await runChatCompletion({
       messages: [
         {
           role: "system",
@@ -167,33 +218,33 @@ async function generateNewsSummary(content) {
           content: content.slice(0, 3000),
         },
       ],
-      max_tokens: 220,
+      maxTokens: 220,
       temperature: 0.7,
     });
 
-    return (
-      completion.choices[0]?.message?.content || content.slice(0, 200) + "..."
-    );
+    return summary || content.slice(0, 200) + "...";
   } catch (error) {
-    console.error("❌ 요약 생성 오류:", error.message);
-    return content.slice(0, 200) + "...";
+    console.error("❌ 요약 생성 오류:", getErrorMessage(error));
+    return DEFAULT_SUMMARY;
   }
 }
 
 // 제목 유사도 계산 함수 (간단한 Jaccard 유사도)
 function calculateTitleSimilarity(title1, title2) {
-  const normalize = (text) => 
-    text.toLowerCase()
-        .replace(/[^\w\s가-힣]/g, '') // 특수문자 제거
-        .replace(/\s+/g, ' ') // 공백 정규화
-        .trim();
-  
-  const words1 = new Set(normalize(title1).split(' '));
-  const words2 = new Set(normalize(title2).split(' '));
-  
-  const intersection = new Set([...words1].filter(x => words2.has(x)));
+  const normalize = (text) =>
+    text
+      .toLowerCase()
+      .replace(/[^\w\s가-힣]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const words1 = new Set(normalize(title1).split(" ").filter(Boolean));
+  const words2 = new Set(normalize(title2).split(" ").filter(Boolean));
   const union = new Set([...words1, ...words2]);
-  
+
+  if (union.size === 0) return 0;
+
+  const intersection = new Set([...words1].filter((item) => words2.has(item)));
   return intersection.size / union.size;
 }
 
@@ -207,17 +258,16 @@ async function isDuplicateNewsAdvanced(news) {
     // 최근 7일간의 뉴스에서 유사한 제목 찾기
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
+
     const { data: recentNews, error } = await supabase
-      .from('ai_news')
-      .select('title')
-      .gte('published_at', sevenDaysAgo.toISOString())
+      .from("ai_news")
+      .select("title")
+      .gte("published_at", sevenDaysAgo.toISOString())
       .limit(100);
-    
-    if (error || !recentNews) return false;
-    
-    // 유사도 0.7 이상이면 중복으로 판단
-    const SIMILARITY_THRESHOLD = 0.7;
+
+    if (error || !recentNews || recentNews.length === 0) return false;
+
+    // 유사도 임계값 이상이면 중복으로 판단
     for (const existingNews of recentNews) {
       const similarity = calculateTitleSimilarity(news.title, existingNews.title);
       if (similarity >= SIMILARITY_THRESHOLD) {
@@ -228,7 +278,7 @@ async function isDuplicateNewsAdvanced(news) {
     
     return false;
   } catch (error) {
-    console.error("❌ 중복 뉴스 감지 오류:", error.message);
+    console.error("❌ 중복 뉴스 감지 오류:", getErrorMessage(error));
     return false;
   }
 }
@@ -260,21 +310,20 @@ async function calculateNewsQualityScore(news) {
     }
     
     // 4. 소스 신뢰도 점수
-    const trustedSources = [
-      '연합뉴스', '뉴시스', '매일경제', '한국경제', '조선일보', '중앙일보', '동아일보', '한겨레', '경향신문',
-      'ZDNet Korea', 'IT조선', '전자신문', '디지털데일리', '테크크런치', '아이티데일리'
-    ];
-    const sourceName = news.source?.toLowerCase() || '';
-    if (trustedSources.some(source => sourceName.includes(source.toLowerCase()))) {
+    const sourceName = news.source?.toLowerCase() || "";
+    if (TRUSTED_SOURCES.some((source) => sourceName.includes(source.toLowerCase()))) {
       score += 20;
-    } else if (sourceName.includes('뉴스') || sourceName.includes('데일리') || sourceName.includes('타임스')) {
+    } else if (
+      sourceName.includes("뉴스") ||
+      sourceName.includes("데일리") ||
+      sourceName.includes("타임스")
+    ) {
       score += 10;
     }
     
     // 5. AI 관련성 점수 (키워드 밀도)
-    const text = `${news.title} ${news.description || ''} ${news.content || ''}`.toLowerCase();
-    const aiKeywords = ['인공지능', 'ai', '머신러닝', '딥러닝', 'chatgpt', 'gpt', 'claude', 'gemini', '자동화', '로봇'];
-    const keywordCount = aiKeywords.filter(keyword => text.includes(keyword)).length;
+    const text = `${news.title} ${news.description || ""} ${news.content || ""}`.toLowerCase();
+    const keywordCount = AI_KEYWORDS.filter((keyword) => text.includes(keyword)).length;
     score += Math.min(keywordCount * 5, 20); // 최대 20점
     
     // 6. 최신성 점수 (24시간 이내면 높은 점수)
@@ -289,34 +338,36 @@ async function calculateNewsQualityScore(news) {
     
     return Math.min(score, 100); // 최대 100점
   } catch (error) {
-    console.error("❌ 뉴스 품질 점수 계산 오류:", error.message);
-    return 50; // 기본 점수
+    console.error("❌ 뉴스 품질 점수 계산 오류:", getErrorMessage(error));
+    return 50;
   }
 }
 
 // 자동 키워드 추출
 async function extractKeywords(title, content) {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const keywords = await runChatCompletion({
       messages: [
         {
           role: "system",
-          content: "다음 뉴스에서 핵심 키워드를 3-5개 추출해주세요. AI, 기술, 회사명, 제품명 등을 우선적으로 포함하세요. 답변은 쉼표로 구분된 키워드만 작성하세요.",
+          content:
+            "다음 뉴스에서 핵심 키워드를 3-5개 추출해주세요. AI, 기술, 회사명, 제품명 등을 우선적으로 포함하세요. 답변은 쉼표로 구분된 키워드만 작성하세요.",
         },
         {
           role: "user",
           content: `제목: ${title}\n내용: ${content.slice(0, 1000)}`,
         },
       ],
-      max_tokens: 100,
+      maxTokens: 100,
       temperature: 0.3,
     });
 
-    const keywords = completion.choices[0]?.message?.content?.trim() || "";
-    return keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
+    return keywords
+      .split(",")
+      .map((keyword) => keyword.trim())
+      .filter((keyword) => keyword.length > 0);
   } catch (error) {
-    console.error("❌ 키워드 추출 오류:", error.message);
+    console.error("❌ 키워드 추출 오류:", getErrorMessage(error));
     return [];
   }
 }
@@ -324,27 +375,26 @@ async function extractKeywords(title, content) {
 // 뉴스 카테고리 분류
 async function classifyNewsCategory(title, content) {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content:
-            "다음 카테고리 중 하나로 뉴스를 분류해주세요: AI Technology, AI Research, AI Business, AI Ethics, AI Tools, AI Parenting. 육아, 교육, 부모 관련 내용이 있으면 'AI Parenting'으로 분류하세요. 답변은 카테고리명만 작성하세요.",
-        },
-        {
-          role: "user",
-          content: `제목: ${title}\n내용: ${content.slice(0, 500)}`,
-        },
-      ],
-      max_tokens: 50,
-      temperature: 0.3,
-    });
-
-    return completion.choices[0]?.message?.content?.trim() || "AI Technology";
+    return (
+      (await runChatCompletion({
+        messages: [
+          {
+            role: "system",
+            content:
+              "다음 카테고리 중 하나로 뉴스를 분류해주세요: AI Technology, AI Research, AI Business, AI Ethics, AI Tools, AI Parenting. 육아, 교육, 부모 관련 내용이 있으면 'AI Parenting'으로 분류하세요. 답변은 카테고리명만 작성하세요.",
+          },
+          {
+            role: "user",
+            content: `제목: ${title}\n내용: ${content.slice(0, 500)}`,
+          },
+        ],
+        maxTokens: 50,
+        temperature: 0.3,
+      })) || NEWS_PROVIDER_CATEGORY
+    );
   } catch (error) {
-    console.error("❌ 카테고리 분류 오류:", error.message);
-    return "AI Technology";
+    console.error("❌ 카테고리 분류 오류:", getErrorMessage(error));
+    return NEWS_PROVIDER_CATEGORY;
   }
 }
 
@@ -358,13 +408,13 @@ async function isDuplicateNews(url) {
       .limit(1);
 
     if (error) {
-      console.error("❌ 중복 확인 오류:", error.message);
+      console.error("❌ 중복 확인 오류:", getErrorMessage(error));
       return false;
     }
 
     return data && data.length > 0;
   } catch (error) {
-    console.error("❌ 중복 확인 오류:", error.message);
+    console.error("❌ 중복 확인 오류:", getErrorMessage(error));
     return false;
   }
 }
@@ -375,13 +425,13 @@ async function saveAINews(news) {
     const { error } = await supabase.from("ai_news").insert([news]);
 
     if (error) {
-      console.error("❌ 뉴스 저장 오류:", error.message);
+      console.error("❌ 뉴스 저장 오류:", getErrorMessage(error));
       return false;
     }
 
     return true;
   } catch (error) {
-    console.error("❌ 뉴스 저장 오류:", error.message);
+    console.error("❌ 뉴스 저장 오류:", getErrorMessage(error));
     return false;
   }
 }
@@ -479,9 +529,9 @@ async function main() {
         }
 
         // API 호출 간격 조절
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await sleep(NEWS_PROCESS_DELAY_MS);
       } catch (error) {
-        console.error(`❌ 뉴스 처리 중 오류:`, error.message);
+        console.error(`❌ 뉴스 처리 중 오류:`, getErrorMessage(error));
       }
     }
 
@@ -494,8 +544,7 @@ async function main() {
     console.log(`🌍 UTC 시간: ${new Date().toISOString()}`);
     console.log("✅ 스크립트 정상 종료");
   } catch (error) {
-    console.error("❌ 뉴스 수집 중 치명적 오류:", error.message);
-    console.error("📋 오류 스택:", error.stack);
+    console.error("❌ 뉴스 수집 중 치명적 오류:", getErrorMessage(error));
     console.error("⏰ 오류 발생 시간:", new Date().toISOString());
     process.exit(1);
   }
@@ -504,7 +553,7 @@ async function main() {
 // 스크립트 실행
 if (require.main === module) {
   main().catch((error) => {
-    console.error("❌ 스크립트 실행 오류:", error);
+    console.error("❌ 스크립트 실행 오류:", getErrorMessage(error));
     process.exit(1);
   });
 }

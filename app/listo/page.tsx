@@ -78,8 +78,8 @@ export default function ListoPage() {
               </h2>
               <div className="space-y-6 leading-relaxed" style={{ color: 'var(--color-on-surface-variant)' }}>
                 <p className="text-lg text-center">
-                  "등교 시간은 8시, 이동 시간은 20분, 준비 시간은 10분...<br />
-                  그럼 7시 30분에 나가야 하네?"
+                  &quot;등교 시간은 8시, 이동 시간은 20분, 준비 시간은 10분...<br />
+                  그럼 7시 30분에 나가야 하네?&quot;
                 </p>
                 <p className="text-center">
                   이런 계산을 매일 반복하시나요?<br />
@@ -377,4 +377,3 @@ export default function ListoPage() {
     </div>
   );
 }
-

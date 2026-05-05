@@ -1,44 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 import { createClient } from "@/app/utils/supabase/server";
+import { apiError } from "@/app/utils/apiError";
+import { requireEnv } from "@/app/utils/checkEnv";
 import { promptTemplates } from "@/data/prompts";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+type PromptCategory = "육아" | "육아창업" | "비즈니스마케팅" | "학습교육" | "일상라이프";
+
+const categoryPromptContent: Record<PromptCategory, string> = {
+  육아: "당신은 육아 전문가입니다.",
+  육아창업: "당신은 육아창업 전문가입니다.",
+  비즈니스마케팅: "당신은 비즈니스 마케팅 전문가입니다.",
+  학습교육: "당신은 학습교육 전문가입니다.",
+  일상라이프: "당신은 일상라이프 전문가입니다.",
+};
 
 export async function POST(request: NextRequest) {
   try {
+    const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
     const supabase = await createClient();
 
-    // 각 카테고리별로 하나씩 프롬프트 생성
-    const categories = [
+    const results: Array<{
+      category: PromptCategory;
+      success: boolean;
+      data?: unknown;
+      error?: string;
+    }> = [];
+
+    for (const category of [
       "육아",
       "육아창업",
       "비즈니스마케팅",
       "학습교육",
       "일상라이프",
-    ] as const;
-
-    const results = [];
-
-    for (const category of categories) {
+    ] as const) {
       try {
-        // 해당 카테고리의 템플릿 프롬프트 가져오기
-        const template = promptTemplates.find((p) => p.category === category);
+        const template = promptTemplates.find((item) => item.category === category);
         if (!template) {
-          console.error(`Template not found for category: ${category}`);
           continue;
         }
 
-        // OpenAI API로 프롬프트 생성
         const completion = await openai.chat.completions.create({
           model: "gpt-4",
           messages: [
             {
               role: "system",
-              content:
-                "당신은 육아, 창업, 비즈니스, 학습, 일상 등 다양한 주제의 실용적인 프롬프트를 생성하는 전문가입니다. 각 카테고리에 맞는 구체적이고 실용적인 프롬프트를 생성해주세요.",
+              content: `${categoryPromptContent[category]} 아래 형식에 맞는 실용적인 프롬프트를 생성해주세요.`,
             },
             {
               role: "user",
@@ -50,18 +57,14 @@ export async function POST(request: NextRequest) {
         });
 
         const generatedContent = completion.choices[0]?.message?.content;
-
         if (!generatedContent) {
-          console.error(`No content generated for category: ${category}`);
+          results.push({ category, success: false, error: "OpenAI 응답이 비어있습니다." });
           continue;
         }
 
-        // Supabase에 저장할 데이터 준비
         const promptData = {
           prompt_id: template.id,
-          prompt_title: `${category} - ${
-            new Date().toISOString().split("T")[0]
-          }`,
+          prompt_title: `${category} - ${new Date().toISOString().split("T")[0]}`,
           prompt_content: template.prompt,
           prompt_category: category,
           prompt_difficulty: template.difficulty,
@@ -71,37 +74,28 @@ export async function POST(request: NextRequest) {
           tokens_used: completion.usage?.total_tokens || 0,
         };
 
-        // Supabase에 저장
         const { data, error } = await supabase
           .from("prompt_results")
           .insert([promptData])
           .select();
 
         if (error) {
-          console.error(
-            `Error saving to Supabase for category ${category}:`,
-            error
-          );
           results.push({
             category,
             success: false,
             error: error.message,
           });
-        } else {
-          console.log(
-            `Successfully generated and saved prompt for category: ${category}`
-          );
-          results.push({
-            category,
-            success: true,
-            data: data[0],
-          });
+          continue;
         }
 
-        // API 호출 간격 조절 (rate limiting 방지)
+        results.push({
+          category,
+          success: true,
+          data: data[0],
+        });
+
         await new Promise((resolve) => setTimeout(resolve, 1000));
       } catch (error) {
-        console.error(`Error processing category ${category}:`, error);
         results.push({
           category,
           success: false,
@@ -116,13 +110,9 @@ export async function POST(request: NextRequest) {
       results,
     });
   } catch (error) {
-    console.error("Error in generate-prompts API:", error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "프롬프트 생성에 실패했습니다.",
+    });
   }
 }

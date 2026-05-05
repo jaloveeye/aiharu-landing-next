@@ -1,19 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/app/utils/supabase/admin";
 import { decrypt } from "@/app/utils/encryption";
+import { apiError } from "@/app/utils/apiError";
+
+type SupabaseRowError = {
+  message?: string;
+};
+
+type ApiKeyHistoryRow = {
+  created_at: string;
+  user_id?: string | null;
+  encrypted_email?: string | null;
+  email?: string | null;
+};
+
+type ApiGenerationRow = {
+  created_at: string;
+  user_id?: string | null;
+  anonymous_id?: string | null;
+  type?: string | null;
+  success?: boolean | null;
+};
 
 // 관리자용 API 통계 조회 (서비스 역할 키 필요)
 export async function GET(request: NextRequest) {
   try {
     // 환경 변수 확인
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: "Supabase 환경 변수가 설정되지 않았습니다. NEXT_PUBLIC_SUPABASE_URL과 SUPABASE_SERVICE_ROLE_KEY를 확인하세요." 
-        },
-        { status: 500 }
-      );
+      return apiError({
+        error: "Missing supabase environment variables",
+        userMessage:
+          "Supabase 환경 변수가 설정되지 않았습니다. NEXT_PUBLIC_SUPABASE_URL과 SUPABASE_SERVICE_ROLE_KEY를 확인하세요.",
+        status: 500,
+      });
     }
 
     const supabase = createAdminClient();
@@ -21,8 +40,8 @@ export async function GET(request: NextRequest) {
     // 전체 기간 조회 (날짜 필터 없음)
 
     // API 키 발급 통계
-    let keyStats: any[] = [];
-    let keyError: any = null;
+    let keyStats: ApiKeyHistoryRow[] = [];
+    let keyError: SupabaseRowError | null = null;
     
     try {
       const result = await supabase
@@ -32,14 +51,15 @@ export async function GET(request: NextRequest) {
       
       keyStats = result.data || [];
       keyError = result.error;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
       // 테이블이 없거나 RLS 문제인 경우
-      if (err.message?.includes("relation") || err.message?.includes("does not exist")) {
+      if (message.includes("relation") || message.includes("does not exist")) {
         console.warn("api_key_history 테이블이 아직 생성되지 않았습니다.");
         keyStats = [];
       } else {
         console.error("API 키 통계 조회 오류:", err);
-        keyError = err;
+        keyError = err instanceof Error ? { message } : null;
       }
     }
 
@@ -48,8 +68,8 @@ export async function GET(request: NextRequest) {
     }
 
     // API 생성 통계
-    let generationStats: any[] = [];
-    let genError: any = null;
+    let generationStats: ApiGenerationRow[] = [];
+    let genError: SupabaseRowError | null = null;
     
     try {
       const result = await supabase
@@ -59,14 +79,15 @@ export async function GET(request: NextRequest) {
       
       generationStats = result.data || [];
       genError = result.error;
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "";
       // 테이블이 없거나 RLS 문제인 경우
-      if (err.message?.includes("relation") || err.message?.includes("does not exist")) {
+      if (message.includes("relation") || message.includes("does not exist")) {
         console.warn("api_generation_history 테이블이 아직 생성되지 않았습니다.");
         generationStats = [];
       } else {
         console.error("API 생성 통계 조회 오류:", err);
-        genError = err;
+        genError = err instanceof Error ? { message } : null;
       }
     }
 
@@ -232,25 +253,11 @@ export async function GET(request: NextRequest) {
       },
       emailList: emailList,
     });
-  } catch (error: any) {
-    console.error("통계 조회 오류:", error);
-    
-    // 더 자세한 에러 메시지 제공
-    let errorMessage = "서버 오류가 발생했습니다.";
-    if (error.message) {
-      errorMessage = error.message;
-    } else if (error instanceof Error) {
-      errorMessage = error.message;
-    }
-    
-    return NextResponse.json(
-      { 
-        success: false, 
-        error: errorMessage,
-        details: process.env.NODE_ENV === "development" ? error.stack : undefined
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError({
+      error,
+      userMessage: "통계 조회 중 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }
-

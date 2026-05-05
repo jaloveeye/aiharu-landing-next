@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { apiError } from "@/app/utils/apiError";
+import { requireEnv } from "@/app/utils/checkEnv";
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,6 +20,8 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
     // 카테고리별 시스템 프롬프트 설정
     const getSystemPrompt = (category: string) => {
@@ -72,10 +72,10 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('OpenAI API Error:', error);
-    return NextResponse.json(
-      { error: 'AI 응답 생성 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "AI 응답 생성 중 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }

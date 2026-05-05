@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
+import { apiError } from "@/app/utils/apiError";
 
 const API_BASE_URL = "https://connect-agent.aiharu.net";
 
@@ -14,10 +15,11 @@ export async function POST(request: NextRequest) {
     const { email, name, description } = body;
 
     if (!email || !name) {
-      return NextResponse.json(
-        { success: false, error: "이메일과 API 키 이름을 입력해주세요." },
-        { status: 400 }
-      );
+      return apiError({
+        error: "Missing email or name",
+        userMessage: "이메일과 API 키 이름을 입력해주세요.",
+        status: 400,
+      });
     }
 
     // 외부 API에 API 키 발급 요청
@@ -36,13 +38,11 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     if (!response.ok || !data.success) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: data.message || "API 키 발급에 실패했습니다." 
-        },
-        { status: response.status || 500 }
-      );
+      return apiError({
+        error: data,
+        userMessage: data.message || "API 키 발급에 실패했습니다.",
+        status: response.status || 500,
+      });
     }
 
     // 성공 시 데이터 반환
@@ -53,10 +53,9 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("API 키 발급 오류:", error);
-    return NextResponse.json(
-      { success: false, error: "서버 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "서버 오류가 발생했습니다.",
+    });
   }
 }
-

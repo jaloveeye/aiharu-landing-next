@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { analyzePromptQuality, getQualityGrade, generateQualitySuggestions } from "@/app/utils/promptQualityAnalyzer";
+import {
+  QualityMetrics,
+  analyzePromptQuality,
+  getQualityGrade,
+  generateQualitySuggestions,
+} from "@/app/utils/promptQualityAnalyzer";
+import { apiError } from "@/app/utils/apiError";
 
 export async function POST(request: NextRequest) {
   try {
-    const { promptContent, aiResult, category, tokensUsed } = await request.json();
+    const {
+      promptContent,
+      aiResult,
+      category,
+      tokensUsed,
+    }: {
+      promptContent?: string;
+      aiResult?: string;
+      category?: string;
+      tokensUsed?: number;
+    } = await request.json();
 
     if (!promptContent || !aiResult || !category) {
       return NextResponse.json(
@@ -43,16 +59,16 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error("품질 분석 오류:", error);
-    return NextResponse.json(
-      { error: "품질 분석 중 오류가 발생했습니다." },
-      { status: 500 }
-    );
+    return apiError({
+      error,
+      userMessage: "품질 분석 중 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }
 
 // 강점 분석
-function getStrengths(metrics: any): string[] {
+function getStrengths(metrics: QualityMetrics): string[] {
   const strengths: string[] = [];
   
   if (metrics.structureScore >= 80) {

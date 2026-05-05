@@ -1,19 +1,16 @@
 import { NextResponse } from "next/server";
 import { fetchTestRecipes } from "@/app/utils/supabase/test-recipes";
+import { apiError } from "@/app/utils/apiError";
 
 export async function GET() {
   try {
     const { data, count } = await fetchTestRecipes();
     return NextResponse.json({ data, count });
-  } catch (error: any) {
-    console.error("Supabase fetch error:", error);
-    return NextResponse.json(
-      {
-        error: String(error),
-        stack: error?.stack,
-        supabaseError: error?.message || error?.details || null,
-      },
-      { status: 500 }
-    );
+  } catch (error) {
+    return apiError({
+      error,
+      userMessage: "테스트 레시피 조회 중 오류가 발생했습니다.",
+      status: 500,
+    });
   }
 }

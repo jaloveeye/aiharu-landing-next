@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from "next/headers";
 import OpenAI from "openai";
 import { requireEnv } from "@/app/utils/checkEnv";
 import { apiError } from "@/app/utils/apiError";
@@ -15,6 +14,57 @@ import {
 import fetch from "node-fetch";
 
 const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
+
+type AnalyzeMealRequest = {
+  meal?: string;
+  anon_id?: string;
+  email?: string;
+  imageBase64?: string;
+  todayLocal?: string;
+};
+
+type RecommendationSource = "image" | "text";
+
+type MealAnalysisInsert = {
+  meal_text: string;
+  result: string;
+  analyzed_at: string;
+  source_type: RecommendationSource;
+  email?: string;
+  anon_id?: string;
+};
+
+type MealAnalysisRow = {
+  id: string;
+  result: string;
+  analyzed_at: string;
+  meal_text?: string | null;
+  email?: string | null;
+  source_type?: RecommendationSource;
+};
+
+type RecommendationHistoryRow = {
+  id: string;
+  category: string;
+  content: string;
+  analysis_id: string;
+  status?: string;
+};
+
+type RecommendationRow = {
+  id: string;
+  ingredients: string | null;
+};
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "Unknown error";
+  }
+}
 
 function standardizeUnit(text: string): string {
   return (
@@ -70,7 +120,7 @@ function extractMealTextFromResult(result: string): string {
 async function analyzeWithOpenAI(
   meal: string,
   imageBase64?: string
-): Promise<{ result: string; sourceType: "image" | "text" }> {
+): Promise<{ result: string; sourceType: RecommendationSource }> {
   if (imageBase64) {
     // Step 1: 사진에서 식재료와 섭취량 추출
     const systemPrompt = "당신은 식사 영양사입니다.";
@@ -106,10 +156,10 @@ async function analyzeWithOpenAI(
           sourceType: "image",
         };
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(
         "OpenAI Vision API Error (Step 1):",
-        error.response?.data || error.message
+        getErrorMessage(error)
       );
       return {
         result:
@@ -134,10 +184,10 @@ async function analyzeWithOpenAI(
         result: chat2.choices[0].message.content || "",
         sourceType: "image",
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(
         "OpenAI Nutrition API Error (Step 2):",
-        error.response?.data || error.message
+        getErrorMessage(error)
       );
       return {
         result: `⚠️ 음식 인식은 성공했으나 영양 평가 중 문제가 발생했습니다.\n인식된 식단: ${foodSummary}`,
@@ -166,26 +216,43 @@ async function analyzeWithOpenAI(
 
 export async function POST(req: NextRequest) {
   try {
-    const { meal, anon_id, email, imageBase64, todayLocal } = await req.json();
+    const body = (await req.json()) as AnalyzeMealRequest;
+    const { meal, anon_id, email, imageBase64, todayLocal } = body;
+
+    if (!meal && !imageBase64) {
+      return apiError({
+        error: "Missing meal payload",
+        userMessage: "meal 또는 imageBase64가 필요합니다.",
+        status: 400,
+      });
+    }
+
+    if (!email && !anon_id) {
+      return apiError({
+        error: "Missing identifiers",
+        userMessage: "email 또는 anon_id가 필요합니다.",
+        status: 400,
+      });
+    }
+
     const normalizedMeal = normalizeMeal(meal || "");
-    // 클라이언트에서 todayLocal(yyyy-mm-dd, 브라우저 로컬 기준)이 오면 우선 사용
     const today = todayLocal || new Date().toISOString().slice(0, 10);
     const supabase = await createClient();
 
     if (email) {
       // 회원: 매일 1회 분석 가능
-      // 오늘 분석한 적이 있으면 차단
       const { data: todayData, error: todayError } = await supabase
         .from("meal_analysis")
         .select("result, analyzed_at")
         .eq("email", email)
         .eq("analyzed_at", today)
         .limit(1);
+
       if (todayError) {
-        return NextResponse.json(
-          { error: todayError.message },
-          { status: 500 }
-        );
+        return apiError({
+          error: todayError,
+          userMessage: "회원 식단 분석 이력 조회에 실패했습니다.",
+        });
       }
       if (todayData && todayData.length > 0) {
         return NextResponse.json(
@@ -207,10 +274,12 @@ export async function POST(req: NextRequest) {
         .order("analyzed_at", { ascending: false })
         .limit(1);
       if (prevError) {
-        return NextResponse.json({ error: prevError.message }, { status: 500 });
+        return apiError({
+          error: prevError,
+          userMessage: "비회원 식단 분석 이력 조회에 실패했습니다.",
+        });
       }
       if (prevData && prevData.length > 0) {
-        // 이미 분석 이력이 있으면 마지막 분석 결과를 반환하고, 회원가입 유도 메시지 포함
         return NextResponse.json(
           {
             result: prevData[0].result,
@@ -224,23 +293,35 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 1. DB에서 기존 결과 조회 (이제 meal_text 없이 anon_id+analyzed_at 또는 email+analyzed_at 체크)
-    let existing;
+    let existing: Array<{ result: string }> | null = null;
     if (email) {
-      const { data } = await supabase
+      const { data, error: existingError } = await supabase
         .from("meal_analysis")
         .select("result")
         .eq("email", email)
         .eq("analyzed_at", today)
         .limit(1);
+
+      if (existingError) {
+        return apiError({
+          error: existingError,
+          userMessage: "회원 식단 분석 캐시 조회에 실패했습니다.",
+        });
+      }
       existing = data;
     } else {
-      const { data } = await supabase
+      const { data, error: existingError } = await supabase
         .from("meal_analysis")
         .select("result")
         .eq("anon_id", anon_id)
         .eq("analyzed_at", today)
         .limit(1);
+      if (existingError) {
+        return apiError({
+          error: existingError,
+          userMessage: "비회원 식단 분석 캐시 조회에 실패했습니다.",
+        });
+      }
       existing = data;
     }
 
@@ -248,39 +329,40 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ result: existing[0].result, cached: true });
     }
 
-    // 2. OpenAI로 분석 (이미지/텍스트)
-    const { result, sourceType } = await analyzeWithOpenAI(meal, imageBase64);
+    const { result, sourceType } = await analyzeWithOpenAI(meal || "", imageBase64);
 
     // 2-1. 분석 결과에서 추천 식단 파싱 및 자동 저장 (회원만)
     if (email) {
       const recommendation = extractRecommendationSection(result);
       if (recommendation) {
-        const ingredients =
-          extractIngredientsFromRecommendation(recommendation);
-        // 추천 식단 저장 API 호출
-        await fetch(
-          `${
-            process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"
-          }/api/recommendation`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              analysis_id: null, // 분석 결과 저장 전이므로 null
-              date: today,
-              content: recommendation,
-              ingredients: ingredients.join(","),
-              status: "pending",
-            }),
-          }
-        );
+        const ingredients = extractIngredientsFromRecommendation(recommendation);
+        try {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/recommendation`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                analysis_id: null,
+                date: today,
+                content: recommendation,
+                ingredients: ingredients.join(","),
+                status: "pending",
+              }),
+            }
+          );
+        } catch (error: unknown) {
+          console.error(
+            "추천 저장 API 호출 실패:",
+            getErrorMessage(error)
+          );
+        }
       }
     }
 
-    // 3. 결과 저장
     const mealTextToSave =
       normalizedMeal || (imageBase64 ? extractMealTextFromResult(result) : "");
-    const insertObj: any = {
+    const insertObj: MealAnalysisInsert = {
       meal_text: mealTextToSave,
       result: typeof result === "string" ? result : JSON.stringify(result),
       analyzed_at: today,
@@ -288,40 +370,51 @@ export async function POST(req: NextRequest) {
     };
     if (email) insertObj.email = email;
     if (anon_id) insertObj.anon_id = anon_id;
-    const { data, error, status } = await supabase
+
+    const {
+      data: createdRows,
+      error: insertError,
+      status: insertStatus,
+    } = await supabase
       .from("meal_analysis")
       .insert([insertObj])
-      .select();
+      .select("id, meal_text, result, analyzed_at, source_type");
 
-    if (error || !data || !data[0]) {
+    if (insertError || !createdRows || !createdRows[0]) {
       console.error(
         "Supabase insert error:",
-        error,
+        insertError,
         "status:",
-        status,
+        insertStatus,
         "data:",
-        data
+        createdRows
       );
-      return NextResponse.json({ error, status, data }, { status: 500 });
+      return apiError({
+        error: insertError || "Insert failed",
+        userMessage: "식단 분석 결과 저장에 실패했습니다.",
+      });
     }
 
+    const created = createdRows[0];
+    const analysisAnonId = insertObj.anon_id ?? email ?? "";
+
     // 추천 자동 추출 및 저장
-    await saveRecommendationsFromAnalysis({
-      id: data[0].id,
-      anon_id: insertObj.anon_id,
-      result: insertObj.result,
-      analyzed_at: insertObj.analyzed_at,
-    });
+    if (analysisAnonId) {
+      await saveRecommendationsFromAnalysis({
+        id: created.id,
+        anon_id: analysisAnonId,
+        result: created.result,
+        analyzed_at: created.analyzed_at,
+      });
+    }
 
     // [실천 여부 자동 판별] 최근 7일 추천 식단 중 ingredients가 모두 포함된 경우 status를 achieved로 업데이트
     const userRes = await supabase.auth.getUser();
-    const user = userRes.data?.user;
-    if (!user) {
-      // 인증된 사용자 없으면 skip
-    } else {
-      const { data: recs } = await supabase
+    const user = userRes.data.user;
+    if (user) {
+      const { data: recs, error: recommendationError } = await supabase
         .from("recommendations")
-        .select("id, ingredients, status")
+        .select("id, ingredients")
         .eq("user_id", user.id)
         .eq("status", "pending")
         .gte(
@@ -330,38 +423,53 @@ export async function POST(req: NextRequest) {
             .toISOString()
             .slice(0, 10)
         );
-      const mealText =
-        mealTextToSave +
-        "\n" +
-        (typeof result === "string" ? result : JSON.stringify(result));
-      for (const rec of recs || []) {
-        if (!rec.ingredients) continue;
-        const ings = rec.ingredients
-          .split(",")
-          .map((s: string) => s.trim())
-          .filter(Boolean);
-        if (
-          ings.length > 0 &&
-          ings.every((ing: string) => mealText.includes(ing))
-        ) {
-          await supabase
-            .from("recommendations")
-            .update({ status: "achieved" })
-            .eq("id", rec.id);
+      if (recommendationError) {
+        console.error("추천 이력 조회 오류:", recommendationError);
+      } else {
+        const safeRecs = (recs as RecommendationRow[]) || [];
+        const mealText =
+          mealTextToSave +
+          "\n" +
+          (typeof result === "string" ? result : JSON.stringify(result));
+        for (const rec of safeRecs) {
+          if (!rec.ingredients) continue;
+          const ings = rec.ingredients
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
+          if (
+            ings.length > 0 &&
+            ings.every((ing) => mealText.includes(ing))
+          ) {
+            await supabase
+              .from("recommendations")
+              .update({ status: "achieved" })
+              .eq("id", rec.id);
+          }
         }
       }
     }
 
     // 이전 추천 이력 조회 및 피드백 생성
-    const { data: prevRecs } = await supabase
+    const {
+      data: prevRecs,
+      error: recommendationHistoryError,
+    } = await supabase
       .from("recommendation_history")
       .select("id, category, content, analysis_id")
-      .eq("anon_id", insertObj.anon_id)
+      .eq("anon_id", analysisAnonId)
       .eq("status", "pending")
       .order("recommended_at", { ascending: true });
 
+    if (recommendationHistoryError) {
+      return apiError({
+        error: recommendationHistoryError,
+        userMessage: "추천 이력 조회에 실패했습니다.",
+      });
+    }
+
     const feedbacks = generateFeedbacks(
-      prevRecs || [],
+      (prevRecs as RecommendationHistoryRow[]) || [],
       mealTextToSave,
       typeof result === "string" ? result : JSON.stringify(result)
     );
@@ -377,7 +485,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ result, sourceType, cached: false, feedbacks });
-  } catch (error: any) {
+  } catch (error: unknown) {
     return apiError({
       error,
       userMessage:
@@ -387,139 +495,193 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-  const anon_id = searchParams.get("anon_id");
-  const email = searchParams.get("email");
-  const meal = searchParams.get("meal");
-  const latest = searchParams.get("latest");
-  const today = new Date().toISOString().slice(0, 10);
-  const supabase = await createClient();
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    const anon_id = searchParams.get("anon_id");
+    const email = searchParams.get("email");
+    const meal = searchParams.get("meal");
+    const latest = searchParams.get("latest");
+    const today = new Date().toISOString().slice(0, 10);
+    const supabase = await createClient();
 
-  // 분석 상세(id) 조회: 가장 먼저 처리
-  if (id) {
-    const { data, error } = await supabase
-      .from("meal_analysis")
-      .select("meal_text, result, analyzed_at, email, source_type")
-      .eq("id", id)
-      .maybeSingle();
-    if (error) {
-      return NextResponse.json({ error: error?.message }, { status: 500 });
-    }
-    if (!data) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
-    }
-    // 해당 분석의 추천/보완사항도 함께 조회
-    const { data: recommendations } = await supabase
-      .from("recommendation_history")
-      .select("id, category, content, status")
-      .eq("analysis_id", id)
-      .order("category", { ascending: true });
-    return NextResponse.json({ ...data, recommendations });
-  }
-
-  // 로그인된 사용자(email) 기준 최신 분석 결과 조회
-  if (email && latest === "1") {
-    const { data, error } = await supabase
-      .from("meal_analysis")
-      .select("id, result, analyzed_at")
-      .eq("email", email)
-      .order("analyzed_at", { ascending: false })
-      .limit(1);
-    if (error) {
-      return NextResponse.json({ error: error?.message }, { status: 500 });
-    }
-    if (data && data.length > 0) {
-      return NextResponse.json({
-        id: data[0].id,
-        result: data[0].result,
-        lastAnalyzedAt: data[0].analyzed_at,
-        analyzed: true,
-      });
-    } else {
-      return NextResponse.json({ analyzed: false });
-    }
-  }
-
-  // 로그인된 사용자(email) 분석 히스토리 조회 (최근 30개)
-  if (email && !latest) {
-    const { data, error } = await supabase
-      .from("meal_analysis")
-      .select("id, meal_text, result, analyzed_at, source_type")
-      .eq("email", email)
-      .order("analyzed_at", { ascending: false })
-      .limit(30);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-    // 각 분석별 추천/보완사항도 함께 조회
-    const ids = (data || []).map((d: any) => d.id);
-    let recsById: Record<string, any[]> = {};
-    if (ids.length > 0) {
-      const { data: recs } = await supabase
+    // 분석 상세(id) 조회: 가장 먼저 처리
+    if (id) {
+      const { data, error } = await supabase
+        .from("meal_analysis")
+        .select("meal_text, result, analyzed_at, email, source_type")
+        .eq("id", id)
+        .maybeSingle();
+      if (error) {
+        return apiError({
+          error,
+          userMessage: "분석 상세 조회에 실패했습니다.",
+        });
+      }
+      if (!data) {
+        return apiError({
+          error: "Not found",
+          userMessage: "요청한 분석 결과를 찾을 수 없습니다.",
+          status: 404,
+        });
+      }
+      // 해당 분석의 추천/보완사항도 함께 조회
+      const { data: recommendations, error: recError } = await supabase
         .from("recommendation_history")
-        .select("id, category, content, status, analysis_id")
-        .in("analysis_id", ids);
-      recsById = (recs || []).reduce((acc: any, rec: any) => {
-        if (!acc[rec.analysis_id]) acc[rec.analysis_id] = [];
-        acc[rec.analysis_id].push(rec);
-        return acc;
-      }, {});
+        .select("id, category, content, status")
+        .eq("analysis_id", id)
+        .order("category", { ascending: true });
+      if (recError) {
+        return apiError({
+          error: recError,
+          userMessage: "추천/보완사항 조회에 실패했습니다.",
+        });
+      }
+      return NextResponse.json({ ...data, recommendations });
     }
-    const history = (data || []).map((item: any) => ({
-      ...item,
-      recommendations: recsById[item.id] || [],
-    }));
-    return NextResponse.json({ history });
-  }
 
-  // 비회원(anon_id) 기준 최신 분석 결과 조회
-  if (anon_id && latest === "1") {
-    const { data, error } = await supabase
-      .from("meal_analysis")
-      .select("id, result, analyzed_at")
-      .eq("anon_id", anon_id)
-      .order("analyzed_at", { ascending: false })
-      .limit(1);
-    if (error) {
-      return NextResponse.json({ error: error?.message }, { status: 500 });
-    }
-    if (data && data.length > 0) {
-      return NextResponse.json({
-        id: data[0].id,
-        result: data[0].result,
-        lastAnalyzedAt: data[0].analyzed_at,
-        analyzed: true,
-      });
-    } else {
+    // 로그인된 사용자(email) 기준 최신 분석 결과 조회
+    if (email && latest === "1") {
+      const { data, error } = await supabase
+        .from("meal_analysis")
+        .select("id, result, analyzed_at")
+        .eq("email", email)
+        .order("analyzed_at", { ascending: false })
+        .limit(1);
+      if (error) {
+        return apiError({
+          error,
+          userMessage: "회원 분석 이력 조회에 실패했습니다.",
+        });
+      }
+      if (data && data.length > 0) {
+        return NextResponse.json({
+          id: data[0].id,
+          result: data[0].result,
+          lastAnalyzedAt: data[0].analyzed_at,
+          analyzed: true,
+        });
+      }
       return NextResponse.json({ analyzed: false });
     }
-  }
 
-  if (anon_id && !meal) {
-    // 오늘 분석한 식단이 하나라도 있으면 true
-    const { data } = await supabase
+    // 로그인된 사용자(email) 분석 히스토리 조회 (최근 30개)
+    if (email && !latest) {
+      const { data, error } = await supabase
+        .from("meal_analysis")
+        .select("id, meal_text, result, analyzed_at, source_type")
+        .eq("email", email)
+        .order("analyzed_at", { ascending: false })
+        .limit(30);
+      if (error) {
+        return apiError({
+          error,
+          userMessage: "회원 분석 히스토리 조회에 실패했습니다.",
+        });
+      }
+      const safeRows = (data as MealAnalysisRow[]) || [];
+      const ids = safeRows.map((item) => item.id);
+      let recsById: Record<string, RecommendationHistoryRow[]> = {};
+
+      if (ids.length > 0) {
+        const { data: recs, error: recError } = await supabase
+          .from("recommendation_history")
+          .select("id, category, content, status, analysis_id")
+          .in("analysis_id", ids);
+        if (recError) {
+          return apiError({
+            error: recError,
+            userMessage: "추천 이력 조회에 실패했습니다.",
+          });
+        }
+        recsById = ((recs as RecommendationHistoryRow[]) || []).reduce(
+          (acc, rec) => {
+            if (!acc[rec.analysis_id]) acc[rec.analysis_id] = [];
+            acc[rec.analysis_id].push(rec);
+            return acc;
+          },
+          {} as Record<string, RecommendationHistoryRow[]>
+        );
+      }
+
+      const history = safeRows.map((item) => ({
+        ...item,
+        recommendations: recsById[item.id] || [],
+      }));
+      return NextResponse.json({ history });
+    }
+
+    // 비회원(anon_id) 기준 최신 분석 결과 조회
+    if (anon_id && latest === "1") {
+      const { data, error } = await supabase
+        .from("meal_analysis")
+        .select("id, result, analyzed_at")
+        .eq("anon_id", anon_id)
+        .order("analyzed_at", { ascending: false })
+        .limit(1);
+      if (error) {
+        return apiError({
+          error,
+          userMessage: "비회원 최신 분석 조회에 실패했습니다.",
+        });
+      }
+      if (data && data.length > 0) {
+        return NextResponse.json({
+          id: data[0].id,
+          result: data[0].result,
+          lastAnalyzedAt: data[0].analyzed_at,
+          analyzed: true,
+        });
+      }
+      return NextResponse.json({ analyzed: false });
+    }
+
+    if (anon_id && !meal) {
+      // 오늘 분석한 식단이 하나라도 있으면 true
+      const { data, error } = await supabase
+        .from("meal_analysis")
+        .select("id")
+        .eq("anon_id", anon_id)
+        .eq("analyzed_at", today)
+        .limit(1);
+      if (error) {
+        return apiError({
+          error,
+          userMessage: "비회원 분석 이력 조회에 실패했습니다.",
+        });
+      }
+      return NextResponse.json({ analyzed: !!(data && data.length > 0) });
+    }
+
+    if (!anon_id || !meal) {
+      return apiError({
+        error: "Missing anon_id or meal",
+        userMessage: "anon_id 또는 meal가 누락되었습니다.",
+        status: 400,
+      });
+    }
+
+    const normalizedMeal = normalizeMeal(meal);
+    const { data, error } = await supabase
       .from("meal_analysis")
       .select("id")
       .eq("anon_id", anon_id)
+      .eq("meal_text", normalizedMeal)
       .eq("analyzed_at", today)
-      .limit(1);
-    return NextResponse.json({ analyzed: !!(data && data.length > 0) });
-  }
+      .maybeSingle();
 
-  if (!anon_id || !meal) {
-    return NextResponse.json(
-      { analyzed: false, error: "Missing anon_id or meal" },
-      { status: 400 }
-    );
+    if (error) {
+      return apiError({
+        error,
+        userMessage: "식단 중복 조회에 실패했습니다.",
+      });
+    }
+
+    return NextResponse.json({ analyzed: !!data });
+  } catch (error: unknown) {
+    return apiError({
+      error,
+      userMessage: "식단 분석 조회 중 오류가 발생했습니다.",
+    });
   }
-  const normalizedMeal = normalizeMeal(meal);
-  const { data: existing } = await supabase
-    .from("meal_analysis")
-    .select("id")
-    .eq("anon_id", anon_id)
-    .eq("meal_text", normalizedMeal)
-    .eq("analyzed_at", today)
-    .maybeSingle();
-  return NextResponse.json({ analyzed: !!existing });
 }
