@@ -38,10 +38,34 @@ export default function GoalsPage() {
       return;
     }
 
-    // 임시: 목표 데이터 로딩을 건너뛰고 기본 상태로 설정
-    console.log("목표 데이터 로딩을 건너뛰고 기본 상태로 설정합니다.");
-    setGoals([]);
-    setLoading(false);
+    const loadGoals = async () => {
+      try {
+        setLoading(true);
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("iharu_goals")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          if (error.code !== "42P01") {
+            console.error("목표 목록 조회 실패:", error);
+          }
+          setGoals([]);
+          return;
+        }
+
+        setGoals(data || []);
+      } catch (error) {
+        console.error("목표 데이터를 가져오는 중 오류가 발생했습니다:", error);
+        setGoals([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGoals();
   }, [userId]);
 
   const handleLogout = async () => {

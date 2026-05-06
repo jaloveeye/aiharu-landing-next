@@ -39,10 +39,36 @@ export default function DiaryPage() {
       return;
     }
 
-    // 임시: 일기 데이터 로딩을 건너뛰고 기본 상태로 설정
-    console.log("일기 데이터 로딩을 건너뛰고 기본 상태로 설정합니다.");
-    setDiaryEntries([]);
-    setLoading(false);
+    const loadDiaryEntries = async () => {
+      try {
+        setLoading(true);
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("iharu_diary")
+          .select(
+            "id,date,mood_rating,activities,highlights,challenges,parent_notes,child_notes,photos,created_at"
+          )
+          .eq("user_id", userId)
+          .order("date", { ascending: false });
+
+        if (error) {
+          if (error.code !== "42P01") {
+            console.error("일기 목록 조회 실패:", error);
+          }
+          setDiaryEntries([]);
+          return;
+        }
+
+        setDiaryEntries(data || []);
+      } catch (error) {
+        console.error("일기 데이터를 가져오는 중 오류가 발생했습니다:", error);
+        setDiaryEntries([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDiaryEntries();
   }, [userId]);
 
   const handleLogout = async () => {

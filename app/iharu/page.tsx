@@ -47,77 +47,44 @@ export default function IharuPage() {
 
   useEffect(() => {
     if (!userId) {
-      console.log("userId가 없어서 로딩을 중단합니다.");
-      setLoading(false); // 로딩 상태를 false로 설정
+      setLoading(false);
       return;
     }
 
-    // 임시: 데이터 로딩을 건너뛰고 기본 상태로 설정
-    console.log("임시: 데이터 로딩을 건너뛰고 기본 상태로 설정합니다.");
-    setHabits([]);
-    setTodayCheckedHabits([]);
-    setStats({
-      total_habits: 0,
-      active_habits: 0,
-      completed_today: 0,
-      total_points: 0,
-      current_streak: 0,
-      longest_streak: 0,
-    });
-    setLoading(false);
-
-    // 실제 데이터 로딩은 나중에 활성화
-    /*
-    const fetchData = async () => {
-      setLoading(true);
+    const loadDashboardData = async () => {
       try {
-        console.log("아이하루 데이터 로딩 시작... userId:", userId);
-        
-        // 간단한 테스트: Supabase 연결 확인
-        const supabase = createClient();
-        console.log("Supabase 클라이언트 생성됨");
-        
-        // 활성 습관 조회
-        console.log("활성 습관 조회 중...");
-        const activeHabits = await getActiveHabits(userId);
-        console.log("활성 습관 조회 결과:", activeHabits);
-        setHabits(activeHabits || []);
+        setLoading(true);
 
-        // 오늘 체크인한 습관 조회
-        console.log("오늘 체크인 습관 조회 중...");
-        const checkedHabits = await getTodayCheckedHabits(userId);
-        console.log("오늘 체크인 습관 조회 결과:", checkedHabits);
+        const [activeHabits, checkedHabits] = await Promise.all([
+          getActiveHabits(userId),
+          getTodayCheckedHabits(userId),
+        ]);
+
+        setHabits(activeHabits || []);
         setTodayCheckedHabits(checkedHabits || []);
 
-        // 통계 계산 (안전한 배열 처리)
         const safeHabits = activeHabits || [];
         const totalPoints = safeHabits.reduce(
           (sum, habit) => sum + (habit.total_completions || 0) * 10,
           0
         );
-        const currentStreak = safeHabits.length > 0 
+        const currentStreak = safeHabits.length
           ? Math.max(...safeHabits.map((h) => h.current_streak || 0), 0)
           : 0;
-        const longestStreak = safeHabits.length > 0
+        const longestStreak = safeHabits.length
           ? Math.max(...safeHabits.map((h) => h.longest_streak || 0), 0)
           : 0;
 
-        const newStats = {
+        setStats({
           total_habits: safeHabits.length,
           active_habits: safeHabits.length,
           completed_today: checkedHabits?.length || 0,
           total_points: totalPoints,
           current_streak: currentStreak,
           longest_streak: longestStreak,
-        };
-        
-        console.log("계산된 통계:", newStats);
-        setStats(newStats);
-        
-        console.log("아이하루 데이터 로딩 완료");
+        });
       } catch (error) {
-        console.error("데이터 로딩 오류:", error);
-        // 오류가 발생해도 기본 상태로 설정
+        console.error("아이하루 대시보드 데이터를 불러오지 못했습니다.", error);
         setHabits([]);
         setTodayCheckedHabits([]);
         setStats({
@@ -129,13 +96,11 @@ export default function IharuPage() {
           longest_streak: 0,
         });
       } finally {
-        console.log("로딩 상태를 false로 설정합니다.");
         setLoading(false);
       }
     };
 
-    fetchData();
-    */
+    loadDashboardData();
   }, [userId]);
 
   const featureCards = [

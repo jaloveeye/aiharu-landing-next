@@ -5,7 +5,7 @@ export interface QualityMetrics {
   contextScore: number; // 맥락 연관성 점수 (0-100)
   practicalityScore: number; // 실용성 점수 (0-100)
 
-  // 질문 품질 점수 (새로 추가!)
+  // 질문 품질 점수
   questionClarityScore: number; // 질문 명확성 점수 (0-100)
   questionExpertiseScore: number; // 질문 전문성 점수 (0-100)
   questionComplexityScore: number; // 질문 복잡성/깊이 점수 (0-100)
@@ -21,7 +21,7 @@ export interface QualityMetrics {
     tokenEfficiency: number; // 토큰 효율성 (0-100)
     categoryKeywords: string[]; // 카테고리별 키워드 매칭
 
-    // 질문 품질 세부사항 (새로 추가!)
+    // 질문 품질 세부사항
     questionHasSpecificity: boolean; // 구체적 상황/사례 포함 여부
     questionHasComplexity: boolean; // 복합적 문제 상황 포함 여부
     questionHasProfessionalTerms: boolean; // 전문 용어 포함 여부
@@ -41,7 +41,7 @@ export function analyzePromptQuality(
   const contextScore = analyzeContext(promptContent, aiResult);
   const practicalityScore = analyzePracticality(aiResult);
 
-  // 질문 품질 분석 (새로 추가!)
+  // 질문 품질 분석
   const questionClarityScore = analyzeQuestionClarity(promptContent);
   const questionExpertiseScore = analyzeQuestionExpertise(
     promptContent,
@@ -166,7 +166,7 @@ function analyzeExpertise(text: string, category: string): number {
   return Math.min(Math.round(score), 100);
 }
 
-// 질문 품질 분석 함수들 (새로 추가!)
+// 질문 품질 분석 함수들
 function analyzeQuestionClarity(question: string): number {
   let score = 0;
 

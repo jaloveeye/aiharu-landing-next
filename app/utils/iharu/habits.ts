@@ -60,7 +60,6 @@ export async function getUserHabits(userId: string): Promise<IharuHabit[]> {
 // 활성 습관만 조회
 export async function getActiveHabits(userId: string): Promise<IharuHabit[]> {
   try {
-    console.log("getActiveHabits 호출됨, userId:", userId);
     const supabase = createClient();
     const { data, error } = await supabase
       .from("iharu_habits")
@@ -73,13 +72,11 @@ export async function getActiveHabits(userId: string): Promise<IharuHabit[]> {
       console.error("활성 습관 조회 오류:", error);
       // 테이블이 존재하지 않는 경우 빈 배열 반환
       if (error.code === '42P01') {
-        console.log("iharu_habits 테이블이 존재하지 않습니다. 빈 배열을 반환합니다.");
         return [];
       }
       return [];
     }
 
-    console.log("활성 습관 조회 성공:", data);
     return data || [];
   } catch (error) {
     console.error("활성 습관 조회 중 오류:", error);
@@ -279,7 +276,6 @@ async function updateHabitStats(habitId: string): Promise<void> {
 // 오늘 체크인한 습관 조회
 export async function getTodayCheckedHabits(userId: string): Promise<string[]> {
   try {
-    console.log("getTodayCheckedHabits 호출됨, userId:", userId);
     const supabase = createClient();
     const today = new Date().toISOString().split("T")[0];
 
@@ -294,13 +290,11 @@ export async function getTodayCheckedHabits(userId: string): Promise<string[]> {
       console.error("오늘 체크인 습관 조회 오류:", error);
       // 테이블이 존재하지 않는 경우 빈 배열 반환
       if (error.code === '42P01') {
-        console.log("iharu_habit_logs 테이블이 존재하지 않습니다. 빈 배열을 반환합니다.");
         return [];
       }
       return [];
     }
 
-    console.log("오늘 체크인 습관 조회 성공:", data);
     return data?.map((log) => log.habit_id) || [];
   } catch (error) {
     console.error("오늘 체크인 습관 조회 중 오류:", error);

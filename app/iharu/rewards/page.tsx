@@ -40,18 +40,69 @@ export default function RewardsPage() {
     });
   }, []);
 
+  const loadRewardsData = async (uid: string) => {
+    try {
+      setLoading(true);
+      const supabase = createClient();
+      const [rewardResult, pointResult] = await Promise.all([
+        supabase
+          .from("iharu_rewards")
+          .select("*")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("iharu_points")
+          .select("*")
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false }),
+      ]);
+
+      const { data: rewardsData, error: rewardsError } = rewardResult;
+      const { data: pointData, error: pointError } = pointResult;
+
+      if (rewardsError) {
+        if (rewardsError.code !== "42P01") {
+          console.error("보상 목록 조회 실패:", rewardsError);
+        }
+        setRewards([]);
+      } else {
+        setRewards(rewardsData || []);
+      }
+
+      if (pointError) {
+        if (pointError.code !== "42P01") {
+          console.error("포인트 이력 조회 실패:", pointError);
+        }
+        setPointHistory([]);
+        setTotalPoints(0);
+      } else {
+        const histories = (pointData || []) as PointHistory[];
+        setPointHistory(histories);
+        const points = histories.reduce((sum, entry) => {
+          if (entry.type === "earned") {
+            return sum + entry.points;
+          }
+          return sum - entry.points;
+        }, 0);
+        setTotalPoints(points);
+      }
+    } catch (error) {
+      console.error("보상 데이터를 가져오는 중 오류가 발생했습니다:", error);
+      setRewards([]);
+      setPointHistory([]);
+      setTotalPoints(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!userId) {
       setLoading(false);
       return;
     }
 
-    // 임시: 보상 데이터 로딩을 건너뛰고 기본 상태로 설정
-    console.log("보상 데이터 로딩을 건너뛰고 기본 상태로 설정합니다.");
-    setRewards([]);
-    setPointHistory([]);
-    setTotalPoints(0);
-    setLoading(false);
+    loadRewardsData(userId);
   }, [userId]);
 
   const handleLogout = async () => {
@@ -68,14 +119,40 @@ export default function RewardsPage() {
     rewardId: string,
     pointsRequired: number
   ) => {
+    if (!userId) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
     if (totalPoints < pointsRequired) {
       alert("포인트가 부족합니다!");
       return;
     }
 
     if (confirm("이 보상을 구매하시겠습니까?")) {
-      // TODO: 실제 구매 로직 구현
-      alert("보상 구매가 완료되었습니다!");
+      try {
+        const supabase = createClient();
+        const { error } = await supabase.from("iharu_points").insert({
+          user_id: userId,
+          points: pointsRequired,
+          type: "spent",
+          source: "reward_purchase",
+          source_id: rewardId,
+          notes: "보상 구매",
+        });
+
+        if (error) {
+          console.error("보상 구매 저장 실패:", error);
+          alert("보상 구매 처리 중 오류가 발생했습니다.");
+          return;
+        }
+
+        await loadRewardsData(userId);
+        alert("보상 구매가 완료되었습니다.");
+      } catch (error) {
+        console.error("보상 구매 중 오류가 발생했습니다:", error);
+        alert("보상 구매 처리 중 오류가 발생했습니다.");
+      }
     }
   };
 

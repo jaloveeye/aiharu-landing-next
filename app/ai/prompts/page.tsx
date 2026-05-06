@@ -74,8 +74,7 @@ export default function AiPromptsPage() {
           setAiResult(today.ai_result);
         }
 
-        // 품질 분석이 필요한 프롬프트 개수 확인
-        // checkPendingAnalysisCount(); // 이 함수는 제거되었으므로 주석 처리
+        // 품질 분석 이력은 필요 시 API 상태로 즉시 확인
       } catch (error) {
         console.error("Error loading results:", error);
       } finally {
@@ -153,7 +152,6 @@ export default function AiPromptsPage() {
           alert("품질 분석이 완료되었습니다!");
           // 결과 다시 로드
           await loadResults();
-          // checkPendingAnalysisCount(); // 이 함수는 제거되었으므로 주석 처리
         } else {
           alert("품질 분석은 완료되었지만 저장에 실패했습니다.");
         }
