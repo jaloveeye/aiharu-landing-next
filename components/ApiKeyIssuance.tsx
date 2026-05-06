@@ -34,11 +34,32 @@ export default function ApiKeyIssuance() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
-  // 히스토리만 불러오기 (API 키는 새로고침 시 표시하지 않음)
-  useEffect(() => {
-    loadApiKeys();
-    loadApiKeyHistory();
-  }, []);
+  const loadApiKeys = async () => {
+    setLoadingKeys(true);
+    try {
+      const storedKey = localStorage.getItem("apiKey");
+      if (!storedKey) return;
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/auth/keys`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": storedKey,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setApiKeys(data.data);
+        }
+      }
+    } catch (err) {
+      console.error("API 키 목록 로드 실패:", err);
+    } finally {
+      setLoadingKeys(false);
+    }
+  };
 
   const loadApiKeyHistory = async () => {
     // 먼저 로컬 스토리지에서 로드
@@ -83,6 +104,16 @@ export default function ApiKeyIssuance() {
     }
   };
 
+  // 히스토리만 불러오기 (API 키는 새로고침 시 표시하지 않음)
+  useEffect(() => {
+    const initialize = async () => {
+      await loadApiKeyHistory();
+      await loadApiKeys();
+    };
+
+    void initialize();
+  }, []);
+
   const saveApiKeyHistory = async (historyItem: ApiKeyHistory) => {
     // 로컬 스토리지에 먼저 저장 (인증 여부와 관계없이)
     try {
@@ -121,33 +152,6 @@ export default function ApiKeyIssuance() {
     } catch (err) {
       // 네트워크 오류 시 무시 (로컬 스토리지에만 저장됨)
       console.log("Supabase 저장 시도 실패 (로컬 스토리지에만 저장됨)");
-    }
-  };
-
-  const loadApiKeys = async () => {
-    setLoadingKeys(true);
-    try {
-      const storedKey = localStorage.getItem("apiKey");
-      if (!storedKey) return;
-
-      const response = await fetch(`${API_BASE_URL}/api/v1/auth/keys`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": storedKey,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.data) {
-          setApiKeys(data.data);
-        }
-      }
-    } catch (err) {
-      console.error("API 키 목록 로드 실패:", err);
-    } finally {
-      setLoadingKeys(false);
     }
   };
 
@@ -362,4 +366,3 @@ export default function ApiKeyIssuance() {
     </div>
   );
 }
-

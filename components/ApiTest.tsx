@@ -47,15 +47,6 @@ export default function ApiTest() {
   >([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  // 로컬 스토리지에서 API 키 및 히스토리 불러오기
-  useEffect(() => {
-    const storedKey = localStorage.getItem("apiKey");
-    if (storedKey) {
-      setApiKey(storedKey);
-    }
-    loadGenerationHistory();
-  }, []);
-
   const loadGenerationHistory = async () => {
     try {
       // Supabase에서 조회
@@ -302,6 +293,19 @@ export default function ApiTest() {
   const formatJSON = (obj: any) => {
     return JSON.stringify(obj, null, 2);
   };
+
+  // 로컬 스토리지에서 API 키 및 히스토리 불러오기
+  useEffect(() => {
+    const loadApiConfig = async () => {
+      const storedKey = localStorage.getItem("apiKey");
+      if (storedKey) {
+        setApiKey(storedKey);
+      }
+      await loadGenerationHistory();
+    };
+
+    void loadApiConfig();
+  }, []);
 
   return (
     <div className="space-y-6">

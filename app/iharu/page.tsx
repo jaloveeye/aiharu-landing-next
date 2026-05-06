@@ -23,7 +23,7 @@ export default function IharuPage() {
     current_streak: 0,
     longest_streak: 0,
   });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // 로그인된 사용자 정보 가져오기
@@ -47,7 +47,6 @@ export default function IharuPage() {
 
   useEffect(() => {
     if (!userId) {
-      setLoading(false);
       return;
     }
 

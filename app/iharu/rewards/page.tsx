@@ -29,7 +29,7 @@ export default function RewardsPage() {
   const [rewards, setRewards] = useState<Reward[]>([]);
   const [pointHistory, setPointHistory] = useState<PointHistory[]>([]);
   const [totalPoints, setTotalPoints] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // 로그인된 사용자 정보 가져오기
@@ -98,11 +98,14 @@ export default function RewardsPage() {
 
   useEffect(() => {
     if (!userId) {
-      setLoading(false);
       return;
     }
 
-    loadRewardsData(userId);
+    const fetchRewardsData = async () => {
+      await loadRewardsData(userId);
+    };
+
+    void fetchRewardsData();
   }, [userId]);
 
   const handleLogout = async () => {

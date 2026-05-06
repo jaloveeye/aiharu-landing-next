@@ -32,9 +32,12 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
   const [analysisId, setAnalysisId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setAnonId(getAnonId());
-    }
+    const loadAnonId = async () => {
+      if (typeof window !== "undefined") {
+        setAnonId(getAnonId());
+      }
+    };
+    void loadAnonId();
   }, []);
 
   useEffect(() => {
@@ -63,40 +66,44 @@ export function useMealAnalysisForm(options: UseMealAnalysisFormOptions = {}) {
   );
 
   useEffect(() => {
-    if (!isLoading && data) {
-      if (data.result) {
-        if (withConclusion && extractMealAndConclusion) {
-          const { meal, conclusion } = extractMealAndConclusion(data.result);
-          setMeal(meal);
-          setConclusion(conclusion);
-          setResult(data.result); // 전체 분석 결과도 항상 저장
+    const syncLatestResult = async () => {
+      if (!isLoading && data) {
+        if (data.result) {
+          if (withConclusion && extractMealAndConclusion) {
+            const { meal, conclusion } = extractMealAndConclusion(data.result);
+            setMeal(meal);
+            setConclusion(conclusion);
+            setResult(data.result); // 전체 분석 결과도 항상 저장
+          } else {
+            setResult(data.result);
+          }
+          setAnalyzedAt(data.lastAnalyzedAt);
+          setSourceType(data.sourceType || null);
+          setAnalysisId(data.id || null);
+          if (userEmail) {
+            const analyzedDate = new Date(data.lastAnalyzedAt);
+            const today = new Date();
+            const isToday =
+              analyzedDate.getFullYear() === today.getFullYear() &&
+              analyzedDate.getMonth() === today.getMonth() &&
+              analyzedDate.getDate() === today.getDate();
+            setAlreadyAnalyzed(isToday);
+          } else {
+            setAlreadyAnalyzed(true);
+          }
         } else {
-          setResult(data.result);
+          setResult("");
+          setMeal("");
+          setConclusion("");
+          setAnalyzedAt("");
+          setAlreadyAnalyzed(false);
+          setSourceType(null);
+          setAnalysisId(null);
         }
-        setAnalyzedAt(data.lastAnalyzedAt);
-        setSourceType(data.sourceType || null);
-        setAnalysisId(data.id || null);
-        if (userEmail) {
-          const analyzedDate = new Date(data.lastAnalyzedAt);
-          const today = new Date();
-          const isToday =
-            analyzedDate.getFullYear() === today.getFullYear() &&
-            analyzedDate.getMonth() === today.getMonth() &&
-            analyzedDate.getDate() === today.getDate();
-          setAlreadyAnalyzed(isToday);
-        } else {
-          setAlreadyAnalyzed(true);
-        }
-      } else {
-        setResult("");
-        setMeal("");
-        setConclusion("");
-        setAnalyzedAt("");
-        setAlreadyAnalyzed(false);
-        setSourceType(null);
-        setAnalysisId(null);
       }
-    }
+    };
+
+    void syncLatestResult();
   }, [data, isLoading, userEmail, extractMealAndConclusion, withConclusion]);
 
   const handleImageChange = useCallback((file: File | null) => {

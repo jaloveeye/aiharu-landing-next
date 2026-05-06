@@ -62,14 +62,46 @@ interface StatisticsData {
   }>;
 }
 
+type StatCardProps = {
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  color?: "primary" | "secondary" | "success" | "error";
+};
+
+const StatCard = ({
+  title,
+  value,
+  subtitle,
+}: StatCardProps) => {
+  return (
+    <div
+      className="p-6 border rounded-lg"
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-outline)",
+        borderRadius: "var(--border-radius-medium)",
+      }}
+    >
+      <p className="text-sm font-medium mb-1" style={{ color: "var(--color-on-surface-variant)" }}>
+        {title}
+      </p>
+      <p className="text-3xl font-bold mb-1" style={{ color: "var(--color-on-background)" }}>
+        {value}
+      </p>
+      {subtitle && (
+        <p className="text-xs" style={{ color: "var(--color-on-surface-variant)" }}>
+          {subtitle}
+        </p>
+      )}
+    </div>
+  );
+};
+
 export default function ApiStatistics() {
   const [data, setData] = useState<StatisticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    loadStatistics();
-  }, []);
 
   const loadStatistics = async () => {
     setLoading(true);
@@ -91,22 +123,11 @@ export default function ApiStatistics() {
     }
   };
 
-  const StatCard = ({ title, value, subtitle, color = "primary" }: { title: string; value: string | number; subtitle?: string; color?: "primary" | "secondary" | "success" | "error" }) => {
-    const bgColor = color === "primary" ? "var(--color-primary)" : color === "secondary" ? "var(--color-secondary)" : color === "success" ? "var(--color-success)" : "var(--color-error)";
-    return (
-      <div className="p-6 border rounded-lg" style={{ 
-        backgroundColor: 'var(--color-surface)', 
-        borderColor: 'var(--color-outline)',
-        borderRadius: 'var(--border-radius-medium)'
-      }}>
-        <p className="text-sm font-medium mb-1" style={{ color: 'var(--color-on-surface-variant)' }}>{title}</p>
-        <p className="text-3xl font-bold mb-1" style={{ color: 'var(--color-on-background)' }}>{value}</p>
-        {subtitle && (
-          <p className="text-xs" style={{ color: 'var(--color-on-surface-variant)' }}>{subtitle}</p>
-        )}
-      </div>
-    );
-  };
+  useEffect(() => {
+    queueMicrotask(() => {
+      void loadStatistics();
+    });
+  }, []);
 
   if (loading) {
     return (
@@ -405,4 +426,3 @@ export default function ApiStatistics() {
     </div>
   );
 }
-

@@ -4,23 +4,28 @@ import { useState } from "react";
 
 const API_BASE_URL = "https://connect-agent.aiharu.net";
 
+type CodeBlockProps = {
+  children: string;
+  language?: string;
+};
+
+const CodeBlock = ({ children, language = "bash" }: CodeBlockProps) => (
+  <pre className="p-4 text-xs overflow-x-auto rounded-lg" data-language={language} style={{ 
+    backgroundColor: "var(--color-surface)", 
+    color: "var(--color-on-background)",
+    borderRadius: "var(--border-radius-small)",
+    fontFamily: "monospace"
+  }}>
+    <code>{children}</code>
+  </pre>
+);
+
 export default function ApiManual() {
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
   const toggleSection = (section: string) => {
     setActiveSection(activeSection === section ? null : section);
   };
-
-  const CodeBlock = ({ children, language = "bash" }: { children: string; language?: string }) => (
-    <pre className="p-4 text-xs overflow-x-auto rounded-lg" style={{ 
-      backgroundColor: 'var(--color-surface)', 
-      color: 'var(--color-on-background)',
-      borderRadius: 'var(--border-radius-small)',
-      fontFamily: 'monospace'
-    }}>
-      <code>{children}</code>
-    </pre>
-  );
 
   return (
     <div className="space-y-6">

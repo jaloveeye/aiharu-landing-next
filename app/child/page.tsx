@@ -27,16 +27,22 @@ export default function ChildPage() {
   useEffect(() => {
     if (!userEmail) return;
 
-    setLoading(true);
-    fetch(`/api/test-meal-analysis?email=${encodeURIComponent(userEmail)}`)
-      .then((res) => res.json())
-      .then((data) => {
+    const loadSummary = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/test-meal-analysis?email=${encodeURIComponent(userEmail)}`
+        );
+        const data = await res.json();
         setAnalysisSummary({ totalCount: (data?.data || []).length });
-      })
-      .catch(() => {
+      } catch {
         setAnalysisSummary({ totalCount: 0 });
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadSummary();
   }, [userEmail]);
 
   const cards = [

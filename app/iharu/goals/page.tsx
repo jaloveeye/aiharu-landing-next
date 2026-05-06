@@ -21,7 +21,7 @@ export default function GoalsPage() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // 로그인된 사용자 정보 가져오기
@@ -34,7 +34,6 @@ export default function GoalsPage() {
 
   useEffect(() => {
     if (!userId) {
-      setLoading(false);
       return;
     }
 
