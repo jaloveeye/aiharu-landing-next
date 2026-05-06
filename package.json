@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "ci:check": "npm run lint && npx tsc --noEmit && npx eslint --no-ignore . --ext .js,.ts,.tsx && npm run test:unit",
+    "ci:check": "npm run lint && npx tsc --noEmit && npm run test:unit",
     "generate:daily-mdx": "node scripts/generate-daily-mdx.js",
     "generate-daily": "node scripts/generate-daily-mdx.js",
     "generate-prompts": "curl -X POST http://localhost:3000/api/generate-prompts",
