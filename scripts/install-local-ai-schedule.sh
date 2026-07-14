@@ -16,11 +16,18 @@ is_placeholder() {
 
 [[ -f "$env_file" ]] || { echo "missing $env_file (copy env.example and keep only server secrets/settings)" >&2; exit 66; }
 [[ "$(stat -c '%a' "$env_file")" == "600" ]] || { echo "$env_file must have mode 600" >&2; exit 77; }
-for key in AIHARU_PROJECT_DIR INTERNAL_API_SECRET OPENAI_API_KEY NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY QWEN_HF_REVISION BGE_HF_REVISION AIHARU_ALERT_WEBHOOK_URL; do
+for key in AIHARU_PROJECT_DIR INTERNAL_API_SECRET OPENAI_API_KEY NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY QWEN_HF_REVISION BGE_HF_REVISION; do
   value="$(env_value "$key")"
   [[ -n "$value" ]] || { echo "$key is required in $env_file" >&2; exit 66; }
   ! is_placeholder "$value" || { echo "$key still contains a placeholder" >&2; exit 66; }
 done
+alert_webhook="$(env_value AIHARU_ALERT_WEBHOOK_URL)"
+if [[ -z "$alert_webhook" ]] || is_placeholder "$alert_webhook"; then
+  echo "warning: AIHARU_ALERT_WEBHOOK_URL is not configured; failures remain in journal and operation_runs" >&2
+elif [[ "$alert_webhook" != https://* ]]; then
+  echo "AIHARU_ALERT_WEBHOOK_URL must use https when configured" >&2
+  exit 66
+fi
 news_api_key="$(env_value NEWS_API_KEY)"
 gnews_api_key="$(env_value GNEWS_API_KEY)"
 if [[ -z "$news_api_key" ]] || is_placeholder "$news_api_key"; then news_api_key=""; fi

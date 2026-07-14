@@ -21,7 +21,7 @@ AI 워크스테이션의 사용자 systemd 타이머가 유일한 자동 실행 
 1. `20260713_operation_runs.sql`, `20260713_operation_shadow_rollout.sql`, `20260713_prompt_embeddings_v2.sql`을 순서대로 Supabase 관리 채널에서 적용한다.
 2. `QWEN_HF_REVISION`과 `BGE_HF_REVISION`을 40자리 commit hash로 고정하고 `scripts/prepare-local-ai-assets.sh`로 Docker 이미지와 해당 Qwen/BGE-M3 snapshot을 미리 캐시한다. 예약 실행 중 다운로드는 금지된다.
 3. 프로덕션 환경값으로 `npm run build`를 실행한다.
-4. `~/.config/aiharu/scheduled.env`에 OpenAI, Supabase, 뉴스 API, 내부 인증, `AIHARU_ALERT_WEBHOOK_URL` 및 로컬 AI 환경값을 저장하고 권한을 `0600`으로 설정한다.
+4. `~/.config/aiharu/scheduled.env`에 OpenAI, Supabase, 뉴스 API, 내부 인증 및 로컬 AI 환경값을 저장하고 권한을 `0600`으로 설정한다.
 5. `loginctl enable-linger "$USER"`를 한 번 실행한 뒤 `scripts/install-local-ai-schedule.sh`를 실행한다.
 
 설치 스크립트는 BGE 캐시, Next 빌드, 환경 파일 권한을 확인한 후에만 타이머를 활성화한다. 현재 상태는 `systemctl --user list-timers 'aiharu-*'`로 확인한다.
@@ -35,13 +35,13 @@ systemctl --user start aiharu-collect-news.service
 journalctl --user -u aiharu-collect-news.service -n 200
 ```
 
-작업은 전역 파일 락으로 직렬화된다. API는 `operation_runs`의 일자별 고유 제약으로 재시도를 멱등 처리한다. 로그와 실패 웹훅에는 작업명, 실행 ID, 모델, 공급자, 지연시간과 폴백 사유만 기록하며 프롬프트·응답·비밀값은 기록하지 않는다.
+작업은 전역 파일 락으로 직렬화된다. API는 `operation_runs`의 일자별 고유 제약으로 재시도를 멱등 처리한다. 로그와 선택적인 실패 웹훅에는 작업명, 실행 ID, 모델, 공급자, 지연시간과 폴백 사유만 기록하며 프롬프트·응답·비밀값은 기록하지 않는다.
 
 결과 상태는 `completed`, `failed`, `skipped_already_processed`, `skipped_lock_busy`다. 예약 로컬 worker는 `LOCAL_AI_REQUIRE_LOCAL=true`를 강제하므로 로컬 생성 실패를 같은 프로세스의 OpenAI 호출로 숨기지 않는다. 단, 7일 비교 기간의 OpenAI embedding dual-write는 fallback이 아닌 shadow 측정으로 유지한다. 실패·SIGTERM에서도 trap이 로컬 작업 서버, BGE, Qwen 순으로 종료한다.
 
 ### 7일 shadow 전환
 
-`operation_runs`에는 시작·게시 시각, 실행 시간, executor, 모델과 Hugging Face revision checksum, 기존 프롬프트/뉴스 품질 moderation 결과, 재시도·fallback 횟수와 실패 알림 시각을 기록한다. 일자별 unique 제약과 55분 lease token이 로컬·외부·수동 writer를 직렬화한다. 로컬 systemd 작업은 50분에 강제 종료되므로 60분 뒤 외부 fallback과 동시에 쓰지 않는다.
+`operation_runs`에는 시작·게시 시각, 실행 시간, executor, 모델과 Hugging Face revision checksum, 기존 프롬프트/뉴스 품질 moderation 결과, 재시도·fallback 횟수를 기록한다. `AIHARU_ALERT_WEBHOOK_URL`이 설정된 경우에만 실패 알림 시각도 기록한다. 일자별 unique 제약과 55분 lease token이 로컬·외부·수동 writer를 직렬화한다. 로컬 systemd 작업은 50분에 강제 종료되므로 60분 뒤 외부 fallback과 동시에 쓰지 않는다.
 
 외부 정기 fallback은 저장소 변수 `EXTERNAL_FALLBACK_ENABLED`가 `false`가 될 때까지 유지한다. 다음 명령은 두 작업 모두 최근 7일 연속 로컬 실행이고 09:00/13:00 이전 게시, checksum 및 moderation 기록이 있을 때만 외부 정기 fallback을 비활성화한다. 수동 workflow dispatch는 계속 사용할 수 있다.
 
