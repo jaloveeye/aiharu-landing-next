@@ -3,8 +3,9 @@ import { generateText } from "@/app/utils/ai/provider";
 import { saveAINews, isDuplicateNews } from "@/app/utils/aiNews";
 import aiNewsFilter from "@/lib/ai-news-filter";
 import { requireInternalApi } from "@/app/utils/internalApiAuth";
-import { acquireOperation, finishOperation } from "@/app/utils/operationRun";
+import { acquireOperation, finishOperation, notifyOperationFailure, operationContextFromRequest } from "@/app/utils/operationRun";
 import { logOperation } from "@/app/utils/operationLog";
+import { summarizeAiCalls, withAiTelemetry } from "@/app/utils/ai/telemetry";
 
 const {
   buildNewsApiUrl,
@@ -429,7 +430,7 @@ async function processCollectedNews(rawNews: any[]): Promise<number> {
 export async function POST(request: NextRequest) {
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
-  const lease = await acquireOperation("collect-ai-news");
+  const lease = await acquireOperation("collect-ai-news", operationContextFromRequest(request));
   if (lease.alreadyProcessed) {
     return NextResponse.json({
       success: true,
@@ -442,11 +443,21 @@ export async function POST(request: NextRequest) {
   logOperation({ event: "started", operation: "collect-ai-news", runId: lease.runId });
   try {
 
-    // 뉴스 API에서 데이터 수집
-    const rawNews = await fetchNewsFromAPI();
+    const telemetry = await withAiTelemetry(async () => {
+      const rawNews = await fetchNewsFromAPI();
+      if (rawNews.length === 0) return { rawNews, savedCount: 0 };
+      const savedCount = await processCollectedNews(rawNews);
+      return { rawNews, savedCount };
+    });
+    const { rawNews, savedCount } = telemetry.value;
+    const ai = summarizeAiCalls(telemetry.calls);
 
     if (rawNews.length === 0) {
-      await finishOperation(lease.runId, "completed", 0);
+      await finishOperation(lease, "completed", 0, {
+        ...ai,
+        durationMs: Date.now() - startedAt,
+        moderationResult: { policy: "ai-news-filter-v1", passed: 0, blocked: 0 },
+      });
       logOperation({
         event: "completed",
         operation: "collect-ai-news",
@@ -464,8 +475,15 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const savedCount = await processCollectedNews(rawNews);
-    await finishOperation(lease.runId, "completed", savedCount);
+    await finishOperation(lease, "completed", savedCount, {
+      ...ai,
+      durationMs: Date.now() - startedAt,
+      moderationResult: {
+        policy: "ai-news-filter-v1",
+        passed: savedCount,
+        blocked: Math.max(0, rawNews.length - savedCount),
+      },
+    });
     logOperation({
       event: "completed",
       operation: "collect-ai-news",
@@ -484,7 +502,14 @@ export async function POST(request: NextRequest) {
       total: rawNews.length,
     });
   } catch (error) {
-    await finishOperation(lease.runId, "failed", 0);
+    await finishOperation(lease, "failed", 0, {
+      models: [],
+      moderationResult: { policy: "ai-news-filter-v1", status: "failed" },
+      retryCount: 0,
+      fallbackCount: 0,
+      durationMs: Date.now() - startedAt,
+    });
+    await notifyOperationFailure(lease, "collect-ai-news");
     logOperation({
       event: "failed",
       operation: "collect-ai-news",
@@ -493,7 +518,7 @@ export async function POST(request: NextRequest) {
       errorCode: error instanceof Error ? error.name : "UnknownError",
     });
     return NextResponse.json(
-      { error: "AI 뉴스 수집 중 오류가 발생했습니다." },
+      { error: "AI 뉴스 수집 중 오류가 발생했습니다.", runId: lease.runId },
       { status: 500 }
     );
   }

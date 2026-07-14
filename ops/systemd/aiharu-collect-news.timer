@@ -1,8 +1,8 @@
 [Unit]
-Description=Run AIHaru news collection at 13:00 Asia/Seoul
+Description=Run AIHaru local news collection at 12:30 Asia/Seoul
 
 [Timer]
-OnCalendar=*-*-* 13:00:00 Asia/Seoul
+OnCalendar=*-*-* 12:30:00 Asia/Seoul
 Persistent=true
 AccuracySec=1min
 Unit=aiharu-collect-news.service

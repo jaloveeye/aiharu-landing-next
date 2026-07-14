@@ -15,8 +15,9 @@ import {
 import { promptTemplates } from "@/data/prompts";
 import { createClient } from "@/app/utils/supabase/server";
 import { internalApiHeaders, requireInternalApi } from "@/app/utils/internalApiAuth";
-import { acquireOperation, finishOperation } from "@/app/utils/operationRun";
+import { acquireOperation, finishOperation, notifyOperationFailure, operationContextFromRequest } from "@/app/utils/operationRun";
 import { logOperation } from "@/app/utils/operationLog";
+import { summarizeAiCalls, withAiTelemetry } from "@/app/utils/ai/telemetry";
 
 // 프롬프트 생성 후 벡터 저장 함수
 async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
@@ -662,7 +663,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
-  const lease = await acquireOperation("generate-daily-prompt");
+  const lease = await acquireOperation("generate-daily-prompt", operationContextFromRequest(request));
   if (lease.alreadyProcessed) {
     return NextResponse.json({
       success: true,
@@ -674,9 +675,24 @@ export async function POST(request: NextRequest) {
   const startedAt = Date.now();
   logOperation({ event: "started", operation: "generate-daily-prompt", runId: lease.runId });
   try {
-    const result = await generateDailyPrompts();
+    const telemetry = await withAiTelemetry(generateDailyPrompts);
+    const result = telemetry.value;
     const processed = result.results?.length ?? 0;
-    await finishOperation(lease.runId, "completed", processed);
+    const ai = summarizeAiCalls(telemetry.calls);
+    await finishOperation(lease, "completed", processed, {
+      ...ai,
+      durationMs: Date.now() - startedAt,
+      moderationResult: {
+        policy: "prompt-quality-v1",
+        passed: processed,
+        blocked: Math.max(0, 3 - processed),
+        outcomes: result.results?.map((item) => ({
+          category: "category" in item ? item.category : item.prompt_category,
+          quality: "quality" in item ? item.quality : null,
+          grade: "grade" in item ? item.grade : null,
+        })) || [],
+      },
+    });
     logOperation({
       event: "completed",
       operation: "generate-daily-prompt",
@@ -692,7 +708,14 @@ export async function POST(request: NextRequest) {
       alreadyProcessed: false,
     });
   } catch (error) {
-    await finishOperation(lease.runId, "failed", 0);
+    await finishOperation(lease, "failed", 0, {
+      models: [],
+      moderationResult: { policy: "prompt-quality-v1", status: "failed" },
+      retryCount: 0,
+      fallbackCount: 0,
+      durationMs: Date.now() - startedAt,
+    });
+    await notifyOperationFailure(lease, "generate-daily-prompt");
     logOperation({
       event: "failed",
       operation: "generate-daily-prompt",
@@ -701,7 +724,7 @@ export async function POST(request: NextRequest) {
       errorCode: error instanceof Error ? error.name : "UnknownError",
     });
     return NextResponse.json(
-      { error: "프롬프트 생성 중 오류가 발생했습니다." },
+      { error: "프롬프트 생성 중 오류가 발생했습니다.", runId: lease.runId },
       { status: 500 }
     );
   }

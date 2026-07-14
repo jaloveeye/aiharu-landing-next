@@ -15,6 +15,7 @@
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "evaluate:local-ai": "node scripts/evaluate-local-ai.mjs",
+    "check:shadow-readiness": "node scripts/check-shadow-readiness.mjs",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

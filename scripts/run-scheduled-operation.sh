@@ -25,16 +25,19 @@ worker_pid=""
 owns_qwen=0
 owns_bge=0
 result_status="failed"
+api_run_id=""
 
 log() { printf '%s operation=%s %s\n' "$(date --iso-8601=seconds)" "$operation" "$*"; }
 
 if [[ "$dry_run" == "--dry-run" ]]; then
   log "event=lock_acquire"
   if [[ "$operation" == "generate-daily-prompt" ]]; then
+    log "event=schedule local=08:30 target=09:00 fallback=09:30"
     log "event=model_start service=qwen"
     log "event=model_start service=bge-m3"
     log "event=features value=daily-prompt,embedding"
   else
+    log "event=schedule local=12:30 target=13:00 fallback=13:30"
     log "event=model_start service=qwen"
     log "event=features value=news-classification,news-summary"
   fi
@@ -70,10 +73,19 @@ chmod 600 "$AI_PROVIDER_AUDIT_FILE"
 notify() {
   local status="$1"
   [[ -z "${AIHARU_ALERT_WEBHOOK_URL:-}" ]] && return 0
-  curl --silent --show-error --max-time 10 --request POST \
+  if curl --silent --show-error --fail --max-time 10 --request POST \
     --header "Content-Type: application/json" \
     --data "{\"operation\":\"$operation\",\"status\":\"$status\",\"runId\":\"$run_id\"}" \
-    "$AIHARU_ALERT_WEBHOOK_URL" >/dev/null || true
+    "$AIHARU_ALERT_WEBHOOK_URL" >/dev/null; then
+    if [[ "$status" == "failed" && -n "$api_run_id" && -n "${NEXT_PUBLIC_SUPABASE_URL:-}" && -n "${SUPABASE_SERVICE_ROLE_KEY:-}" ]]; then
+      curl --silent --show-error --fail --max-time 10 --request PATCH \
+        --header "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+        --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+        --header "Content-Type: application/json" \
+        --data "{\"failure_notified_at\":\"$(date --iso-8601=seconds)\"}" \
+        "${NEXT_PUBLIC_SUPABASE_URL%/}/rest/v1/operation_runs?id=eq.${api_run_id}" >/dev/null || true
+    fi
+  fi
 }
 
 stop_owned_container() {
@@ -99,7 +111,7 @@ cleanup() {
   rm -f "$response_file" "$worker_log"
   if [[ "$exit_code" -ne 0 ]]; then
     result_status="failed"
-    notify "$result_status"
+    [[ -n "$api_run_id" ]] || notify "$result_status"
   fi
   log "event=finished status=$result_status exit_code=$exit_code audit_file=$AI_PROVIDER_AUDIT_FILE"
   exit "$exit_code"
@@ -198,6 +210,10 @@ export LOCAL_LLM_MODEL="$qwen_served"
 export LOCAL_EMBEDDING_BASE_URL="http://127.0.0.1:8001/v1"
 export LOCAL_EMBEDDING_MODEL="$bge_model"
 export LOCAL_EMBEDDING_DUAL_WRITE="${LOCAL_EMBEDDING_DUAL_WRITE:-true}"
+qwen_cache_dir="$hf_cache/hub/models--Qwen--Qwen3.6-35B-A3B-FP8"
+bge_cache_dir="$hf_cache/hub/models--BAAI--bge-m3"
+export LOCAL_LLM_CHECKSUM="$(cat "$qwen_cache_dir/refs/main" 2>/dev/null || echo unknown)"
+export LOCAL_EMBEDDING_CHECKSUM="$(cat "$bge_cache_dir/refs/main" 2>/dev/null || echo unknown)"
 export NEXT_PUBLIC_SITE_URL="http://127.0.0.1:3100"
 export AIHARU_URL="http://127.0.0.1:3100"
 
@@ -214,9 +230,23 @@ until curl --silent --fail --max-time 2 http://127.0.0.1:3100/api/health >/dev/n
 done
 
 log "event=api_call path=/api/$operation"
-curl --silent --show-error --fail-with-body --max-time 1800 --request POST \
+korea_date="$(TZ=Asia/Seoul date +%F)"
+if [[ "$operation" == "generate-daily-prompt" ]]; then
+  target_at="${korea_date}T09:00:00+09:00"
+  scheduled_for="${korea_date}T08:30:00+09:00"
+else
+  target_at="${korea_date}T13:00:00+09:00"
+  scheduled_for="${korea_date}T12:30:00+09:00"
+fi
+http_code="$(curl --silent --show-error --max-time 1500 --request POST \
   --header "Authorization: Bearer $INTERNAL_API_SECRET" \
-  "http://127.0.0.1:3100/api/$operation" >"$response_file"
+  --header "X-AIHaru-Executor: local" \
+  --header "X-AIHaru-Target-At: $target_at" \
+  --header "X-AIHaru-Scheduled-For: $scheduled_for" \
+  --output "$response_file" --write-out '%{http_code}' \
+  "http://127.0.0.1:3100/api/$operation")"
+api_run_id="$(node -e 'const fs=require("fs");try{const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(j.runId||"")}catch{}' "$response_file")"
+[[ "$http_code" =~ ^2 ]] || { log "event=api_failed http_code=$http_code run_id=${api_run_id:-unknown}"; exit 22; }
 node -e 'const fs=require("fs");const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(j.success!==true)process.exit(1)' "$response_file"
 already_processed="$(node -e 'const fs=require("fs");const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(j.alreadyProcessed===true?"1":"0")' "$response_file")"
 

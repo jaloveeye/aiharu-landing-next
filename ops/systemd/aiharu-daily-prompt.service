@@ -8,7 +8,7 @@ Type=oneshot
 WorkingDirectory=@@PROJECT_DIR@@
 EnvironmentFile=@@ENV_FILE@@
 ExecStart=@@PROJECT_DIR@@/scripts/run-scheduled-operation.sh generate-daily-prompt
-TimeoutStartSec=1h
+TimeoutStartSec=50min
 KillMode=control-group
 
 [Install]

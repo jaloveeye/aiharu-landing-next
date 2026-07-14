@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { appendFileSync } from "node:fs";
+import { recordAiCall } from "./telemetry";
 
 export type AiFeature =
   | "news-classification"
@@ -54,6 +55,8 @@ interface ProviderEnvironment {
   LOCAL_EMBEDDING_MODEL?: string;
   LOCAL_EMBEDDING_DUAL_WRITE?: string;
   AI_PROVIDER_AUDIT_FILE?: string;
+  LOCAL_LLM_CHECKSUM?: string;
+  LOCAL_EMBEDDING_CHECKSUM?: string;
 }
 
 interface ProviderDependencies {
@@ -139,6 +142,31 @@ function logCompletion(data: Record<string, string | number | undefined>) {
   }
 }
 
+function checksumFor(provider: AiProviderName, feature: AiFeature, env: ProviderEnvironment): string {
+  if (provider === "openai") return "provider-managed";
+  return feature === "embedding"
+    ? env.LOCAL_EMBEDDING_CHECKSUM || "unknown"
+    : env.LOCAL_LLM_CHECKSUM || "unknown";
+}
+
+function recordCompletion(
+  feature: AiFeature,
+  result: { provider: AiProviderName; model: string; durationMs: number; fallbackReason?: string },
+  env: ProviderEnvironment,
+) {
+  const checksum = checksumFor(result.provider, feature, env);
+  const data = {
+    feature,
+    provider: result.provider,
+    model: result.model,
+    checksum,
+    durationMs: result.durationMs,
+    fallbackReason: result.fallbackReason,
+  };
+  logCompletion(data);
+  recordAiCall({ ...data, retryCount: result.fallbackReason ? 1 : 0 });
+}
+
 async function requestText(
   client: Client,
   model: string,
@@ -188,7 +216,7 @@ export async function generateText(
         true,
       );
       const result = { ...generated, provider: "local" as const, model, durationMs: now() - startedAt };
-      logCompletion({ feature: options.feature, provider: result.provider, model, durationMs: result.durationMs });
+      recordCompletion(options.feature, result, env);
       return result;
     } catch (error) {
       reason = fallbackReason(error);
@@ -203,13 +231,7 @@ export async function generateText(
     durationMs: now() - startedAt,
     fallbackReason: reason,
   };
-  logCompletion({
-    feature: options.feature,
-    provider: result.provider,
-    model: result.model,
-    durationMs: result.durationMs,
-    fallbackReason: reason,
-  });
+  recordCompletion(options.feature, result, env);
   return result;
 }
 
@@ -262,7 +284,8 @@ export async function generateEmbedding(
         };
       }
       const result = { primary, shadow, durationMs: now() - startedAt };
-      logCompletion({ feature: "embedding", provider: primary.provider, model, durationMs: result.durationMs });
+      recordCompletion("embedding", { ...primary, durationMs: result.durationMs }, env);
+      if (shadow) recordCompletion("embedding", { ...shadow, durationMs: result.durationMs }, env);
       return result;
     } catch (error) {
       reason = fallbackReason(error);
@@ -282,12 +305,6 @@ export async function generateEmbedding(
     durationMs: now() - startedAt,
     fallbackReason: reason,
   };
-  logCompletion({
-    feature: "embedding",
-    provider: result.primary.provider,
-    model,
-    durationMs: result.durationMs,
-    fallbackReason: reason,
-  });
+  recordCompletion("embedding", { ...result.primary, durationMs: result.durationMs, fallbackReason: reason }, env);
   return result;
 }

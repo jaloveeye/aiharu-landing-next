@@ -7,6 +7,7 @@ env_file="${XDG_CONFIG_HOME:-$HOME/.config}/aiharu/scheduled.env"
 
 [[ -f "$env_file" ]] || { echo "missing $env_file (copy env.example and keep only server secrets/settings)" >&2; exit 66; }
 [[ "$(stat -c '%a' "$env_file")" == "600" ]] || { echo "$env_file must have mode 600" >&2; exit 77; }
+grep -Eq '^AIHARU_ALERT_WEBHOOK_URL=.+$' "$env_file" || { echo "AIHARU_ALERT_WEBHOOK_URL is required" >&2; exit 66; }
 [[ -f "$project_dir/.next/BUILD_ID" ]] || { echo "run npm run build before installing timers" >&2; exit 69; }
 [[ -d "$HOME/.cache/huggingface/hub/models--BAAI--bge-m3" ]] || { echo "BGE-M3 cache missing; run scripts/prepare-local-ai-assets.sh" >&2; exit 69; }
 
