@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateText } from "@/app/utils/ai/provider";
+import { generateText, isLocalAiRequiredError } from "@/app/utils/ai/provider";
 import { saveAINews, isDuplicateNews } from "@/app/utils/aiNews";
 import aiNewsFilter from "@/lib/ai-news-filter";
 import { requireInternalApi } from "@/app/utils/internalApiAuth";
-import { acquireOperation, finishOperation, notifyOperationFailure, operationContextFromRequest } from "@/app/utils/operationRun";
+import {
+  acquireOperation,
+  assertLocalSchedulePreflight,
+  finishOperation,
+  notifyOperationFailure,
+  operationContextFromRequest,
+  operationFailureModels,
+} from "@/app/utils/operationRun";
 import { logOperation } from "@/app/utils/operationLog";
 import { summarizeAiCalls, withAiTelemetry } from "@/app/utils/ai/telemetry";
 
@@ -207,6 +214,7 @@ async function generateNewsSummary(content: string): Promise<string> {
       completion.content || content.slice(0, 200) + "..."
     );
   } catch (error) {
+    if (isLocalAiRequiredError(error)) throw error;
     console.error("Error generating summary:", error);
     return content.slice(0, 200) + "...";
   }
@@ -300,6 +308,7 @@ async function extractKeywords(title: string, content: string): Promise<string[]
     const keywords = completion.content;
     return keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
   } catch (error) {
+    if (isLocalAiRequiredError(error)) throw error;
     console.error("키워드 추출 오류:", error);
     return [];
   }
@@ -332,6 +341,7 @@ async function classifyNewsCategory(
 
     return completion.content;
   } catch (error) {
+    if (isLocalAiRequiredError(error)) throw error;
     console.error("Error classifying news:", error);
     return "AI Technology";
   }
@@ -408,6 +418,7 @@ async function processCollectedNews(rawNews: any[]): Promise<number> {
 
         return false;
       } catch (error) {
+        if (isLocalAiRequiredError(error)) throw error;
         console.error("뉴스 처리 중 오류:", error);
         return false;
       }
@@ -430,7 +441,8 @@ async function processCollectedNews(rawNews: any[]): Promise<number> {
 export async function POST(request: NextRequest) {
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
-  const lease = await acquireOperation("collect-ai-news", operationContextFromRequest(request));
+  const context = operationContextFromRequest(request);
+  const lease = await acquireOperation("collect-ai-news", context);
   if (lease.alreadyProcessed) {
     return NextResponse.json({
       success: true,
@@ -442,7 +454,7 @@ export async function POST(request: NextRequest) {
   const startedAt = Date.now();
   logOperation({ event: "started", operation: "collect-ai-news", runId: lease.runId });
   try {
-
+    assertLocalSchedulePreflight(context);
     const telemetry = await withAiTelemetry(async () => {
       const rawNews = await fetchNewsFromAPI();
       if (rawNews.length === 0) return { rawNews, savedCount: 0 };
@@ -503,7 +515,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     await finishOperation(lease, "failed", 0, {
-      models: [],
+      models: operationFailureModels(context, false),
       moderationResult: { policy: "ai-news-filter-v1", status: "failed" },
       retryCount: 0,
       fallbackCount: 0,

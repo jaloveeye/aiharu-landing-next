@@ -19,6 +19,16 @@ const endpoints = [
   { provider: "openai", baseURL: "https://api.openai.com/v1", key: process.env.OPENAI_API_KEY, model: process.env.EVAL_OPENAI_MODEL || "gpt-4o-mini" },
 ];
 
+const validators = {
+  "daily-prompt": (value) => value.includes("**질문:**") && value.includes("**답변:**"),
+  "news-classification": (value) => [
+    "AI Technology", "AI Research", "AI Business", "AI Ethics", "AI Tools", "AI Parenting",
+  ].includes(value.trim()),
+  "news-summary": (value) => value.trim().length >= 40 && /(?:^|\n)\s*[-•]/m.test(value),
+};
+const validate = validators[feature];
+if (!validate) throw new Error("Unsupported evaluation feature: " + feature);
+
 const rows = [];
 for (const item of cases) {
   for (const endpoint of endpoints) {
@@ -31,13 +41,14 @@ for (const item of cases) {
       signal: AbortSignal.timeout(60_000),
     });
     const body = await response.json();
+    const output = body.choices?.[0]?.message?.content || "";
     rows.push({
       id: item.id,
       feature,
       provider: endpoint.provider,
       latencyMs: Math.round(performance.now() - started),
-      formatValid: response.ok && Boolean(body.choices?.[0]?.message?.content),
-      output: body.choices?.[0]?.message?.content || null,
+      formatValid: response.ok && validate(output),
+      output: output || null,
       error: response.ok ? null : body.error?.message || response.statusText,
     });
   }

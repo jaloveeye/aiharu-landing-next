@@ -1,6 +1,6 @@
 # Local AI rollout
 
-All local features are off by default. The application keeps the existing OpenAI path and automatically falls back when the local endpoint times out, errors, returns an empty response, or fails a feature validator.
+All local features are off by default. Interactive application features keep the existing OpenAI path and automatically fall back when the local endpoint times out, errors, returns an empty response, or fails a feature validator. Scheduled local workers set `LOCAL_AI_REQUIRE_LOCAL=true`; they fail the operation instead so the delayed GitHub Actions workflow is the only generation fallback.
 
 ## Services
 
@@ -26,6 +26,7 @@ Create a fixed JSONL file with exactly 30 cases per feature. Each line has `id` 
 
 ```bash
 node scripts/evaluate-local-ai.mjs news-summary data/ai-evaluation/news-summary.jsonl > /tmp/news-summary-report.json
+node scripts/evaluate-local-embeddings.mjs data/ai-evaluation/embedding-retrieval.jsonl > /tmp/embedding-report.json
 ```
 
 Promotion requires local format validity of at least 95%, blind human preference/acceptability of at least 80%, and local p95 latency no greater than 30 seconds. The report calculates format and latency gates; two reviewers should score randomized outputs without provider labels for the quality gate.

@@ -13,13 +13,13 @@ AI 워크스테이션의 사용자 systemd 타이머가 유일한 자동 실행 
 - 매일 08:30 Asia/Seoul: Qwen + BGE-M3 → `/api/generate-daily-prompt` (게시 기준 09:00)
 - 매일 12:30 Asia/Seoul: Qwen → `/api/collect-ai-news` (게시 기준 13:00)
 - GitHub Actions 외부 fallback: 09:30/13:30. 로컬 작업이 완료된 날은 동일 lease에 의해 writer가 차단된다.
-- 다른 GPU 작업, 누락된 모델, 모델 시작 실패 시 OpenAI로 폴백하고 `completed_with_fallback`을 기록한다.
+- 다른 GPU 작업, 누락된 모델, 모델 시작 실패 시 로컬 작업을 `failed`로 기록하고 09:30/13:30 GitHub Actions가 OpenAI로 인수한다.
 - 실행 중인 호환 모델은 재사용하되 예약 실행이 시작하지 않은 프로세스는 종료하지 않는다.
 
 ### 최초 준비
 
-1. `docs/migrations/20260713_prompt_embeddings_v2.sql`과 `20260713_operation_shadow_rollout.sql`을 Supabase 관리 채널에서 적용한다.
-2. `scripts/prepare-local-ai-assets.sh`로 Docker 이미지와 Qwen/BGE-M3를 미리 캐시한다. 예약 실행 중 다운로드는 금지된다.
+1. `20260713_operation_runs.sql`, `20260713_operation_shadow_rollout.sql`, `20260713_prompt_embeddings_v2.sql`을 순서대로 Supabase 관리 채널에서 적용한다.
+2. `QWEN_HF_REVISION`과 `BGE_HF_REVISION`을 40자리 commit hash로 고정하고 `scripts/prepare-local-ai-assets.sh`로 Docker 이미지와 해당 Qwen/BGE-M3 snapshot을 미리 캐시한다. 예약 실행 중 다운로드는 금지된다.
 3. 프로덕션 환경값으로 `npm run build`를 실행한다.
 4. `~/.config/aiharu/scheduled.env`에 OpenAI, Supabase, 뉴스 API, 내부 인증, `AIHARU_ALERT_WEBHOOK_URL` 및 로컬 AI 환경값을 저장하고 권한을 `0600`으로 설정한다.
 5. `loginctl enable-linger "$USER"`를 한 번 실행한 뒤 `scripts/install-local-ai-schedule.sh`를 실행한다.
@@ -37,7 +37,7 @@ journalctl --user -u aiharu-collect-news.service -n 200
 
 작업은 전역 파일 락으로 직렬화된다. API는 `operation_runs`의 일자별 고유 제약으로 재시도를 멱등 처리한다. 로그와 실패 웹훅에는 작업명, 실행 ID, 모델, 공급자, 지연시간과 폴백 사유만 기록하며 프롬프트·응답·비밀값은 기록하지 않는다.
 
-결과 상태는 `completed`, `completed_with_fallback`, `failed`, `skipped_already_processed`, `skipped_lock_busy`다. 실패·SIGTERM에서도 trap이 로컬 작업 서버, BGE, Qwen 순으로 종료한다.
+결과 상태는 `completed`, `failed`, `skipped_already_processed`, `skipped_lock_busy`다. 예약 로컬 worker는 `LOCAL_AI_REQUIRE_LOCAL=true`를 강제하므로 로컬 생성 실패를 같은 프로세스의 OpenAI 호출로 숨기지 않는다. 단, 7일 비교 기간의 OpenAI embedding dual-write는 fallback이 아닌 shadow 측정으로 유지한다. 실패·SIGTERM에서도 trap이 로컬 작업 서버, BGE, Qwen 순으로 종료한다.
 
 ### 7일 shadow 전환
 

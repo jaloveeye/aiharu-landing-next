@@ -52,6 +52,37 @@ export function operationContextFromRequest(request: NextRequest): OperationCont
   };
 }
 
+export function assertLocalSchedulePreflight(context: OperationContext): void {
+  if (context.executor !== "local") return;
+  const reason = process.env.LOCAL_SCHEDULE_PREFLIGHT_ERROR?.trim();
+  if (!reason) return;
+  const error = new Error("Local scheduler preflight failed: " + reason);
+  error.name = "LocalSchedulePreflightError";
+  throw error;
+}
+
+export function operationFailureModels(
+  context: OperationContext,
+  includeEmbedding: boolean,
+): OperationCompletion["models"] {
+  if (context.executor !== "local") return [];
+  const models: OperationCompletion["models"] = [
+    {
+      provider: "local",
+      model: process.env.LOCAL_LLM_MODEL || "qwen3.6-35b-a3b",
+      checksum: process.env.LOCAL_LLM_CHECKSUM || "unknown",
+    },
+  ];
+  if (includeEmbedding) {
+    models.push({
+      provider: "local",
+      model: process.env.LOCAL_EMBEDDING_MODEL || "BAAI/bge-m3",
+      checksum: process.env.LOCAL_EMBEDDING_CHECKSUM || "unknown",
+    });
+  }
+  return models;
+}
+
 export async function acquireOperation(
   operation: OperationName,
   context: OperationContext,

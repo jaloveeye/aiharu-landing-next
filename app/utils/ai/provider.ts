@@ -54,6 +54,7 @@ interface ProviderEnvironment {
   LOCAL_EMBEDDING_API_KEY?: string;
   LOCAL_EMBEDDING_MODEL?: string;
   LOCAL_EMBEDDING_DUAL_WRITE?: string;
+  LOCAL_AI_REQUIRE_LOCAL?: string;
   AI_PROVIDER_AUDIT_FILE?: string;
   LOCAL_LLM_CHECKSUM?: string;
   LOCAL_EMBEDDING_CHECKSUM?: string;
@@ -78,6 +79,26 @@ const DEFAULT_LOCAL_LLM_URL = "http://127.0.0.1:8000/v1";
 const DEFAULT_LOCAL_EMBEDDING_URL = "http://127.0.0.1:8001/v1";
 const DEFAULT_LOCAL_LLM_MODEL = "qwen3.6-35b-a3b";
 const DEFAULT_LOCAL_EMBEDDING_MODEL = "BAAI/bge-m3";
+
+export class LocalAiRequiredError extends Error {
+  readonly feature: AiFeature;
+
+  constructor(feature: AiFeature, reason: string, options?: ErrorOptions) {
+    super(`Local AI is required for ${feature}: ${reason}`, options);
+    this.name = "LocalAiRequiredError";
+    this.feature = feature;
+  }
+}
+
+export function isLocalAiRequired(
+  env: ProviderEnvironment = process.env,
+): boolean {
+  return env.LOCAL_AI_REQUIRE_LOCAL === "true";
+}
+
+export function isLocalAiRequiredError(error: unknown): error is LocalAiRequiredError {
+  return error instanceof LocalAiRequiredError;
+}
 
 export function parseLocalAiFeatures(value?: string): Set<string> {
   return new Set(
@@ -220,7 +241,12 @@ export async function generateText(
       return result;
     } catch (error) {
       reason = fallbackReason(error);
+      if (isLocalAiRequired(env)) {
+        throw new LocalAiRequiredError(options.feature, reason, { cause: error });
+      }
     }
+  } else if (isLocalAiRequired(env)) {
+    throw new LocalAiRequiredError(options.feature, "LocalFeatureDisabled");
   }
 
   const generated = await requestText(cloudClient(env, dependencies.createClient), options.openAIModel, options);
@@ -289,7 +315,12 @@ export async function generateEmbedding(
       return result;
     } catch (error) {
       reason = fallbackReason(error);
+      if (isLocalAiRequired(env)) {
+        throw new LocalAiRequiredError("embedding", reason, { cause: error });
+      }
     }
+  } else if (isLocalAiRequired(env)) {
+    throw new LocalAiRequiredError("embedding", "LocalFeatureDisabled");
   }
 
   const model = "text-embedding-3-small";

@@ -2,7 +2,13 @@ import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { generateText, isLocalAiFeatureEnabled, parseLocalAiFeatures } from "./provider";
+import {
+  generateEmbedding,
+  generateText,
+  isLocalAiFeatureEnabled,
+  LocalAiRequiredError,
+  parseLocalAiFeatures,
+} from "./provider";
 
 function clientReturning(content: string) {
   return {
@@ -65,6 +71,44 @@ describe("local AI provider", () => {
     expect(result.provider).toBe("openai");
     expect(result.fallbackReason).toBe("Error");
     expect(createClient).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not call OpenAI when a scheduled local text request fails", async () => {
+    const createClient = vi
+      .fn()
+      .mockImplementationOnce(() => clientReturning("invalid"))
+      .mockImplementationOnce(() => clientReturning("cloud result"));
+
+    await expect(generateText(
+      {
+        feature: "daily-prompt",
+        openAIModel: "cloud-model",
+        messages: [{ role: "user", content: "test" }],
+        validate: (value) => value.includes("**질문:**"),
+      },
+      {
+        env: {
+          OPENAI_API_KEY: "test",
+          LOCAL_AI_FEATURES: "daily-prompt",
+          LOCAL_AI_REQUIRE_LOCAL: "true",
+        },
+        createClient,
+      },
+    )).rejects.toBeInstanceOf(LocalAiRequiredError);
+    expect(createClient).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call OpenAI when scheduled local embedding is disabled", async () => {
+    const createClient = vi.fn(() => clientReturning("unused"));
+    await expect(generateEmbedding("test", {
+      env: {
+        OPENAI_API_KEY: "test",
+        LOCAL_AI_FEATURES: "daily-prompt",
+        LOCAL_AI_REQUIRE_LOCAL: "true",
+      },
+      createClient,
+    })).rejects.toBeInstanceOf(LocalAiRequiredError);
+    expect(createClient).not.toHaveBeenCalled();
   });
 
   it("disables Qwen thinking and audits metadata without prompt content", async () => {

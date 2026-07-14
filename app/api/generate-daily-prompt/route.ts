@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateText } from "@/app/utils/ai/provider";
+import {
+  generateText,
+  isLocalAiRequired,
+  isLocalAiRequiredError,
+  LocalAiRequiredError,
+} from "@/app/utils/ai/provider";
 import {
   getTodayAllPromptResults,
   savePromptResult,
@@ -15,7 +20,14 @@ import {
 import { promptTemplates } from "@/data/prompts";
 import { createClient } from "@/app/utils/supabase/server";
 import { internalApiHeaders, requireInternalApi } from "@/app/utils/internalApiAuth";
-import { acquireOperation, finishOperation, notifyOperationFailure, operationContextFromRequest } from "@/app/utils/operationRun";
+import {
+  acquireOperation,
+  assertLocalSchedulePreflight,
+  finishOperation,
+  notifyOperationFailure,
+  operationContextFromRequest,
+  operationFailureModels,
+} from "@/app/utils/operationRun";
 import { logOperation } from "@/app/utils/operationLog";
 import { summarizeAiCalls, withAiTelemetry } from "@/app/utils/ai/telemetry";
 
@@ -618,12 +630,16 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
             console.log(`✅ ${category} 카테고리 임베딩 저장 완료`);
           }
         } else {
+          if (isLocalAiRequired()) {
+            throw new LocalAiRequiredError("embedding", `HTTP${embeddingResponse.status}`);
+          }
           console.warn(
             `⚠️ ${category} 카테고리 임베딩 생성 실패:`,
             embeddingResponse.status
           );
         }
       } catch (error) {
+        if (isLocalAiRequiredError(error)) throw error;
         console.warn(`⚠️ ${category} 카테고리 임베딩 생성 실패:`, error);
       }
 
@@ -637,6 +653,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         grade: finalQualityGrade,
       });
     } catch (error) {
+      if (isLocalAiRequiredError(error)) throw error;
       console.error(
         `❌ ${category} 카테고리 데이터베이스 저장 중 예외 발생:`,
         error
@@ -663,7 +680,8 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
-  const lease = await acquireOperation("generate-daily-prompt", operationContextFromRequest(request));
+  const context = operationContextFromRequest(request);
+  const lease = await acquireOperation("generate-daily-prompt", context);
   if (lease.alreadyProcessed) {
     return NextResponse.json({
       success: true,
@@ -675,6 +693,7 @@ export async function POST(request: NextRequest) {
   const startedAt = Date.now();
   logOperation({ event: "started", operation: "generate-daily-prompt", runId: lease.runId });
   try {
+    assertLocalSchedulePreflight(context);
     const telemetry = await withAiTelemetry(generateDailyPrompts);
     const result = telemetry.value;
     const processed = result.results?.length ?? 0;
@@ -709,7 +728,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     await finishOperation(lease, "failed", 0, {
-      models: [],
+      models: operationFailureModels(context, true),
       moderationResult: { policy: "prompt-quality-v1", status: "failed" },
       retryCount: 0,
       fallbackCount: 0,

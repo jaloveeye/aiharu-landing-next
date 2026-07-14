@@ -17,8 +17,10 @@ runtime_root="${XDG_RUNTIME_DIR:-/tmp}/aiharu-scheduled"
 image="${VLLM_IMAGE:-nvcr.io/nvidia/vllm:26.05.post1-py3}"
 hf_cache="${HF_CACHE_DIR:-$HOME/.cache/huggingface}"
 qwen_model="${QWEN_HF_MODEL:-Qwen/Qwen3.6-35B-A3B-FP8}"
+qwen_revision="${QWEN_HF_REVISION:-95a723d08a9490559dae23d0cff1d9466213d989}"
 qwen_served="${LOCAL_LLM_MODEL:-qwen3.6-35b-a3b}"
 bge_model="${LOCAL_EMBEDDING_MODEL:-BAAI/bge-m3}"
+bge_revision="${BGE_HF_REVISION:-5617a9f61b028005a4858fdac845db406aefb181}"
 qwen_container="aiharu-scheduled-qwen"
 bge_container="aiharu-scheduled-bge-m3"
 worker_pid=""
@@ -31,14 +33,18 @@ log() { printf '%s operation=%s %s\n' "$(date --iso-8601=seconds)" "$operation" 
 
 if [[ "$dry_run" == "--dry-run" ]]; then
   log "event=lock_acquire"
+  log "event=fallback_policy value=external-only"
   if [[ "$operation" == "generate-daily-prompt" ]]; then
     log "event=schedule local=08:30 target=09:00 fallback=09:30"
     log "event=model_start service=qwen"
+    log "event=model_revision service=qwen revision=$qwen_revision"
     log "event=model_start service=bge-m3"
+    log "event=model_revision service=bge-m3 revision=$bge_revision"
     log "event=features value=daily-prompt,embedding"
   else
     log "event=schedule local=12:30 target=13:00 fallback=13:30"
     log "event=model_start service=qwen"
+    log "event=model_revision service=qwen revision=$qwen_revision"
     log "event=features value=news-classification,news-summary"
   fi
   log "event=worker_start port=3100"
@@ -146,18 +152,26 @@ remove_owned_stale_container() {
   fi
 }
 
+verified_container_revision() {
+  local name="$1" expected="$2"
+  [[ "$(docker container inspect "$name" --format '{{ index .Config.Labels "aiharu.revision" }}' 2>/dev/null || true)" == "$expected" ]]
+}
+
 start_qwen() {
-  if model_matches 8000 "$qwen_served"; then log "event=model_reused service=qwen owned=false"; return 0; fi
+  if model_matches 8000 "$qwen_served"; then
+    verified_container_revision "$qwen_container" "$qwen_revision" || { log "event=model_unavailable service=qwen reason=unverified_revision"; return 1; }
+    log "event=model_reused service=qwen owned=false revision=$qwen_revision"; return 0
+  fi
   [[ "$gpu_busy_initial" == "0" ]] || { log "event=model_unavailable service=qwen reason=gpu_busy"; return 1; }
   if port_responds 8000; then log "event=model_unavailable service=qwen reason=incompatible_port"; return 1; fi
   docker image inspect "$image" >/dev/null 2>&1 || { log "event=model_unavailable service=qwen reason=image_missing"; return 1; }
-  [[ -d "$hf_cache/hub/models--Qwen--Qwen3.6-35B-A3B-FP8" ]] || { log "event=model_unavailable service=qwen reason=cache_missing"; return 1; }
+  [[ -d "$hf_cache/hub/models--Qwen--Qwen3.6-35B-A3B-FP8/snapshots/$qwen_revision" ]] || { log "event=model_unavailable service=qwen reason=revision_missing revision=$qwen_revision"; return 1; }
   remove_owned_stale_container "$qwen_container" || { log "event=model_unavailable service=qwen reason=foreign_container"; return 1; }
   log "event=model_start service=qwen"
-  docker run -d --name "$qwen_container" --label aiharu.scheduler=true --gpus all --ipc=host --shm-size=32g \
+  docker run -d --name "$qwen_container" --label aiharu.scheduler=true --label "aiharu.revision=$qwen_revision" --gpus all --ipc=host --shm-size=32g \
     -p 127.0.0.1:8000:8000 -v "$hf_cache:/root/.cache/huggingface" \
     -e HF_HOME=/root/.cache/huggingface -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
-    "$image" vllm serve "$qwen_model" --host 0.0.0.0 --port 8000 \
+    "$image" vllm serve "$qwen_model" --revision "$qwen_revision" --host 0.0.0.0 --port 8000 \
     --served-model-name "$qwen_served" --max-model-len 8192 --gpu-memory-utilization 0.72 \
     --enable-prefix-caching --trust-remote-code --language-model-only --reasoning-parser qwen3 >/dev/null
   owns_qwen=1
@@ -166,17 +180,20 @@ start_qwen() {
 }
 
 start_bge() {
-  if model_matches 8001 "$bge_model"; then log "event=model_reused service=bge-m3 owned=false"; return 0; fi
+  if model_matches 8001 "$bge_model"; then
+    verified_container_revision "$bge_container" "$bge_revision" || { log "event=model_unavailable service=bge-m3 reason=unverified_revision"; return 1; }
+    log "event=model_reused service=bge-m3 owned=false revision=$bge_revision"; return 0
+  fi
   [[ "$gpu_busy_initial" == "0" ]] || { log "event=model_unavailable service=bge-m3 reason=gpu_busy"; return 1; }
   if port_responds 8001; then log "event=model_unavailable service=bge-m3 reason=incompatible_port"; return 1; fi
   docker image inspect "$image" >/dev/null 2>&1 || { log "event=model_unavailable service=bge-m3 reason=image_missing"; return 1; }
-  [[ -d "$hf_cache/hub/models--BAAI--bge-m3" ]] || { log "event=model_unavailable service=bge-m3 reason=cache_missing"; return 1; }
+  [[ -d "$hf_cache/hub/models--BAAI--bge-m3/snapshots/$bge_revision" ]] || { log "event=model_unavailable service=bge-m3 reason=revision_missing revision=$bge_revision"; return 1; }
   remove_owned_stale_container "$bge_container" || { log "event=model_unavailable service=bge-m3 reason=foreign_container"; return 1; }
   log "event=model_start service=bge-m3"
-  docker run -d --name "$bge_container" --label aiharu.scheduler=true --gpus all --ipc=host --shm-size=8g \
+  docker run -d --name "$bge_container" --label aiharu.scheduler=true --label "aiharu.revision=$bge_revision" --gpus all --ipc=host --shm-size=8g \
     -p 127.0.0.1:8001:8000 -v "$hf_cache:/root/.cache/huggingface" \
     -e HF_HOME=/root/.cache/huggingface -e HF_HUB_OFFLINE=1 -e TRANSFORMERS_OFFLINE=1 \
-    "$image" vllm serve "$bge_model" --runner pooling --host 0.0.0.0 --port 8000 \
+    "$image" vllm serve "$bge_model" --revision "$bge_revision" --runner pooling --host 0.0.0.0 --port 8000 \
     --served-model-name "$bge_model" --max-model-len 8192 --gpu-memory-utilization 0.08 \
     --trust-remote-code >/dev/null
   owns_bge=1
@@ -194,26 +211,26 @@ bge_ready=0
 start_qwen && qwen_ready=1 || true
 if [[ "$operation" == "generate-daily-prompt" ]]; then start_bge && bge_ready=1 || true; fi
 
-features=""
-local_degraded=0
 if [[ "$operation" == "generate-daily-prompt" ]]; then
-  [[ "$qwen_ready" == "1" ]] && features="daily-prompt"
-  if [[ "$bge_ready" == "1" ]]; then features="${features:+$features,}embedding"; fi
-  [[ "$qwen_ready" == "1" && "$bge_ready" == "1" ]] || local_degraded=1
+  features="daily-prompt,embedding"
 else
-  [[ "$qwen_ready" == "1" ]] && features="news-classification,news-summary"
-  [[ "$qwen_ready" == "1" ]] || local_degraded=1
+  features="news-classification,news-summary"
+fi
+preflight_errors=()
+[[ "$qwen_ready" == "1" ]] || preflight_errors+=("qwen_unavailable")
+if [[ "$operation" == "generate-daily-prompt" && "$bge_ready" != "1" ]]; then
+  preflight_errors+=("bge_unavailable")
 fi
 export LOCAL_AI_FEATURES="$features"
+export LOCAL_AI_REQUIRE_LOCAL=true
+export LOCAL_SCHEDULE_PREFLIGHT_ERROR="$(IFS=,; echo "${preflight_errors[*]}")"
 export LOCAL_LLM_BASE_URL="http://127.0.0.1:8000/v1"
 export LOCAL_LLM_MODEL="$qwen_served"
 export LOCAL_EMBEDDING_BASE_URL="http://127.0.0.1:8001/v1"
 export LOCAL_EMBEDDING_MODEL="$bge_model"
 export LOCAL_EMBEDDING_DUAL_WRITE="${LOCAL_EMBEDDING_DUAL_WRITE:-true}"
-qwen_cache_dir="$hf_cache/hub/models--Qwen--Qwen3.6-35B-A3B-FP8"
-bge_cache_dir="$hf_cache/hub/models--BAAI--bge-m3"
-export LOCAL_LLM_CHECKSUM="$(cat "$qwen_cache_dir/refs/main" 2>/dev/null || echo unknown)"
-export LOCAL_EMBEDDING_CHECKSUM="$(cat "$bge_cache_dir/refs/main" 2>/dev/null || echo unknown)"
+export LOCAL_LLM_CHECKSUM="$qwen_revision"
+export LOCAL_EMBEDDING_CHECKSUM="$bge_revision"
 export NEXT_PUBLIC_SITE_URL="http://127.0.0.1:3100"
 export AIHARU_URL="http://127.0.0.1:3100"
 
@@ -253,9 +270,9 @@ already_processed="$(node -e 'const fs=require("fs");const j=JSON.parse(fs.readF
 fallback_count="$(node -e 'const fs=require("fs");const p=process.argv[1];if(!fs.existsSync(p)){console.log(0);process.exit()}const rows=fs.readFileSync(p,"utf8").trim().split("\n").filter(Boolean).map(JSON.parse);console.log(rows.filter(x=>x.fallbackReason).length)' "$AI_PROVIDER_AUDIT_FILE")"
 if [[ "$already_processed" == "1" ]]; then
   result_status="skipped_already_processed"
-elif [[ "$fallback_count" -gt 0 || "$local_degraded" == "1" ]]; then
-  result_status="completed_with_fallback"
-  notify "$result_status"
+elif [[ "$fallback_count" -gt 0 ]]; then
+  log "event=policy_violation reason=unexpected_in_process_fallback count=$fallback_count"
+  exit 70
 else
   result_status="completed"
 fi
