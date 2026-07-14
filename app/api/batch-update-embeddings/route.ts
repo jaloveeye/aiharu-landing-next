@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../utils/supabase/server";
+import { internalApiHeaders, requireInternalApi } from "@/app/utils/internalApiAuth";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const supabase = await createClient();
     
     // 1. 벡터가 없는 프롬프트 결과들 가져오기
     const { data: promptsWithoutEmbedding, error: fetchError } = await supabase
       .from('prompt_results')
-      .select('id, prompt_title, prompt_content, prompt_category, ai_result')
-      .is('embedding', null);
+      .select('id, prompt_title, prompt_content, prompt_category, ai_result, embedding, embedding_v2')
+      .or('embedding.is.null,embedding_v2.is.null');
 
     if (fetchError) {
       throw fetchError;
@@ -35,19 +38,22 @@ export async function POST(request: NextRequest) {
         // 벡터 생성
         const embeddingResponse = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...internalApiHeaders() },
           body: JSON.stringify({ 
             text: `${prompt.prompt_title} ${prompt.prompt_content} ${prompt.ai_result}` 
           })
         });
 
         if (embeddingResponse.ok) {
-          const { embedding } = await embeddingResponse.json();
+          const { embedding, model, version, shadowEmbedding } = await embeddingResponse.json();
+          const values = version === "v2"
+            ? { embedding_v2: embedding, embedding: shadowEmbedding || prompt.embedding, embedding_model: model, embedding_version: version }
+            : { embedding, embedding_model: model, embedding_version: version };
           
           // 벡터 저장
           const { error: updateError } = await supabase
             .from('prompt_results')
-            .update({ embedding })
+            .update(values)
             .eq('id', prompt.id);
 
           if (updateError) {

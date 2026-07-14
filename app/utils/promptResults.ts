@@ -262,14 +262,27 @@ export async function updatePromptEmbedding(
 // 프롬프트 결과에 벡터 저장 (ID로)
 export async function updatePromptEmbeddingById(
   id: string,
-  embedding: number[]
+  embedding: number[],
+  metadata?: { model?: string; version?: string; shadowEmbedding?: number[] },
 ): Promise<boolean> {
   try {
     const supabase = createClient();
 
+    const values = metadata?.version === "v2"
+      ? {
+          embedding_v2: embedding,
+          embedding: metadata.shadowEmbedding,
+          embedding_model: metadata.model,
+          embedding_version: "v2",
+        }
+      : {
+          embedding,
+          embedding_model: metadata?.model,
+          embedding_version: metadata?.version || "v1",
+        };
     const { error } = await supabase
       .from("prompt_results")
-      .update({ embedding })
+      .update(values)
       .eq("id", id);
 
     if (error) {

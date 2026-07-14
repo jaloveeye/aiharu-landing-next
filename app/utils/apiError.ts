@@ -34,8 +34,18 @@ export function apiError({
   log = true,
 }: ApiErrorPayload) {
   if (log) {
-    // 개발자용 상세 로그
-    console.error("[API Error]", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("[API Error]", error);
+    } else {
+      const record =
+        error && typeof error === "object"
+          ? (error as { name?: unknown; code?: unknown })
+          : {};
+      console.error("[API Error]", {
+        name: typeof record.name === "string" ? record.name : "Error",
+        code: typeof record.code === "string" ? record.code : undefined,
+      });
+    }
   }
   return NextResponse.json(
     {

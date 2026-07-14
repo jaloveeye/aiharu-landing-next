@@ -1,5 +1,4 @@
-import { createClient } from "@/app/utils/supabase/server";
-import { cookies } from "next/headers";
+import { createAdminClient } from "@/app/utils/supabase/admin";
 import {
   NUTRIENT_CATEGORIES,
   NUTRIENT_CATEGORY_KEYWORDS,
@@ -60,7 +59,7 @@ export async function saveRecommendationsFromAnalysis(analysis: {
   result: string;
   analyzed_at: string;
 }) {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const recs = extractRecommendations(analysis.result);
   for (const rec of recs) {
     // 중복 체크: 같은 analysis_id, content, category가 이미 있으면 skip

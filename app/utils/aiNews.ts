@@ -1,4 +1,5 @@
 import { createClient as createServerClient } from "@/app/utils/supabase/server";
+import { internalApiHeaders } from "@/app/utils/internalApiAuth";
 
 export interface AINews {
   id: string;
@@ -139,6 +140,7 @@ export async function generateNewsSummary(content: string): Promise<string> {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...internalApiHeaders(),
       },
       body: JSON.stringify({ content }),
     });

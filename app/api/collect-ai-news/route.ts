@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateText } from "@/app/utils/ai/provider";
 import { saveAINews, isDuplicateNews } from "@/app/utils/aiNews";
 import aiNewsFilter from "@/lib/ai-news-filter";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
+import { acquireOperation, finishOperation } from "@/app/utils/operationRun";
+import { logOperation } from "@/app/utils/operationLog";
 
 const {
   buildNewsApiUrl,
@@ -10,10 +13,6 @@ const {
   limitAndSortNews,
   MIN_QUALITY_SCORE,
 } = aiNewsFilter;
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 // 제목 유사도 계산 함수 (간단한 Jaccard 유사도)
 function calculateTitleSimilarity(title1: string, title2: string): number {
@@ -185,8 +184,9 @@ async function fetchNewsFromAPI() {
 // 뉴스 내용 요약 생성 (원문 없이도 이해 가능한 자체충분 요약: 한 줄 요약 + 불릿 핵심 포인트)
 async function generateNewsSummary(content: string): Promise<string> {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const completion = await generateText({
+      feature: "news-summary",
+      openAIModel: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -198,12 +198,12 @@ async function generateNewsSummary(content: string): Promise<string> {
           content: content.slice(0, 3000),
         },
       ],
-      max_tokens: 220,
+      maxTokens: 220,
       temperature: 0.7,
     });
 
     return (
-      completion.choices[0]?.message?.content || content.slice(0, 200) + "..."
+      completion.content || content.slice(0, 200) + "..."
     );
   } catch (error) {
     console.error("Error generating summary:", error);
@@ -275,8 +275,9 @@ async function calculateNewsQualityScore(news: any): Promise<number> {
 // 자동 키워드 추출
 async function extractKeywords(title: string, content: string): Promise<string[]> {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const completion = await generateText({
+      feature: "news-classification",
+      openAIModel: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -287,11 +288,15 @@ async function extractKeywords(title: string, content: string): Promise<string[]
           content: `제목: ${title}\n내용: ${content.slice(0, 1000)}`,
         },
       ],
-      max_tokens: 100,
+      maxTokens: 100,
       temperature: 0.3,
+      validate: (value) => {
+        const count = value.split(',').map((item) => item.trim()).filter(Boolean).length;
+        return count >= 3 && count <= 5;
+      },
     });
 
-    const keywords = completion.choices[0]?.message?.content?.trim() || "";
+    const keywords = completion.content;
     return keywords.split(',').map(k => k.trim()).filter(k => k.length > 0);
   } catch (error) {
     console.error("키워드 추출 오류:", error);
@@ -305,8 +310,9 @@ async function classifyNewsCategory(
   content: string
 ): Promise<string> {
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const completion = await generateText({
+      feature: "news-classification",
+      openAIModel: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -318,11 +324,12 @@ async function classifyNewsCategory(
           content: `제목: ${title}\n내용: ${content.slice(0, 500)}`,
         },
       ],
-      max_tokens: 50,
+      maxTokens: 50,
       temperature: 0.3,
+      validate: (value) => ["AI Technology", "AI Research", "AI Business", "AI Ethics", "AI Tools", "AI Parenting"].includes(value.trim()),
     });
 
-    return completion.choices[0]?.message?.content?.trim() || "AI Technology";
+    return completion.content;
   } catch (error) {
     console.error("Error classifying news:", error);
     return "AI Technology";
@@ -420,30 +427,71 @@ async function processCollectedNews(rawNews: any[]): Promise<number> {
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
+  const lease = await acquireOperation("collect-ai-news");
+  if (lease.alreadyProcessed) {
+    return NextResponse.json({
+      success: true,
+      runId: lease.runId,
+      processed: 0,
+      alreadyProcessed: true,
+    });
+  }
+  const startedAt = Date.now();
+  logOperation({ event: "started", operation: "collect-ai-news", runId: lease.runId });
   try {
-    console.log("AI 뉴스 수집 시작...");
 
     // 뉴스 API에서 데이터 수집
     const rawNews = await fetchNewsFromAPI();
 
     if (rawNews.length === 0) {
+      await finishOperation(lease.runId, "completed", 0);
+      logOperation({
+        event: "completed",
+        operation: "collect-ai-news",
+        runId: lease.runId,
+        processed: 0,
+        durationMs: Date.now() - startedAt,
+      });
       return NextResponse.json({
+        success: true,
+        runId: lease.runId,
+        processed: 0,
+        alreadyProcessed: false,
         message: "수집된 뉴스가 없습니다.",
         count: 0,
       });
     }
 
     const savedCount = await processCollectedNews(rawNews);
-
-    console.log(`AI 뉴스 수집 완료: ${savedCount}개 저장됨`);
+    await finishOperation(lease.runId, "completed", savedCount);
+    logOperation({
+      event: "completed",
+      operation: "collect-ai-news",
+      runId: lease.runId,
+      processed: savedCount,
+      durationMs: Date.now() - startedAt,
+    });
 
     return NextResponse.json({
+      success: true,
+      runId: lease.runId,
+      processed: savedCount,
+      alreadyProcessed: false,
       message: "AI 뉴스 수집이 완료되었습니다.",
       count: savedCount,
       total: rawNews.length,
     });
   } catch (error) {
-    console.error("AI 뉴스 수집 중 오류:", error);
+    await finishOperation(lease.runId, "failed", 0);
+    logOperation({
+      event: "failed",
+      operation: "collect-ai-news",
+      runId: lease.runId,
+      durationMs: Date.now() - startedAt,
+      errorCode: error instanceof Error ? error.name : "UnknownError",
+    });
     return NextResponse.json(
       { error: "AI 뉴스 수집 중 오류가 발생했습니다." },
       { status: 500 }
@@ -454,34 +502,6 @@ export async function POST(request: NextRequest) {
 // GET 요청으로 최근 뉴스 조회
 export async function GET(request: NextRequest) {
   try {
-    // Vercel Cron 이거나 수동 트리거 쿼리인 경우 수집 실행
-    const isCron = request.headers.get("x-vercel-cron");
-    const url = new URL(request.url);
-    const shouldCollect = url.searchParams.get("collect") === "1";
-
-    if (isCron || shouldCollect) {
-      console.log("[collect-ai-news][GET] 수집 트리거 감지 → 뉴스 수집 실행");
-
-      // 뉴스 API에서 데이터 수집
-      const rawNews = await fetchNewsFromAPI();
-
-      if (rawNews.length === 0) {
-        return NextResponse.json({
-          message: "수집된 뉴스가 없습니다.",
-          count: 0,
-        });
-      }
-
-      const savedCount = await processCollectedNews(rawNews);
-
-      console.log(`[collect-ai-news][GET] 수집 완료: ${savedCount}개 저장됨`);
-      return NextResponse.json({
-        message: "AI 뉴스 수집이 완료되었습니다.",
-        count: savedCount,
-        total: rawNews.length,
-      });
-    }
-
     // 기본: 최근 뉴스 조회 (모든 뉴스 조회)
     const { getRecentAINews, getAllAINews } = await import("@/app/utils/aiNews");
     

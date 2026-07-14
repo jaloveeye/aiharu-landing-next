@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
 import { apiError } from "@/app/utils/apiError";
-import { requireEnv } from "@/app/utils/checkEnv";
-
-const openai = new OpenAI({
-  apiKey: requireEnv("OPENAI_API_KEY"),
-});
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
+import { generateText } from "@/app/utils/ai/provider";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const { content } = await request.json();
 
@@ -19,8 +17,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 뉴스 내용 요약 생성
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const completion = await generateText({
+      feature: "news-summary",
+      openAIModel: "gpt-3.5-turbo",
       messages: [
         {
           role: "system",
@@ -31,11 +30,11 @@ export async function POST(request: NextRequest) {
           content: content
         }
       ],
-      max_tokens: 150,
+      maxTokens: 150,
       temperature: 0.7,
     });
 
-    const summary = completion.choices[0]?.message?.content;
+    const summary = completion.content;
 
     if (!summary) {
       return NextResponse.json(
@@ -46,7 +45,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       summary,
-      usage: completion.usage,
+      usage: { total_tokens: completion.tokensUsed },
+      provider: completion.provider,
       model: completion.model
     });
 

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../utils/supabase/server";
 import { apiError } from "@/app/utils/apiError";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const supabase = await createClient();
 
@@ -42,6 +45,8 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const supabase = await createClient();
 

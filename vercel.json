@@ -1,13 +1,3 @@
 {
-  "regions": ["icn1"],
-  "crons": [
-    {
-      "path": "/api/generate-daily-prompt",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/collect-ai-news",
-      "schedule": "0 4 * * *"
-    }
-  ]
+  "regions": ["icn1"]
 }

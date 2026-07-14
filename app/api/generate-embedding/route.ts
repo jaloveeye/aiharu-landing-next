@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
 import { apiError } from "@/app/utils/apiError";
-import { requireEnv } from "@/app/utils/checkEnv";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
+import { generateEmbedding } from "@/app/utils/ai/provider";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const { text } = await request.json();
 
@@ -15,18 +17,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const openai = new OpenAI({
-      apiKey: requireEnv("OPENAI_API_KEY"),
-    });
-    const embedding = await openai.embeddings.create({
-      model: "text-embedding-3-small",
-      input: text,
-    });
+    const result = await generateEmbedding(text);
 
     return NextResponse.json({
-      embedding: embedding.data[0].embedding,
-      model: embedding.model,
-      usage: embedding.usage,
+      embedding: result.primary.embedding,
+      provider: result.primary.provider,
+      model: result.primary.model,
+      dimensions: result.primary.dimensions,
+      version: result.primary.version,
+      shadowEmbedding: result.shadow?.embedding,
+      shadowModel: result.shadow?.model,
+      fallbackReason: result.fallbackReason,
     });
   } catch (error) {
     return apiError({

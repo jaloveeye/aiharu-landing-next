@@ -1,0 +1,15 @@
+[Unit]
+Description=AIHaru scheduled daily prompt with managed local AI
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@@PROJECT_DIR@@
+EnvironmentFile=@@ENV_FILE@@
+ExecStart=@@PROJECT_DIR@@/scripts/run-scheduled-operation.sh generate-daily-prompt
+TimeoutStartSec=1h
+KillMode=control-group
+
+[Install]
+WantedBy=default.target

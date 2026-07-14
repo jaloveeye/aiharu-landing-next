@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/app/utils/supabase/admin";
 import { decrypt } from "@/app/utils/encryption";
 import { apiError } from "@/app/utils/apiError";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
 type SupabaseRowError = {
   message?: string;
@@ -24,6 +25,8 @@ type ApiGenerationRow = {
 
 // 관리자용 API 통계 조회 (서비스 역할 키 필요)
 export async function GET(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     // 환경 변수 확인
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {

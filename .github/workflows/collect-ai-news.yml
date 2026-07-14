@@ -1,10 +1,7 @@
 name: AI 뉴스 수집
 
 on:
-  schedule:
-    # 매일 UTC 04:00 실행 (한국시간 13:00)
-    - cron: "0 4 * * *"
-  workflow_dispatch: # 수동 실행 가능
+  workflow_dispatch:
     inputs:
       run_dry_run:
         description: "수집된 데이터를 실제 저장하지 않고 점검만 수행"
@@ -28,7 +25,7 @@ jobs:
       - name: Node.js 설정
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
 
       - name: 의존성 설치

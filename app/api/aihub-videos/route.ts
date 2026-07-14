@@ -1,5 +1,7 @@
-import OpenAI from "openai";
+import { generateText } from "@/app/utils/ai/provider";
 import { apiError } from "@/app/utils/apiError";
+import { NextRequest } from "next/server";
+import { enforceDailyLimit } from "@/app/utils/requestPolicy";
 
 type YoutubeSearchItem = {
   id: { videoId?: string };
@@ -25,10 +27,6 @@ type BestYoutubeVideo = YoutubeSearchItem["snippet"] & {
   viewCount: number;
   likeCount: number;
 };
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 type YoutubeSearchResponse = {
   items?: Array<YoutubeSearchItem>;
@@ -74,18 +72,21 @@ const summarizeDescription = async (desc: string) => {
   if (!desc || desc.trim() === "") return "설명이 없습니다.";
   const prompt = `다음은 유튜브 영상 설명이야. 초등학생도 이해할 수 있도록 2~3문장으로 쉽게 요약해줘:\n\n"${desc}"`;
   try {
-    const chat = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const chat = await generateText({
+      feature: "news-summary",
+      openAIModel: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
     });
-    return chat.choices[0].message.content;
+    return chat.content;
   } catch {
     return desc;
   }
 };
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const limited = await enforceDailyLimit(request, "aihub-videos", 20);
+    if (limited) return limited;
     const API_KEY = process.env.YOUTUBE_API_KEY;
     if (!API_KEY) {
       return apiError({

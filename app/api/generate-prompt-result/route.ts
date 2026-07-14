@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { apiError } from "@/app/utils/apiError";
-import { requireEnv } from "@/app/utils/checkEnv";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
+import { generateText } from "@/app/utils/ai/provider";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const { prompt, category } = await request.json();
 
@@ -13,15 +15,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return NextResponse.json(
-        { error: 'OpenAI API 키가 설정되지 않았습니다.' },
-        { status: 500 }
-      );
-    }
-
-    const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
 
     // 카테고리별 시스템 프롬프트 설정
     const getSystemPrompt = (category: string) => {
@@ -40,8 +33,9 @@ export async function POST(request: NextRequest) {
 
     const systemPrompt = getSystemPrompt(category);
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+    const completion = await generateText({
+      feature: "developer-answer",
+      openAIModel: "gpt-4",
       messages: [
         {
           role: "system",
@@ -52,11 +46,11 @@ export async function POST(request: NextRequest) {
           content: prompt
         }
       ],
-      max_tokens: 2000,
+      maxTokens: 2000,
       temperature: 0.7,
     });
 
-    const result = completion.choices[0]?.message?.content;
+    const result = completion.content;
 
     if (!result) {
       return NextResponse.json(
@@ -67,7 +61,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       result,
-      usage: completion.usage,
+      usage: { total_tokens: completion.tokensUsed },
+      provider: completion.provider,
       model: completion.model
     });
 

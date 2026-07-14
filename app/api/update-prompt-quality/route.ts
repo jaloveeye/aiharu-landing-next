@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { apiError } from "@/app/utils/apiError";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
 type UpdatePromptQualityBody = {
   promptId?: string;
@@ -10,6 +11,8 @@ type UpdatePromptQualityBody = {
 };
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const body = (await request.json()) as UpdatePromptQualityBody;
     const { promptId, qualityMetrics, qualityGrade, qualitySuggestions } = body;

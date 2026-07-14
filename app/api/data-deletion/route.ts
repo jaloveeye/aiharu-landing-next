@@ -57,6 +57,10 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user || authData.user.email !== email) {
+      return NextResponse.json({ error: "접근 권한이 없습니다." }, { status: 403 });
+    }
 
     const { data: user, error: userError } = await supabase
       .from("users")
@@ -134,6 +138,10 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData.user || authData.user.email !== email) {
+      return NextResponse.json({ error: "접근 권한이 없습니다." }, { status: 403 });
+    }
 
     const { data, error } = await supabase
       .from("data_deletion_requests")

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateText } from "@/app/utils/ai/provider";
 import {
   getTodayAllPromptResults,
   savePromptResult,
@@ -14,10 +14,9 @@ import {
 } from "@/app/utils/promptQualityAnalyzer";
 import { promptTemplates } from "@/data/prompts";
 import { createClient } from "@/app/utils/supabase/server";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { internalApiHeaders, requireInternalApi } from "@/app/utils/internalApiAuth";
+import { acquireOperation, finishOperation } from "@/app/utils/operationRun";
+import { logOperation } from "@/app/utils/operationLog";
 
 // 프롬프트 생성 후 벡터 저장 함수
 async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
@@ -39,7 +38,7 @@ async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...internalApiHeaders() },
         body: JSON.stringify({
           text: `${promptData.title} ${promptData.prompt} ${aiAnswer}`,
         }),
@@ -47,12 +46,13 @@ async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
     );
 
     if (embeddingResponse.ok) {
-      const { embedding } = await embeddingResponse.json();
+      const { embedding, model, version, shadowEmbedding } = await embeddingResponse.json();
 
       // 3. 벡터를 데이터베이스에 저장
       const updateSuccess = await updatePromptEmbeddingById(
         promptResultId,
-        embedding
+        embedding,
+        { model, version, shadowEmbedding },
       );
       if (updateSuccess) {
         console.log(`벡터 저장 완료: ${promptResultId}`);
@@ -101,10 +101,6 @@ export async function generateDailyPrompts() {
   const selectedCategories = ["육아", ...shuffled.slice(0, 2)];
 
   console.log("선택된 카테고리들:", selectedCategories);
-
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OpenAI API 키가 설정되지 않았습니다.");
-  }
 
   const generatedResults = [];
 
@@ -191,6 +187,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
     let bestQuestion = "";
     let bestAnswer = "";
     let bestTokens = 0;
+    let bestModel = "gpt-3.5-turbo";
 
     // 품질 기준을 만족할 때까지 재생성
     for (let attempt = 1; attempt <= MAX_RETRY; attempt++) {
@@ -199,8 +196,9 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
       console.log(`   - 품질 기준: ${QUALITY_THRESHOLD}점 이상`);
 
       // OpenAI API 호출 - 질문과 답변을 각각 생성
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+      const completion = await generateText({
+        feature: "daily-prompt",
+        openAIModel: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
@@ -223,12 +221,13 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
 위 형식을 정확히 지켜주세요.`,
           },
         ],
-        max_tokens: 800,
+        maxTokens: 800,
         temperature: 0.7 + (attempt - 1) * 0.1, // 재시도마다 창의성 증가
+        validate: (value) => value.includes("**질문:**") && value.includes("**답변:**"),
       });
 
-      const generatedText = completion.choices[0]?.message?.content || "";
-      const tokensUsed = completion.usage?.total_tokens || 0;
+      const generatedText = completion.content;
+      const tokensUsed = completion.tokensUsed;
 
       console.log(
         `✅ ${category} 카테고리 프롬프트 생성 완료 (시도 ${attempt})`
@@ -290,8 +289,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
       console.log(`📋 텍스트 분리 결과:`);
       console.log(`   - 질문 길이: ${aiGeneratedQuestion.length}자`);
       console.log(`   - 답변 길이: ${aiGeneratedAnswer.length}자`);
-      console.log(`   - 질문: ${aiGeneratedQuestion.substring(0, 100)}...`);
-      console.log(`   - 답변: ${aiGeneratedAnswer.substring(0, 100)}...`);
 
       // 품질 분석 수행
       console.log(`🔍 품질 분석 시작...`);
@@ -338,6 +335,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         bestQuestion = aiGeneratedQuestion;
         bestAnswer = aiGeneratedAnswer;
         bestTokens = tokensUsed;
+        bestModel = completion.model;
         break; // 즉시 중단하고 저장 프로세스로
       }
 
@@ -350,6 +348,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         bestQuestion = aiGeneratedQuestion;
         bestAnswer = aiGeneratedAnswer;
         bestTokens = tokensUsed;
+        bestModel = completion.model;
       }
 
       // 첫 번째 시도라면 기본값으로 설정
@@ -359,6 +358,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         bestQuestion = aiGeneratedQuestion;
         bestAnswer = aiGeneratedAnswer;
         bestTokens = tokensUsed;
+        bestModel = completion.model;
       }
 
       // 품질이 낮은 경우에만 재시도
@@ -382,8 +382,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
     console.log(`[DEBUG-2] bestAnswer 길이: ${bestAnswer.length}`);
     console.log(`[DEBUG-3] bestQuality: ${bestQuality}`);
     console.log(`[DEBUG-4] bestTokens: ${bestTokens}`);
-    console.log(`   - 최종 질문: ${bestQuestion.substring(0, 100)}...`);
-    console.log(`   - 최종 답변: ${bestAnswer.substring(0, 100)}...`);
     console.log(`   - 최종 품질: ${bestQuality}/100`);
     console.log(`   - 최종 토큰: ${bestTokens}개`);
 
@@ -446,7 +444,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
       console.log(`[DEBUG-11] Supabase 클라이언트 생성 완료`);
       console.log(`✅ Supabase 클라이언트 생성 성공`);
 
-      console.log(`[DEBUG-12] insertData 객체 생성 시작`);
       const insertData: any = {
         prompt_id: promptData.id,
         prompt_title: promptData.title,
@@ -455,7 +452,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         prompt_difficulty: promptData.difficulty,
         prompt_tags: promptData.tags,
         ai_result: bestAnswer,
-        ai_model: "gpt-3.5-turbo",
+        ai_model: bestModel,
         tokens_used: promptData.tokens_used,
         created_at: promptData.createdAt,
         updated_at: promptData.updatedAt,
@@ -475,13 +472,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         quality_grade: finalQualityGrade,
         quality_suggestions: finalQualitySuggestions,
       };
-      console.log(`[DEBUG-13] insertData 객체 생성 완료`);
-
-      console.log(`[DEBUG-14] insertData 로깅 시작`);
-      console.log(
-        `📝 저장할 데이터 구조:`,
-        JSON.stringify(insertData, null, 2)
-      );
 
       // 각 컬럼별 데이터 상세 출력
       console.log(`🔍 [컬럼별 데이터 상세]`);
@@ -494,14 +484,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         `   - prompt_title: "${
           insertData.prompt_title
         }" (타입: ${typeof insertData.prompt_title})`
-      );
-      console.log(
-        `   - prompt_content: "${insertData.prompt_content.substring(
-          0,
-          100
-        )}..." (타입: ${typeof insertData.prompt_content}, 길이: ${
-          insertData.prompt_content.length
-        })`
       );
       console.log(
         `   - prompt_category: "${
@@ -517,14 +499,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         `   - prompt_tags: [${insertData.prompt_tags.join(
           ", "
         )}] (타입: ${typeof insertData.prompt_tags})`
-      );
-      console.log(
-        `   - ai_result: "${insertData.ai_result.substring(
-          0,
-          100
-        )}..." (타입: ${typeof insertData.ai_result}, 길이: ${
-          insertData.ai_result.length
-        })`
       );
       console.log(
         `   - ai_model: "${
@@ -550,10 +524,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
       // 품질 관련 컬럼 상세 출력
       console.log(`🔍 [품질 관련 컬럼 상세]`);
       console.log(
-        `   - quality_metrics:`,
-        JSON.stringify(insertData.quality_metrics, null, 2)
-      );
-      console.log(
         `   - quality_grade: "${
           insertData.quality_grade
         }" (타입: ${typeof insertData.quality_grade})`
@@ -564,7 +534,6 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         )}] (타입: ${typeof insertData.quality_suggestions})`
       );
 
-      console.log(`[DEBUG-15] insertData 로깅 완료`);
 
       console.log(`[DEBUG-16] Supabase insert 실행 시작`);
       const { data: promptResult, error: insertError } = await supabase
@@ -621,6 +590,7 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
             method: "POST",
             headers: {
               "Content-Type": "application/json",
+              ...internalApiHeaders(),
             },
             body: JSON.stringify({
               text: bestAnswer,
@@ -629,10 +599,13 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
         );
 
         if (embeddingResponse.ok) {
-          const { embedding } = await embeddingResponse.json();
+          const { embedding, model, version, shadowEmbedding } = await embeddingResponse.json();
+          const values = version === "v2"
+            ? { embedding_v2: embedding, embedding: shadowEmbedding, embedding_model: model, embedding_version: version }
+            : { embedding, embedding_model: model, embedding_version: version };
           const { error: embeddingError } = await supabase
             .from("prompt_results")
-            .update({ embedding })
+            .update(values)
             .eq("id", promptResultId);
 
           if (embeddingError) {
@@ -683,24 +656,50 @@ ${contextSummary ? `\n기존에 다룬 주제들:\n${contextSummary}\n\n` : ""}
 } // generateDailyPrompts 함수 닫기
 
 export async function GET() {
-  try {
-    const result = await generateDailyPrompts();
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("프롬프트 생성 오류:", error);
-    return NextResponse.json(
-      { error: "프롬프트 생성 중 오류가 발생했습니다." },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
 }
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
+  const lease = await acquireOperation("generate-daily-prompt");
+  if (lease.alreadyProcessed) {
+    return NextResponse.json({
+      success: true,
+      runId: lease.runId,
+      processed: 0,
+      alreadyProcessed: true,
+    });
+  }
+  const startedAt = Date.now();
+  logOperation({ event: "started", operation: "generate-daily-prompt", runId: lease.runId });
   try {
     const result = await generateDailyPrompts();
-    return NextResponse.json(result);
+    const processed = result.results?.length ?? 0;
+    await finishOperation(lease.runId, "completed", processed);
+    logOperation({
+      event: "completed",
+      operation: "generate-daily-prompt",
+      runId: lease.runId,
+      processed,
+      durationMs: Date.now() - startedAt,
+    });
+    return NextResponse.json({
+      ...result,
+      success: true,
+      runId: lease.runId,
+      processed,
+      alreadyProcessed: false,
+    });
   } catch (error) {
-    console.error("프롬프트 생성 오류:", error);
+    await finishOperation(lease.runId, "failed", 0);
+    logOperation({
+      event: "failed",
+      operation: "generate-daily-prompt",
+      runId: lease.runId,
+      durationMs: Date.now() - startedAt,
+      errorCode: error instanceof Error ? error.name : "UnknownError",
+    });
     return NextResponse.json(
       { error: "프롬프트 생성 중 오류가 발생했습니다." },
       { status: 500 }

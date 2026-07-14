@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/app/utils/supabase/server';
 import { apiError } from "@/app/utils/apiError";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
 export async function DELETE(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const supabase = await createClient();
     const today = new Date().toISOString().split('T')[0];
