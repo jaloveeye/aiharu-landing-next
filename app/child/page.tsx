@@ -31,10 +31,10 @@ export default function ChildPage() {
       setLoading(true);
       try {
         const res = await fetch(
-          `/api/test-meal-analysis?email=${encodeURIComponent(userEmail)}`
+          `/api/analyze-meal?email=${encodeURIComponent(userEmail)}`
         );
         const data = await res.json();
-        setAnalysisSummary({ totalCount: (data?.data || []).length });
+        setAnalysisSummary({ totalCount: (data?.history || []).length });
       } catch {
         setAnalysisSummary({ totalCount: 0 });
       } finally {

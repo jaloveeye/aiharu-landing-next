@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "../../utils/supabase/server";
 import { apiError } from "@/app/utils/apiError";
+import { internalApiHeaders, requireInternalApi } from "@/app/utils/internalApiAuth";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const {
       query,
@@ -25,7 +28,7 @@ export async function POST(request: NextRequest) {
       `${process.env.NEXT_PUBLIC_SITE_URL}/api/generate-embedding`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...internalApiHeaders() },
         body: JSON.stringify({ text: query }),
       }
     );
@@ -34,15 +37,16 @@ export async function POST(request: NextRequest) {
       throw new Error("Embedding 생성 실패");
     }
 
-    const { embedding } = await embeddingResponse.json();
+    const { embedding, version } = await embeddingResponse.json();
+    const embeddingColumn = version === "v2" ? "embedding_v2" : "embedding";
 
     // 2. 유사한 프롬프트 검색 (pgvector 사용)
     let queryBuilder = supabase
       .from("prompt_results")
       .select(
-        "id, prompt_title, prompt_content, prompt_category, created_at, embedding"
+        "id, prompt_title, prompt_content, prompt_category, created_at, embedding, embedding_v2"
       )
-      .not("embedding", "is", null);
+      .not(embeddingColumn, "is", null);
 
     if (category) {
       queryBuilder = queryBuilder.eq("prompt_category", category);
@@ -62,7 +66,7 @@ export async function POST(request: NextRequest) {
         ?.map((item) => {
           const similarity = calculateCosineSimilarity(
             embedding,
-            parseEmbedding(item.embedding)
+            parseEmbedding(version === "v2" ? item.embedding_v2 : item.embedding)
           );
           console.log(`유사도 계산: ${item.id} -> ${similarity}`);
           return {
@@ -79,6 +83,7 @@ export async function POST(request: NextRequest) {
       query,
       total: results.length,
       threshold,
+      embeddingVersion: version,
     });
   } catch (error) {
     return apiError({

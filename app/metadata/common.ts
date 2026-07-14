@@ -10,6 +10,11 @@ export const commonMetadata: Metadata = {
   authors: [{ name: "아이하루" }],
   creator: "아이하루",
   publisher: "아이하루",
+  verification: {
+    other: {
+      "naver-site-verification": "ffe6f8cd0adc4ada072766f90d04d2d376b059db",
+    },
+  },
   robots: {
     index: true,
     follow: true,

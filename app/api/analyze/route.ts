@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
-import { requireEnv } from "@/app/utils/checkEnv";
 import { apiError } from "@/app/utils/apiError";
-
-const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
+import { generateText } from "@/app/utils/ai/provider";
 
 export async function POST(req: NextRequest) {
+  const unauthorized = requireInternalApi(req);
+  if (unauthorized) return unauthorized;
   const { meal } = await req.json();
 
   if (!meal) {
@@ -28,13 +28,13 @@ ${meal}
 `;
 
   try {
-    const chat = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const chat = await generateText({
+      feature: "meal-text",
+      openAIModel: "gpt-4o",
       messages: [{ role: "user", content: prompt }],
     });
 
-    const result = chat.choices[0].message.content;
-    return NextResponse.json({ result });
+    return NextResponse.json({ result: chat.content, provider: chat.provider, model: chat.model });
   } catch (error) {
     return apiError({
       error,

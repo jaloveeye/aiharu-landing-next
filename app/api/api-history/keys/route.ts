@@ -3,6 +3,7 @@ import { createClient } from "@/app/utils/supabase/server";
 import { createAdminClient } from "@/app/utils/supabase/admin";
 import { encrypt, decrypt } from "@/app/utils/encryption";
 import { apiError } from "@/app/utils/apiError";
+import { enforceDailyLimit, readJsonBody } from "@/app/utils/requestPolicy";
 
 type ApiKeyHistoryInsert = {
   encrypted_email: string;
@@ -13,10 +14,19 @@ type ApiKeyHistoryInsert = {
   user_id?: string | null;
   anonymous_id?: string | null;
 };
+type ApiKeyHistoryRequest = {
+  email?: string;
+  name?: string;
+  description?: string;
+  apiKey?: string;
+  anonymousId?: string;
+};
 
 // API 키 발급 히스토리 저장 (인증된 사용자 및 익명 사용자 모두 저장)
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceDailyLimit(request, "api-history-keys", 10);
+    if (limited) return limited;
     // 사용자 정보 확인을 위해 일반 클라이언트 사용
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -24,7 +34,9 @@ export async function POST(request: NextRequest) {
     // 실제 저장은 관리자 클라이언트로 수행 (RLS 우회)
     const adminSupabase = createAdminClient();
 
-    const body = await request.json();
+    const parsed = await readJsonBody<ApiKeyHistoryRequest>(request, 64 * 1024);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data!;
     const { email, name, description, apiKey, anonymousId } = body;
 
     if (!email || !name || !apiKey) {
@@ -32,6 +44,13 @@ export async function POST(request: NextRequest) {
         error: "Missing required fields",
         userMessage: "필수 필드가 누락되었습니다.",
         status: 400,
+      });
+    }
+    if (user && user.email !== email) {
+      return apiError({
+        error: "Email mismatch",
+        userMessage: "접근 권한이 없습니다.",
+        status: 403,
       });
     }
 
@@ -87,13 +106,6 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    console.log("API 키 히스토리 저장 시도:", {
-      has_user_id: !!insertData.user_id,
-      has_anonymous_id: !!insertData.anonymous_id,
-      user_id: insertData.user_id,
-      anonymous_id: insertData.anonymous_id,
-    });
-
     const { data, error } = await adminSupabase
       .from("api_key_history")
       .insert(insertData)
@@ -102,17 +114,6 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("Supabase 저장 오류:", error);
-      console.error("에러 코드:", error.code);
-      console.error("에러 메시지:", error.message);
-      console.error("에러 힌트:", error.hint);
-      console.error("에러 세부사항:", error.details);
-      console.error("저장 시도 데이터:", {
-        has_user_id: !!insertData.user_id,
-        has_anonymous_id: !!insertData.anonymous_id,
-        user_id: insertData.user_id,
-        anonymous_id: insertData.anonymous_id,
-      });
-      console.error("전체 에러 객체:", JSON.stringify(error, null, 2));
       return apiError({
         error,
         userMessage: "히스토리 저장에 실패했습니다.",

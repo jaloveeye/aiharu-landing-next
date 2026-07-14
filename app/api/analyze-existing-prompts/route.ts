@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { analyzePromptQuality, getQualityGrade, generateQualitySuggestions } from "@/app/utils/promptQualityAnalyzer";
 import { apiError } from "@/app/utils/apiError";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const supabase = await createClient();
     
@@ -101,7 +104,9 @@ export async function POST(request: NextRequest) {
 }
 
 // GET 요청으로 품질 분석이 필요한 프롬프트 개수 확인
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
     const supabase = await createClient();
     

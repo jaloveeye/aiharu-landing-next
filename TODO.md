@@ -12,7 +12,7 @@
 - [x] OpenAI API 연동
 - [x] 매일 자동 프롬프트 결과 생성
 - [x] 결과 저장 및 관리 시스템
-- [x] Vercel Cron Jobs 설정 (매일 오전 9시 자동 생성)
+- [x] 직접 운영 서버 예약 설정 문서 및 호출 스크립트
 
 #### Phase 3: 고도화 (1주일)
 - [ ] 카테고리별 분류 (코드리뷰, 디버깅, 아키텍처 등)
@@ -47,7 +47,7 @@
 - **데이터베이스**: Supabase (기존 활용)
 - **AI API**: OpenAI GPT-4
 - **뉴스 API**: NewsAPI 또는 GNews
-- **스케줄링**: Vercel Cron Jobs
+- **스케줄링**: 직접 운영 서버 cron/systemd timer
 
 ## 📅 예상 일정
 - **프롬프트 모음**: 1-2주 완성

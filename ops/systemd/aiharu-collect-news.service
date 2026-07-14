@@ -1,0 +1,15 @@
+[Unit]
+Description=AIHaru scheduled news collection with managed local AI
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=@@PROJECT_DIR@@
+EnvironmentFile=@@ENV_FILE@@
+ExecStart=@@PROJECT_DIR@@/scripts/run-scheduled-operation.sh collect-ai-news
+TimeoutStartSec=50min
+KillMode=control-group
+
+[Install]
+WantedBy=default.target

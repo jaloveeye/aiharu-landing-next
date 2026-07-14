@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
 import { extractRecommendations } from "@/app/utils/recommendation";
 import { apiError } from "@/app/utils/apiError";
+import { requireDevelopment } from "@/app/utils/internalApiAuth";
 
 export async function POST(req: NextRequest) {
+  const unavailable = requireDevelopment();
+  if (unavailable) return unavailable;
   try {
     const supabase = await createClient();
 

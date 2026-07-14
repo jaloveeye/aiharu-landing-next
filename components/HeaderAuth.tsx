@@ -1,40 +1,13 @@
 "use client";
-import { useEffect, useState } from "react";
-import { createClient } from "@/app/utils/supabase/client";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useLanguage } from "@/app/contexts/LanguageContext";
-import Button from "@/components/ui/Button";
 
 export default function HeaderAuth() {
   const { language, setLanguage, t } = useLanguage();
   const pathname = usePathname();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    const supabase = createClient();
-    // 최초 유저 정보
-    supabase.auth.getUser().then(({ data }) => {
-      setUserEmail(data?.user?.email ?? null);
-    });
-    // 인증 상태 변경 감지
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUserEmail(session?.user?.email ?? null);
-      }
-    );
-    return () => {
-      listener?.subscription.unsubscribe();
-    };
-  }, []);
-
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    setUserEmail(null);
-    window.location.reload();
-  };
 
   return (
     <header className="w-full bg-white dark:bg-gray-950 border-b min-h-[64px] sticky top-0 z-50 backdrop-blur-sm bg-opacity-95" style={{ borderColor: 'var(--color-outline)' }}>
@@ -116,35 +89,7 @@ export default function HeaderAuth() {
             </Link>
           </nav>
 
-          {/* User Menu / Login - UI 제거됨, 기능은 유지 */}
           <div className="flex items-center space-x-4">
-            {/* 로그인 관련 UI는 제거했지만 기능은 그대로 유지 */}
-            {/* {userEmail ? (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-700 hidden sm:block">
-                  {userEmail}
-                </span>
-                <Link
-                  href="/history"
-                  className="px-3 py-1 text-xs font-bold text-yellow-700 bg-yellow-50 border border-yellow-300 rounded hover:bg-yellow-100 transition-colors"
-                >
-                  {t("nav.history")}
-                </Link>
-                <button
-                  onClick={handleLogout}
-                  className="px-3 py-1 text-xs font-bold text-blue-700 bg-blue-50 border border-blue-300 rounded hover:bg-blue-100 transition-colors"
-                >
-                  {t("nav.logout")}
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Button as="a" href="/signup" variant="primary" size="md">
-                  구글로 시작하기
-                </Button>
-              </div>
-            )} */}
-
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}

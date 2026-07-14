@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateText } from "@/app/utils/ai/provider";
 import { createClient } from "@/app/utils/supabase/server";
 import { apiError } from "@/app/utils/apiError";
-import { requireEnv } from "@/app/utils/checkEnv";
 import { promptTemplates } from "@/data/prompts";
+import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
 type PromptCategory = "육아" | "육아창업" | "비즈니스마케팅" | "학습교육" | "일상라이프";
 
@@ -16,8 +16,9 @@ const categoryPromptContent: Record<PromptCategory, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  const unauthorized = requireInternalApi(request);
+  if (unauthorized) return unauthorized;
   try {
-    const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
     const supabase = await createClient();
 
     const results: Array<{
@@ -40,8 +41,9 @@ export async function POST(request: NextRequest) {
           continue;
         }
 
-        const completion = await openai.chat.completions.create({
-          model: "gpt-4",
+        const completion = await generateText({
+          feature: "daily-prompt",
+          openAIModel: "gpt-4",
           messages: [
             {
               role: "system",
@@ -52,11 +54,11 @@ export async function POST(request: NextRequest) {
               content: template.prompt,
             },
           ],
-          max_tokens: 1000,
+          maxTokens: 1000,
           temperature: 0.7,
         });
 
-        const generatedContent = completion.choices[0]?.message?.content;
+        const generatedContent = completion.content;
         if (!generatedContent) {
           results.push({ category, success: false, error: "OpenAI 응답이 비어있습니다." });
           continue;
@@ -70,8 +72,8 @@ export async function POST(request: NextRequest) {
           prompt_difficulty: template.difficulty,
           prompt_tags: template.tags,
           ai_result: generatedContent,
-          ai_model: "gpt-4",
-          tokens_used: completion.usage?.total_tokens || 0,
+          ai_model: completion.model,
+          tokens_used: completion.tokensUsed,
         };
 
         const { data, error } = await supabase

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+import { generateText } from "@/app/utils/ai/provider";
 import sharp from "sharp";
-import { requireEnv } from "@/app/utils/checkEnv";
 import { apiError } from "@/app/utils/apiError";
-
-const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
+import { requireDevelopment } from "@/app/utils/internalApiAuth";
 
 export async function POST(req: NextRequest) {
+  const unavailable = requireDevelopment();
+  if (unavailable) return unavailable;
   try {
     let imageBase64 = "";
     // 1. Try to get image from multipart/form-data (file upload)
@@ -40,8 +40,9 @@ export async function POST(req: NextRequest) {
     const systemPrompt = "당신은 식사 영양사입니다.";
     const userPrompt = `이미지 속 음식 구성을 간단히 분석해 주세요. 사람은 없거나 무시해주세요.`;
     // Step 1: 음식 구성 추출
-    const chat = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const chat = await generateText({
+      feature: "meal-vision",
+      openAIModel: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         {
@@ -57,13 +58,14 @@ export async function POST(req: NextRequest) {
       ],
       temperature: 0.7,
     });
-    const foodSummary = chat.choices[0].message.content || "";
+    const foodSummary = chat.content;
     // Step 2: 초등학교 1학년 식단 평가
     const systemPrompt2 =
       "당신은 아동 식사 영양사입니다. 아래 식단이 초등학교 1학년 아동의 아침 식사로 충분한지 평가하고, 부족하다면 보완할 점을 알려주세요.";
     const userPrompt2 = `식단: ${foodSummary}\n1. 각 항목별 예상 영양소(열량, 단백질, 탄수화물, 지방 등)를 표로 정리\n2. 전체 식단의 영양 균형 평가 및 2~3줄 보완/추천`;
-    const chat2 = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const chat2 = await generateText({
+      feature: "meal-text",
+      openAIModel: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt2 },
         { role: "user", content: userPrompt2 },
@@ -71,7 +73,7 @@ export async function POST(req: NextRequest) {
       temperature: 0.7,
     });
     return NextResponse.json({
-      result: chat2.choices[0].message.content || "",
+      result: chat2.content,
     });
   } catch (error) {
     return apiError({

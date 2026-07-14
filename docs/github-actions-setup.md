@@ -1,63 +1,33 @@
-# GitHub Actions 뉴스 수집 설정 가이드
+# GitHub Actions 외부 LLM fallback 설정
 
-## 1. GitHub Secrets 설정
+`.github/workflows/external-llm-fallback.yml`은 로컬 작업보다 60분 늦고 기존 게시 기준보다 30분 늦게 보호된 운영 API를 호출한다.
 
-GitHub 저장소에서 다음 환경 변수들을 Secrets로 설정해야 합니다:
+- 일일 프롬프트: 로컬 08:30 → 게시 기준 09:00 → 외부 fallback 09:30 KST
+- 뉴스 수집: 로컬 12:30 → 게시 기준 13:00 → 외부 fallback 13:30 KST
 
-### 필수 환경 변수
-- `OPENAI_API_KEY`: OpenAI API 키
-- `SUPABASE_URL`: Supabase 프로젝트 URL
-- `SUPABASE_SERVICE_ROLE_KEY`: Supabase 서비스 역할 키
+두 경로 모두 `operation_runs`의 일자별 lease를 사용하므로 로컬 작업이 완료됐거나 실행 중이면 외부 writer는 저장하지 않는다.
 
-### 선택적 환경 변수 (뉴스 수집용)
-- `NEWS_API_KEY`: NewsAPI 키 (https://newsapi.org/)
-- `GNEWS_API_KEY`: GNews API 키 (https://gnews.io/)
+## 필수 GitHub 설정
 
-## 2. GitHub Secrets 설정 방법
+Actions repository secrets:
 
-1. GitHub 저장소로 이동
-2. **Settings** 탭 클릭
-3. 왼쪽 메뉴에서 **Secrets and variables** → **Actions** 클릭
-4. **New repository secret** 버튼 클릭
-5. 각 환경 변수 이름과 값을 입력하여 추가
+- `AIHARU_URL`: 배포된 아이하루 주소
+- `INTERNAL_API_SECRET`: 배포 앱과 동일한 내부 API 비밀값
 
-## 3. Workflow 실행
+Actions repository variable:
 
-### 자동 실행
-- 매일 오전 4시 (UTC) = 한국시간 오후 1시에 자동 실행
-- GitHub 정책상 공개 저장소의 scheduled workflow는 저장소 활동이 장기간 없으면 비활성화될 수 있으므로, 비활성화 시 Actions 탭에서 workflow를 다시 활성화하고 수동 실행으로 상태를 확인합니다.
+- `EXTERNAL_FALLBACK_ENABLED=true`: 7일 shadow 기간과 롤백 상태
 
-### 수동 실행
-1. GitHub 저장소의 **Actions** 탭으로 이동
-2. **AI 뉴스 수집** workflow 선택
-3. **Run workflow** 버튼 클릭
+배포 앱에는 OpenAI, Supabase, 뉴스 API 키와 `AIHARU_ALERT_WEBHOOK_URL`이 설정되어 있어야 한다. 외부 workflow에 해당 공급자 비밀값을 직접 전달하지 않는다.
 
-## 4. 로그 확인
+## 자동·수동 실행
 
-Actions 탭에서 실행 결과와 로그를 확인할 수 있습니다:
-- ✅ 성공: 수집된 뉴스 개수 표시
-- ❌ 실패: 오류 메시지와 함께 실패 원인 표시
+자동 cron은 00:30/04:30 UTC에 실행된다. GitHub Actions 지연이 발생해도 lease가 먼저 현재 일자의 완료 상태를 확인한다.
 
-## 5. 문제 해결
+`workflow_dispatch`에서는 일일 프롬프트 또는 뉴스 수집을 선택할 수 있다. 수동 실행은 repository variable이 `false`여도 항상 유지된다.
 
-### 일반적인 문제들
+## Shadow 종료와 롤백
 
-1. **환경 변수 누락**
-   - 모든 필수 환경 변수가 설정되었는지 확인
-   - 변수 이름이 정확한지 확인 (대소문자 구분)
+`scripts/promote-local-ai.sh`는 최근 7일의 두 작업이 모두 로컬 executor로 기준 시각 전에 성공했고 fallback 0회, 모델 checksum과 moderation 기록이 있을 때만 `EXTERNAL_FALLBACK_ENABLED=false`로 변경한다.
 
-2. **API 키 오류**
-   - OpenAI API 키가 유효한지 확인
-   - Supabase 키가 올바른지 확인
-   - 뉴스 API 키가 유효한지 확인
-
-3. **네트워크 오류**
-   - GitHub Actions의 네트워크 제한으로 인한 일시적 오류
-   - 자동으로 재시도되므로 다음 실행에서 정상 작동할 수 있음
-
-## 6. 모니터링
-
-뉴스 수집이 정상적으로 작동하는지 확인하려면:
-1. Supabase 데이터베이스의 `ai_news` 테이블 확인
-2. GitHub Actions 로그에서 수집된 뉴스 개수 확인
-3. 웹사이트에서 뉴스 섹션이 업데이트되는지 확인
+`scripts/rollback-local-ai.sh`는 로컬 systemd 타이머를 비활성화하고 repository variable을 `true`로 복구한다.

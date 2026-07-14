@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/app/utils/supabase/server";
-import OpenAI from "openai";
-import { requireEnv } from "@/app/utils/checkEnv";
+import { generateText } from "@/app/utils/ai/provider";
 import { apiError } from "@/app/utils/apiError";
 import {
   saveRecommendationsFromAnalysis,
@@ -11,9 +10,9 @@ import {
   extractRecommendationSection,
   extractIngredientsFromRecommendation,
 } from "@/app/utils/recommendationExtract";
-import fetch from "node-fetch";
-
-const openai = new OpenAI({ apiKey: requireEnv("OPENAI_API_KEY") });
+import { enforceDailyLimit, readJsonBody } from "@/app/utils/requestPolicy";
+import { matchesAuthenticatedEmail, ownsMealAnalysis } from "@/app/utils/resourceOwnership";
+import { createAdminClient } from "@/app/utils/supabase/admin";
 
 type AnalyzeMealRequest = {
   meal?: string;
@@ -127,8 +126,9 @@ async function analyzeWithOpenAI(
     const userPrompt = `다음 식단 사진을 분석해서 아래 기준에 따라 결과를 요약해줘:\n\n1. 사진 속 식재료를 항목별로 정확히 추출해줘 (예: 밥, 계란프라이, 동그랑땡, 김치, 나물 등)\n2. 각 식재료의 대략적인 섭취량을 추정해줘 (예: 밥 반 공기, 계란 2개 등)\n\n식사는 7세 여아 기준입니다. 사진을 기반으로 최대한 정확하게 분석해주세요.`;
     let foodSummary = "";
     try {
-      const chat = await openai.chat.completions.create({
-        model: "gpt-4o",
+      const chat = await generateText({
+        feature: "meal-vision",
+        openAIModel: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt },
           {
@@ -144,7 +144,7 @@ async function analyzeWithOpenAI(
         ],
         temperature: 0.7,
       });
-      foodSummary = chat.choices[0].message.content?.trim() || "";
+      foodSummary = chat.content;
       if (
         !foodSummary ||
         foodSummary.includes("sorry") ||
@@ -172,8 +172,9 @@ async function analyzeWithOpenAI(
       "당신은 아동 식사 영양사입니다. 아래 식단이 초등학교 1학년(7세) 여아의 아침 식사로 충분한지 평가하고, 부족하다면 보완할 점을 알려주세요.";
     const userPrompt2 = `다음 기준에 따라 결과를 요약해줘:\n\n1. 위에서 추출한 식재료와 섭취량을 기반으로 전체 식사의 열량(kcal), 주요 영양소(탄수화물, 단백질, 지방, 식이섬유, 칼슘, 철분, 비타민 A, C, D, 나트륨)를 요약표로 정리해줘\n2. 초등학교 1학년(7세) 기준 1일 권장 섭취량과 비교해서 %로 보여줘\n3. 부족한 영양소나 과잉된 항목이 있다면 따로 표시해줘\n4. 식단의 장점과 개선이 필요한 점을 요약해줘\n5. 내일 아침 추천 식단도 제안해줘 (부족했던 영양소를 보완할 수 있게)\n6. 결과를 JSON으로도 정리해서 제공해줘 (열량 및 영양소 항목 포함)\n\n식사는 7세 여아 기준입니다. 반드시 위 기준을 모두 반영해서 분석해주세요.\n\n식단: ${foodSummary}`;
     try {
-      const chat2 = await openai.chat.completions.create({
-        model: "gpt-4o",
+      const chat2 = await generateText({
+        feature: "meal-text",
+        openAIModel: "gpt-4o",
         messages: [
           { role: "system", content: systemPrompt2 },
           { role: "user", content: userPrompt2 },
@@ -181,7 +182,7 @@ async function analyzeWithOpenAI(
         temperature: 0.7,
       });
       return {
-        result: chat2.choices[0].message.content || "",
+        result: chat2.content,
         sourceType: "image",
       };
     } catch (error: unknown) {
@@ -199,8 +200,9 @@ async function analyzeWithOpenAI(
     const systemPrompt =
       "당신은 아동 식사 영양사입니다. 아래 식단이 초등학교 1학년(7세) 여아의 아침 식사로 적절한지 평가해주세요.";
     const userPrompt = `다음 기준에 따라 결과를 요약해줘:\n\n1. 식단에 포함된 식재료와 음식명을 항목별로 정리해줘 (예: 밥, 계란프라이, 동그랑땡, 김치, 나물 등)\n2. 각 식재료의 대략적인 섭취량을 추정해줘 (예: 밥 반 공기, 계란 2개 등)\n3. 전체 식사의 열량(kcal), 주요 영양소(탄수화물, 단백질, 지방, 식이섬유, 칼슘, 철분, 비타민 A, C, D, 나트륨)를 요약표로 정리해줘\n4. 초등학교 1학년(7세) 기준 1일 권장 섭취량과 비교해서 %로 보여줘\n5. 부족한 영양소나 과잉된 항목이 있다면 따로 표시해줘\n6. 식단의 장점과 개선이 필요한 점을 요약해줘\n7. 내일 아침 추천 식단도 제안해줘 (부족했던 영양소를 보완할 수 있게)\n8. 결과를 JSON으로도 정리해서 제공해줘 (열량 및 영양소 항목 포함)\n\n식사는 7세 여아 기준입니다. 최대한 정확하게 분석해주세요.\n\n식단: ${meal}`;
-    const chat = await openai.chat.completions.create({
-      model: "gpt-4o",
+    const chat = await generateText({
+      feature: "meal-text",
+      openAIModel: "gpt-4o",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt },
@@ -208,7 +210,7 @@ async function analyzeWithOpenAI(
       temperature: 0.7,
     });
     return {
-      result: chat.choices[0].message.content || "",
+      result: chat.content,
       sourceType: "text",
     };
   }
@@ -216,8 +218,19 @@ async function analyzeWithOpenAI(
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as AnalyzeMealRequest;
+    const parsed = await readJsonBody<AnalyzeMealRequest>(req, 8 * 1024 * 1024);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data!;
     const { meal, anon_id, email, imageBase64, todayLocal } = body;
+
+    const limited = await enforceDailyLimit(req, "analyze-meal", 5);
+    if (limited) return limited;
+    const sessionClient = await createClient();
+    const { data: authData } = await sessionClient.auth.getUser();
+    const supabase = createAdminClient();
+    if (email && !matchesAuthenticatedEmail(authData.user?.email, email)) {
+      return NextResponse.json({ error: "접근 권한이 없습니다." }, { status: 403 });
+    }
 
     if (!meal && !imageBase64) {
       return apiError({
@@ -237,8 +250,6 @@ export async function POST(req: NextRequest) {
 
     const normalizedMeal = normalizeMeal(meal || "");
     const today = todayLocal || new Date().toISOString().slice(0, 10);
-    const supabase = await createClient();
-
     if (email) {
       // 회원: 매일 1회 분석 가능
       const { data: todayData, error: todayError } = await supabase
@@ -336,26 +347,18 @@ export async function POST(req: NextRequest) {
       const recommendation = extractRecommendationSection(result);
       if (recommendation) {
         const ingredients = extractIngredientsFromRecommendation(recommendation);
-        try {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/recommendation`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                analysis_id: null,
-                date: today,
-                content: recommendation,
-                ingredients: ingredients.join(","),
-                status: "pending",
-              }),
-            }
-          );
-        } catch (error: unknown) {
-          console.error(
-            "추천 저장 API 호출 실패:",
-            getErrorMessage(error)
-          );
+        const { error: recommendationInsertError } = await supabase
+          .from("recommendations")
+          .insert({
+            user_id: authData.user!.id,
+            analysis_id: null,
+            date: today,
+            content: recommendation,
+            ingredients: ingredients.join(","),
+            status: "pending",
+          });
+        if (recommendationInsertError) {
+          console.error("추천 저장 실패:", recommendationInsertError);
         }
       }
     }
@@ -409,8 +412,7 @@ export async function POST(req: NextRequest) {
     }
 
     // [실천 여부 자동 판별] 최근 7일 추천 식단 중 ingredients가 모두 포함된 경우 status를 achieved로 업데이트
-    const userRes = await supabase.auth.getUser();
-    const user = userRes.data.user;
+    const user = authData.user;
     if (user) {
       const { data: recs, error: recommendationError } = await supabase
         .from("recommendations")
@@ -503,13 +505,18 @@ export async function GET(req: NextRequest) {
     const meal = searchParams.get("meal");
     const latest = searchParams.get("latest");
     const today = new Date().toISOString().slice(0, 10);
-    const supabase = await createClient();
+    const sessionClient = await createClient();
+    const { data: authData } = await sessionClient.auth.getUser();
+    const supabase = createAdminClient();
+    if (email && !matchesAuthenticatedEmail(authData.user?.email, email)) {
+      return NextResponse.json({ error: "접근 권한이 없습니다." }, { status: 403 });
+    }
 
     // 분석 상세(id) 조회: 가장 먼저 처리
     if (id) {
       const { data, error } = await supabase
         .from("meal_analysis")
-        .select("meal_text, result, analyzed_at, email, source_type")
+        .select("meal_text, result, analyzed_at, email, anon_id, source_type")
         .eq("id", id)
         .maybeSingle();
       if (error) {
@@ -524,6 +531,9 @@ export async function GET(req: NextRequest) {
           userMessage: "요청한 분석 결과를 찾을 수 없습니다.",
           status: 404,
         });
+      }
+      if (!ownsMealAnalysis(authData.user?.email, anon_id, data)) {
+        return NextResponse.json({ error: "Not found" }, { status: 404 });
       }
       // 해당 분석의 추천/보완사항도 함께 조회
       const { data: recommendations, error: recError } = await supabase

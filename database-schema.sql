@@ -22,12 +22,7 @@ CREATE TABLE prompt_results (
 CREATE INDEX idx_prompt_results_created_at ON prompt_results(created_at DESC);
 CREATE INDEX idx_prompt_results_category ON prompt_results(prompt_category);
 CREATE INDEX idx_prompt_results_difficulty ON prompt_results(prompt_difficulty);
--- RLS (Row Level Security) 비활성화 - 모든 사용자가 읽기/쓰기 가능
-ALTER TABLE prompt_results DISABLE ROW LEVEL SECURITY;
-
--- 또는 RLS를 유지하면서 모든 사용자에게 모든 권한을 주는 정책
--- ALTER TABLE prompt_results ENABLE ROW LEVEL SECURITY;
--- CREATE POLICY "Allow all access" ON prompt_results FOR ALL USING (true) WITH CHECK (true);
+-- RLS 정책은 docs/migrations/20260713_enable_rls.sql에서 관리
 
 -- AI 뉴스 저장 테이블
 CREATE TABLE ai_news (
@@ -54,8 +49,7 @@ CREATE INDEX idx_ai_news_url ON ai_news(url);
 CREATE INDEX idx_ai_news_quality_score ON ai_news(quality_score DESC);
 CREATE INDEX idx_ai_news_quality_published ON ai_news(quality_score DESC, published_at DESC);
 
--- RLS (Row Level Security) 비활성화 - 모든 사용자가 읽기/쓰기 가능
-ALTER TABLE ai_news DISABLE ROW LEVEL SECURITY;
+-- RLS 정책은 docs/migrations/20260713_enable_rls.sql에서 관리
 
 -- 아이하루 습관 관리 테이블
 CREATE TABLE iharu_habits (
@@ -152,13 +146,7 @@ CREATE INDEX idx_iharu_goals_user_id ON iharu_goals(user_id);
 CREATE INDEX idx_iharu_diary_user_date ON iharu_diary(user_id, date);
 CREATE INDEX idx_iharu_points_user_id ON iharu_points(user_id);
 
--- 아이하루 RLS 비활성화
-ALTER TABLE iharu_habits DISABLE ROW LEVEL SECURITY;
-ALTER TABLE iharu_habit_logs DISABLE ROW LEVEL SECURITY;
-ALTER TABLE iharu_goals DISABLE ROW LEVEL SECURITY;
-ALTER TABLE iharu_diary DISABLE ROW LEVEL SECURITY;
-ALTER TABLE iharu_rewards DISABLE ROW LEVEL SECURITY;
-ALTER TABLE iharu_points DISABLE ROW LEVEL SECURITY;
+-- 아이하루 RLS 정책은 docs/migrations/20260713_enable_rls.sql에서 관리
 
 -- updated_at 자동 업데이트를 위한 함수
 CREATE OR REPLACE FUNCTION update_updated_at_column()

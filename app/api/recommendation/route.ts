@@ -61,16 +61,20 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
-  const { searchParams } = new URL(req.url);
-  const user_id = searchParams.get("user_id");
-  let data, error;
-  if (user_id) {
-    ({ data, error } = await supabase.rpc("recommendation_stats_by_user", {
-      user_id,
-    }));
-  } else {
-    ({ data, error } = await supabase.rpc("recommendation_stats"));
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return apiError({
+      error: "Unauthorized",
+      userMessage: "로그인이 필요합니다.",
+      status: 401,
+    });
   }
+  const { data, error } = await supabase.rpc("recommendation_stats_by_user", {
+    user_id: user.id,
+  });
   if (error) {
     return apiError({
       error,

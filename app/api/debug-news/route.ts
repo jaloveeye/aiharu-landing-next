@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient as createServerClient } from "@/app/utils/supabase/server";
 import { apiError } from "@/app/utils/apiError";
+import { requireDevelopment } from "@/app/utils/internalApiAuth";
 
 type AiNewsCategoryRow = {
   category: string | null;
@@ -35,7 +36,9 @@ function buildCategoryCounts(rows: AiNewsCategoryRow[]) {
   }, {});
 }
 
-export async function GET() {
+export async function GET(_request: NextRequest) {
+  const unavailable = requireDevelopment();
+  if (unavailable) return unavailable;
   try {
     const supabase = await createServerClient();
 

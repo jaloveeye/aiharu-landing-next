@@ -3,6 +3,7 @@ import { createClient } from "@/app/utils/supabase/server";
 import { createAdminClient } from "@/app/utils/supabase/admin";
 import { encrypt } from "@/app/utils/encryption";
 import { apiError } from "@/app/utils/apiError";
+import { enforceDailyLimit, readJsonBody } from "@/app/utils/requestPolicy";
 
 type ApiHistoryGenerationRequest = {
   type?: string;
@@ -40,10 +41,14 @@ function toErrorString(error: unknown): string | null {
 // 관리자 클라이언트를 사용하여 RLS 정책을 우회하고 저장
 export async function POST(request: NextRequest) {
   try {
+    const limited = await enforceDailyLimit(request, "api-history-generations", 100);
+    if (limited) return limited;
     // 실제 저장은 관리자 클라이언트로 수행 (RLS 우회)
     const adminSupabase = createAdminClient();
 
-    const body = (await request.json()) as ApiHistoryGenerationRequest;
+    const parsed = await readJsonBody<ApiHistoryGenerationRequest>(request, 256 * 1024);
+    if (parsed.error) return parsed.error;
+    const body = parsed.data!;
     const {
       type,
       request: requestData,
@@ -53,7 +58,7 @@ export async function POST(request: NextRequest) {
       apiKey,
     } = body;
 
-    if (!type || !requestData || !responseData) {
+    if (!type || !requestData || !responseData || !apiKey) {
       return apiError({
         error: "Missing required fields",
         userMessage: "필수 필드가 누락되었습니다.",
@@ -103,22 +108,12 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // API 키로 사용자를 찾지 못한 경우 클라이언트의 anonymousId 사용
         if (!apiKeyFound) {
-          console.warn(
-            "API 키로 사용자를 찾을 수 없습니다. 클라이언트의 anonymousId를 사용합니다. API 키:",
-            apiKey.substring(0, 10) + "..."
-          );
-          const clientAnonymousId = body.anonymousId;
-          if (clientAnonymousId) {
-            anonymousId = clientAnonymousId;
-          } else {
-            return apiError({
-              error: "Missing anonymousId",
-              userMessage: "API 키로 사용자를 찾을 수 없고 anonymousId도 없습니다.",
-              status: 400,
-            });
-          }
+          return apiError({
+            error: "Invalid API key",
+            userMessage: "유효하지 않은 API 키입니다.",
+            status: 401,
+          });
         }
       } catch (findUserError) {
         console.error("API 키로 사용자 찾기 실패:", findUserError);
@@ -249,16 +244,6 @@ export async function POST(request: NextRequest) {
       insertData.user_id = null;
     }
 
-    console.log("저장 시도 데이터:", {
-      type: insertData.type,
-      has_user_id: !!insertData.user_id,
-      has_anonymous_id: !!insertData.anonymous_id,
-      user_id: insertData.user_id,
-      anonymous_id: insertData.anonymous_id,
-      success: insertData.success,
-      apiKeyFound: apiKeyFound,
-    });
-
     const { data, error: dbError } = await adminSupabase
       .from("api_generation_history")
       .insert(insertData)
@@ -267,19 +252,6 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.error("Supabase 저장 오류:", dbError);
-      console.error("에러 코드:", dbError.code);
-      console.error("에러 메시지:", dbError.message);
-      console.error("에러 힌트:", dbError.hint);
-      console.error("에러 세부사항:", dbError.details);
-      console.error("저장 시도 데이터:", {
-        type: insertData.type,
-        has_user_id: !!insertData.user_id,
-        has_anonymous_id: !!insertData.anonymous_id,
-        user_id: insertData.user_id,
-        anonymous_id: insertData.anonymous_id,
-        success: insertData.success,
-      });
-      console.error("전체 에러 객체:", JSON.stringify(dbError, null, 2));
       return apiError({
         error: dbError,
         userMessage: "히스토리 저장에 실패했습니다.",

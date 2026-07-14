@@ -1,0 +1,79 @@
+name: External LLM delayed fallback
+
+on:
+  schedule:
+    # Local timers run at 08:30/12:30 KST. These fallbacks run 60 minutes later
+    # and 30 minutes after the original 09:00/13:00 publication targets.
+    - cron: "30 0 * * *"
+    - cron: "30 4 * * *"
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: "수동 fallback 작업"
+        required: true
+        type: choice
+        options:
+          - generate-daily-prompt
+          - collect-ai-news
+
+concurrency:
+  group: external-llm-fallback-${{ github.event.schedule || inputs.operation }}
+  cancel-in-progress: false
+
+jobs:
+  run-fallback:
+    if: github.event_name == 'workflow_dispatch' || vars.EXTERNAL_FALLBACK_ENABLED != 'false'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Resolve operation window
+        id: operation
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_SCHEDULE: ${{ github.event.schedule }}
+          MANUAL_OPERATION: ${{ inputs.operation }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            operation="$MANUAL_OPERATION"
+            executor="manual"
+          elif [[ "$EVENT_SCHEDULE" == "30 0 * * *" ]]; then
+            operation="generate-daily-prompt"
+            executor="external-fallback"
+          else
+            operation="collect-ai-news"
+            executor="external-fallback"
+          fi
+          korea_date="$(TZ=Asia/Seoul date +%F)"
+          if [[ "$operation" == "generate-daily-prompt" ]]; then
+            target_at="${korea_date}T09:00:00+09:00"
+            scheduled_for="${korea_date}T09:30:00+09:00"
+          else
+            target_at="${korea_date}T13:00:00+09:00"
+            scheduled_for="${korea_date}T13:30:00+09:00"
+          fi
+          {
+            echo "operation=$operation"
+            echo "executor=$executor"
+            echo "target_at=$target_at"
+            echo "scheduled_for=$scheduled_for"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Invoke protected operation API
+        env:
+          AIHARU_URL: ${{ secrets.AIHARU_URL }}
+          INTERNAL_API_SECRET: ${{ secrets.INTERNAL_API_SECRET }}
+          OPERATION: ${{ steps.operation.outputs.operation }}
+          EXECUTOR: ${{ steps.operation.outputs.executor }}
+          TARGET_AT: ${{ steps.operation.outputs.target_at }}
+          SCHEDULED_FOR: ${{ steps.operation.outputs.scheduled_for }}
+        run: |
+          set -euo pipefail
+          : "${AIHARU_URL:?AIHARU_URL secret is required}"
+          : "${INTERNAL_API_SECRET:?INTERNAL_API_SECRET secret is required}"
+          curl --silent --show-error --fail-with-body --max-time 1800 --request POST \
+            --header "Authorization: Bearer ${INTERNAL_API_SECRET}" \
+            --header "X-AIHaru-Executor: ${EXECUTOR}" \
+            --header "X-AIHaru-Target-At: ${TARGET_AT}" \
+            --header "X-AIHaru-Scheduled-For: ${SCHEDULED_FOR}" \
+            "${AIHARU_URL%/}/api/${OPERATION}"

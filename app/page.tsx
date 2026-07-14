@@ -1,7 +1,3 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Title, Body } from "@/components/ui/Typography";
-import Button from "@/components/ui/Button";
 import { Metadata } from "next";
 import { commonMetadata } from "@/app/metadata/common";
 import HomeContent from "@/components/HomeContent";
@@ -37,11 +33,6 @@ export default function Home() {
     url: "https://aiharu.net",
     description:
       "아이하루는 AI와 아이의 하루를 모두 담아, 기술과 감성이 어우러진 특별한 일상을 선물합니다.",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: "https://aiharu.net/search?q={search_term_string}",
-      "query-input": "required name=search_term_string",
-    },
     sameAs: ["https://hanip.aiharu.net"],
   };
 
