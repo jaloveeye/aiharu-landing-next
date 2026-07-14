@@ -58,7 +58,11 @@ mkdir -p "$unit_dir"
 for file in "$project_dir"/ops/systemd/*; do
   sed "s|@@PROJECT_DIR@@|$project_dir|g; s|@@ENV_FILE@@|$env_file|g" "$file" >"$unit_dir/$(basename "$file")"
 done
-systemd-analyze --user verify "/aiharu-daily-prompt.service" "/aiharu-daily-prompt.timer" "/aiharu-collect-news.service" "/aiharu-collect-news.timer"
+systemd-analyze --user verify \
+  "$unit_dir/aiharu-daily-prompt.service" \
+  "$unit_dir/aiharu-daily-prompt.timer" \
+  "$unit_dir/aiharu-collect-news.service" \
+  "$unit_dir/aiharu-collect-news.timer"
 systemctl --user daemon-reload
 systemctl --user enable --now aiharu-daily-prompt.timer aiharu-collect-news.timer
 systemctl --user list-timers 'aiharu-*'
