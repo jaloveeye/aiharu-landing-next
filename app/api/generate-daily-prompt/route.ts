@@ -31,6 +31,8 @@ import {
 import { logOperation } from "@/app/utils/operationLog";
 import { summarizeAiCalls, withAiTelemetry } from "@/app/utils/ai/telemetry";
 
+const AI_CONTENT_AUTOMATION_RETIRED = true;
+
 // 프롬프트 생성 후 벡터 저장 함수
 async function savePromptWithEmbedding(promptData: any, aiAnswer: string) {
   try {
@@ -678,6 +680,10 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  if (AI_CONTENT_AUTOMATION_RETIRED) return NextResponse.json(
+    { error: "데일리 프롬프트 생성 기능이 종료되었습니다.", code: "FEATURE_RETIRED" },
+    { status: 410 },
+  );
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
   const context = operationContextFromRequest(request);

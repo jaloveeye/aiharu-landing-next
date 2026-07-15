@@ -5,6 +5,8 @@ import { apiError } from "@/app/utils/apiError";
 import { promptTemplates } from "@/data/prompts";
 import { requireInternalApi } from "@/app/utils/internalApiAuth";
 
+const AI_CONTENT_AUTOMATION_RETIRED = true;
+
 type PromptCategory = "육아" | "육아창업" | "비즈니스마케팅" | "학습교육" | "일상라이프";
 
 const categoryPromptContent: Record<PromptCategory, string> = {
@@ -16,6 +18,10 @@ const categoryPromptContent: Record<PromptCategory, string> = {
 };
 
 export async function POST(request: NextRequest) {
+  if (AI_CONTENT_AUTOMATION_RETIRED) return NextResponse.json(
+    { error: "데일리 프롬프트 생성 기능이 종료되었습니다.", code: "FEATURE_RETIRED" },
+    { status: 410 },
+  );
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
   try {

@@ -136,7 +136,7 @@ export default function AboutPage() {
                         className="text-sm leading-relaxed"
                         style={{ color: "var(--color-on-surface-variant)" }}
                       >
-                        AI 전문 뉴스, 프롬프트, 도구 활용법을 매일 큐레이션하여
+                        AI 도구 활용법과 품질 측정 방법을 정리하여
                         누구나 쉽게 따라할 수 있는 실천 가이드를 제공합니다.
                       </p>
                     </div>
@@ -153,18 +153,6 @@ export default function AboutPage() {
                     }}
                   >
                     AI하루 살펴보기
-                  </Link>
-                  <Link
-                    href="/ai/daily"
-                    className="inline-flex items-center px-6 py-3 border-2 font-semibold transition-colors"
-                    style={{
-                      borderColor: "var(--color-outline)",
-                      color: "var(--color-on-surface)",
-                      backgroundColor: "transparent",
-                      borderRadius: "var(--border-radius-medium)",
-                    }}
-                  >
-                    최신 AI 뉴스 보기
                   </Link>
                 </div>
               </div>

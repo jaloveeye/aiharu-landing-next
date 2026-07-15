@@ -14,6 +14,8 @@ import {
 import { logOperation } from "@/app/utils/operationLog";
 import { summarizeAiCalls, withAiTelemetry } from "@/app/utils/ai/telemetry";
 
+const AI_CONTENT_AUTOMATION_RETIRED = true;
+
 const {
   buildNewsApiUrl,
   buildGNewsUrl,
@@ -439,6 +441,10 @@ async function processCollectedNews(rawNews: any[]): Promise<number> {
 }
 
 export async function POST(request: NextRequest) {
+  if (AI_CONTENT_AUTOMATION_RETIRED) return NextResponse.json(
+    { error: "AI 뉴스 수집 기능이 종료되었습니다.", code: "FEATURE_RETIRED" },
+    { status: 410 },
+  );
   const unauthorized = requireInternalApi(request);
   if (unauthorized) return unauthorized;
   const context = operationContextFromRequest(request);
@@ -538,6 +544,10 @@ export async function POST(request: NextRequest) {
 
 // GET 요청으로 최근 뉴스 조회
 export async function GET(request: NextRequest) {
+  if (AI_CONTENT_AUTOMATION_RETIRED) return NextResponse.json(
+    { error: "AI 뉴스 기능이 종료되었습니다.", code: "FEATURE_RETIRED" },
+    { status: 410 },
+  );
   try {
     // 기본: 최근 뉴스 조회 (모든 뉴스 조회)
     const { getRecentAINews, getAllAINews } = await import("@/app/utils/aiNews");

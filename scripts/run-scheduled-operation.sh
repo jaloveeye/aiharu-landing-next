@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+echo "AIHaru daily prompt and AI news automation has been retired" >&2
+exit 78
+
 operation="${1:-}"
 dry_run="${2:-}"
 case "$operation" in

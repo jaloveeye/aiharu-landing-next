@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
+echo "AIHaru daily prompt and AI news schedules have been retired" >&2
+exit 78
+
 project_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 unit_dir="${XDG_CONFIG_HOME:-$HOME/.config}/systemd/user"
 env_file="${XDG_CONFIG_HOME:-$HOME/.config}/aiharu/scheduled.env"
